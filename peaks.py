@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
+from scipy.fftpack import fft, ifft, fftfreq
 
 
 def get_peaks_and_valleys(heart_rate):
@@ -60,6 +61,53 @@ def plot_peaks_diff(peaks_diff):
     plt.grid(True)
 
 
+def plot_breath(heart_rate):
+
+
+
+    # Extract heart rate and time
+    time = np.arange(len(heart_rate))
+
+
+    n = len(heart_rate)
+    dt = np.mean(np.diff(time))
+
+    frequencies = fftfreq(n, d=dt)
+    fft_values = fft(heart_rate)  # Compute FFT
+
+    resp_band = (frequencies > 0.1) & (frequencies < 0.5)
+    filtered_fft = np.zeros_like(fft_values)
+    filtered_fft[resp_band] = fft_values[resp_band]
+
+    respiratory_signal = np.real(ifft(filtered_fft))
+
+    exhale = np.diff(respiratory_signal) > 0
+    inhale = ~exhale
+
+    # Plot results
+    plt.figure(figsize=(12, 5))
+
+    # Original Heart Rate Signal
+    plt.subplot(1, 2, 1)
+    plt.plot(time, heart_rate, label="Heart Rate (BPM)", color="gray", alpha=0.5)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Heart Rate (BPM)")
+    plt.title("Original Heart Rate Signal")
+    plt.legend()
+
+    # Respiratory Signal with Inhalation & Exhalation Phases
+    plt.subplot(1, 2, 2)
+    plt.plot(time[1:], respiratory_signal[1:], label="Respiratory Signal", color="black", alpha=0.7)
+    plt.scatter(time[1:][inhale], respiratory_signal[1:][inhale], color='red', label="Inhalation")
+    plt.scatter(time[1:][exhale], respiratory_signal[1:][exhale], color='blue', label="Exhalation")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Respiratory Signal")
+    plt.title("Breathing Phases from Heart Rate")
+    plt.legend()
+
+    plt.tight_layout()
+
+
 def plot_all(file):
     df = pd.read_csv(file)
     heart_rate = df['Heart Rate']
@@ -74,6 +122,7 @@ def plot_all(file):
     plot_heart_rate(peaks, valleys, heart_rate)
     plot_peaks_diff(peaks_diff)
 
+    plot_breath(heart_rate)
     plt.show()
 
 
