@@ -42,8 +42,8 @@ def get_peak_diff(peaks, valleys, heart_rate):
 def plot_heart_rate(peaks, valleys, heart_rate):
     plt.figure(1)
     plt.plot(heart_rate, label='Heart Rate Data')
-    plt.plot(peaks, heart_rate[peaks], "x", label='Detected Peaks', color='red')
-    plt.plot(valleys, heart_rate[valleys], "x", label='Detected valleys', color='green')
+    #plt.plot(peaks, heart_rate[peaks], "x", label='Detected Peaks', color='red')
+    #plt.plot(valleys, heart_rate[valleys], "x", label='Detected valleys', color='green')
     plt.xlabel('Time (Index)')
     plt.ylabel('Heart Rate (BPM)')
     plt.title('Heart Rate Data with Detected Peaks')
@@ -66,6 +66,7 @@ def plot_breath(heart_rate):
 
 
     # Extract heart rate and time
+
     time = np.arange(len(heart_rate))
 
 
@@ -84,11 +85,12 @@ def plot_breath(heart_rate):
     exhale = np.diff(respiratory_signal) > 0
     inhale = ~exhale
 
-    # Plot results
-    plt.figure(figsize=(12, 5))
+
+
+    plt.figure(figsize=(6, 10))
 
     # Original Heart Rate Signal
-    plt.subplot(1, 2, 1)
+    plt.subplot(2, 1, 1)
     plt.plot(time, heart_rate, label="Heart Rate (BPM)", color="gray", alpha=0.5)
     plt.xlabel("Time (s)")
     plt.ylabel("Heart Rate (BPM)")
@@ -96,13 +98,23 @@ def plot_breath(heart_rate):
     plt.legend()
 
     # Respiratory Signal with Inhalation & Exhalation Phases
-    plt.subplot(1, 2, 2)
+    plt.subplot(2, 1, 2)
     plt.plot(time[1:], respiratory_signal[1:], label="Respiratory Signal", color="black", alpha=0.7)
     plt.scatter(time[1:][inhale], respiratory_signal[1:][inhale], color='red', label="Inhalation")
     plt.scatter(time[1:][exhale], respiratory_signal[1:][exhale], color='blue', label="Exhalation")
     plt.xlabel("Time (s)")
     plt.ylabel("Respiratory Signal")
     plt.title("Breathing Phases from Heart Rate")
+    plt.legend()
+
+    plt.subplot(3, 1, 3)
+    plt.plot(time, heart_rate, label="Heart Rate (BPM)", color="gray", alpha=0.5)
+
+    plt.scatter(time[1:][inhale], heart_rate[1:][inhale], color='red', label="Inhalation")
+    plt.scatter(time[1:][exhale], heart_rate[1:][exhale], color='blue', label="Exhalation")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Heart Rate (BPM)")
+    plt.title("Breathing Phases from Heart Rate & Heat Rate")
     plt.legend()
 
     plt.tight_layout()
@@ -121,8 +133,8 @@ def plot_all(file):
 
     plot_heart_rate(peaks, valleys, heart_rate)
     plot_peaks_diff(peaks_diff)
-
-    plot_breath(heart_rate)
+    plt.tight_layout()
     plt.show()
+    #plot_breath(heart_rate)
 
 
