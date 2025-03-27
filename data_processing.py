@@ -2,7 +2,7 @@ import pandas as pd
 import ast
 
 def save_data(data, filename):
-    df = pd.DataFrame(data, columns=["time", "heart rate", "R-R"])
+    df = pd.DataFrame(data, columns=["timestamp", "ecg"])
 
     # Save to CSV
     df.to_csv(filename, index=False)

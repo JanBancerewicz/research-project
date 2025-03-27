@@ -6,13 +6,6 @@ import pywt
 import pandas as pd
 
 
-data = pd.read_csv("ecg_data1.csv")
-
-f = data["Timestamp"][0]
-d = data["Timestamp"][len(data["Timestamp"])-1]
-
-print(math.floor((d-f)))
-print(len(data["Timestamp"])/130)
 
 import numpy as np
 import scipy.signal as signal
@@ -128,74 +121,97 @@ def fft_rr_intervals(rr_intervals, fs):
 
     return positive_freqs, positive_rr_fft
 
-timestamps = data["Timestamp"]  # 10 seconds of ECG signal sampled at 1000 Hz
-ecg_values = data["ECG"]  # Example synthetic ECG signal
 
-# Sampling frequency
-fs = 130  # 1000 Hz
-ecg_signal = np.column_stack((timestamps, ecg_values))
+def estimate_breath_rate(rr_intervals, sampling_rate=130):
+    # Convert RR intervals to time series
+    rr_intervals = np.array(rr_intervals)
+    time = np.cumsum(rr_intervals) / sampling_rate  # cumulative sum of RR intervals to get time axis
 
-# 1. Filter the ECG with timestamps
-filtered_signal_with_timestamps = filter_ecg_with_timestamps(ecg_signal, fs)
+    # Perform Fast Fourier Transform (FFT)
+    fft_result = np.fft.fft(rr_intervals)
+    freqs = np.fft.fftfreq(len(rr_intervals), d=1/sampling_rate)  # Frequency axis
 
-# 2. Find R-peaks with timestamps
-r_peaks_with_timestamps = find_r_peaks_values_with_timestamps(ecg_signal, fs)
+    # Only look at the positive frequencies (real component)
+    positive_freqs = freqs[:len(freqs) // 2]
+    positive_fft = np.abs(fft_result[:len(fft_result) // 2])
 
-# 3. Plot the ECG signal with detected R-peaks
+    # Find the peak frequency in the low-frequency band
+    peak_idx = np.argmax(positive_fft)
+    breath_rate = positive_freqs[peak_idx] * 60  # Convert to breaths per minute
 
-plt.figure(figsize=(10, 6))
-plt.plot(timestamps, ecg_values, label="ECG Signal", color="b")
-plt.plot(r_peaks_with_timestamps[:, 0], r_peaks_with_timestamps[:, 1], "ro", label="Detected R-peaks")
-plt.title("ECG Signal with Detected R-peaks")
-plt.xlabel("Time [s]")
-plt.ylabel("Amplitude")
-plt.legend()
+    # Plot the FFT results
+    plt.figure(figsize=(10, 6))
+    plt.plot(positive_freqs, positive_fft)
+    plt.title('FFT of RR intervals')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Amplitude')
+    plt.show()
 
-plt.figure(figsize=(10, 6))
-plt.subplot(3, 1, 1)
-plt.plot(r_peaks_with_timestamps[:, 0], r_peaks_with_timestamps[:, 1],  label="R-peaks")
-plt.title("R")
-plt.xlabel("Time [s]")
-plt.ylabel("Amplitude")
-plt.legend()
+    return breath_rate
 
 
+def plot(data):
+    timestamps = data["timestamp"] / 10 # 10 seconds of ECG signal sampled at 1000 Hz
+    ecg_values = data["ecg"]  # Example synthetic ECG signal
 
-p = r_peaks_with_timestamps[:, 0]
+    # Sampling frequency
+    fs = 130  # 1000 Hz
+    ecg_signal = np.column_stack((timestamps, ecg_values))
 
-x = np.diff(p) / fs / 10000000
+    # 1. Filter the ECG with timestamps
+    filtered_signal_with_timestamps = filter_ecg_with_timestamps(ecg_signal, fs)
 
+    # 2. Find R-peaks with timestamps
+    r_peaks_with_timestamps = find_r_peaks_values_with_timestamps(ecg_signal, fs)
 
+    # 3. Plot the ECG signal with detected R-peaks
 
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, ecg_values, label="ECG Signal", color="b")
+    plt.plot(r_peaks_with_timestamps[:, 0], r_peaks_with_timestamps[:, 1], "ro", label="Detected R-peaks")
+    plt.title("ECG Signal with Detected R-peaks")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.legend()
 
-# 4. Calculate FFT of RR intervals
-freqs, rr_fft = fft_rr_intervals(x, fs)
-plt.subplot(3, 1, 3)
-plt.title("R-R line")
-plt.plot(x, label="R-R")
-plt.legend()
+    plt.figure(figsize=(10, 6))
+    plt.subplot(3, 1, 1)
+    plt.plot(r_peaks_with_timestamps[:, 0], r_peaks_with_timestamps[:, 1], label="R-peaks")
+    plt.title("R")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.legend()
 
+    p = r_peaks_with_timestamps[:, 0]
 
+    x = np.diff(p) / fs
 
-plt.tight_layout()
+    # 4. Calculate FFT of RR intervals
+    freqs, rr_fft = fft_rr_intervals(x, fs)
+    plt.subplot(3, 1, 3)
+    plt.title("R-R line")
+    plt.plot(x, label="R-R")
+    plt.legend()
 
-heart_rate = 60 / x
-plt.figure(figsize=(10, 6))
-plt.plot(heart_rate, label="HR")
-plt.title("Heart Rate")
-plt.xlabel("Time [s]")
-plt.ylabel("bmp")
-plt.legend()
+    plt.tight_layout()
 
-# 5. Plot the FFT of RR intervals
-plt.figure(figsize=(10, 6))
-plt.plot(freqs, rr_fft, label="FFT of RR intervals")
-plt.title("FFT of RR Intervals")
-plt.xlabel("Frequency [Hz]")
-plt.ylabel("Amplitude")
-plt.legend()
+    heart_rate = 60 / x
+    plt.figure(figsize=(10, 6))
+    plt.plot(heart_rate, label="HR")
+    plt.title("Heart Rate")
+    plt.xlabel("Time [s]")
+    plt.ylabel("bmp")
+    plt.legend()
 
+    # 5. Plot the FFT of RR intervals
+    plt.figure(figsize=(10, 6))
+    plt.plot(freqs, rr_fft, label="FFT of RR intervals")
+    plt.title("FFT of RR Intervals")
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Amplitude")
+    plt.legend()
 
+   # b = estimate_breath_rate(x)
+   # print(f"avg breath: {b}")
 
-
-plt.show()
+    plt.show()

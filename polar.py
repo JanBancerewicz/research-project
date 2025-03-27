@@ -1,15 +1,14 @@
 import asyncio
-import time
 
 import numpy as np
-from bleak import BleakScanner, BleakClient
-from matplotlib.animation import FuncAnimation
-
-import R
+from bleak import BleakClient, BleakScanner
+from bleak.backends.characteristic import BleakGATTCharacteristic
 import matplotlib.pyplot as plt
+import struct
 
-HEART_RATE_UUID = "00002a37-0000-1000-8000-00805f9b34fb"
 POLAR_NAME = "Polar H10 D222AF24"
+PMD_CONTROL = "fb005c81-02e7-f387-1cad-8acd2d8df0c8"
+PMD_DATA = "fb005c82-02e7-f387-1cad-8acd2d8df0c8"
 
 async def scan():
     """Scan for BLE devices."""
@@ -21,54 +20,58 @@ async def scan():
             addr = dev.address
     return addr
 
-def notification_handler_wrapper(heart_rate_data, line):
-    return lambda sender, data: notification_handler(sender, data,heart_rate_data,line)
 
-def notification_handler(sender, data, heart_rate_data, line):
-    """Handle incoming heart rate data and save with timestamp."""
-
-    heart_rate = data[1]  # Heart rate in BPM
-    rr_intervals = []
-    timestamp = time.time()
-    if data[0] & 0b00010000:  # Check if RR intervals exist
-        for i in range(2, len(data), 2):
-            rr_interval = int.from_bytes(data[i:i + 2], byteorder="little") / 1024  # Convert to seconds
-            heart_rate_data.append(rr_interval)
-            rr_intervals.append(rr_interval)
-        if len(heart_rate_data) >= 15:
-            breathing_rate = R.calculate_breathing_rate_realtime(heart_rate_data)
-            print(f"Częstotliwość oddechowa: {breathing_rate:.2f} oddechów na minutę")
-            heart_rate_data = heart_rate_data[5:]  # Wyczyść dane po obliczeniu
-    line.append((timestamp, heart_rate, rr_intervals))
-
-    print(f"❤️ Heart Rate: {heart_rate} bpm | ⏱️ R-R Intervals: {rr_intervals}")
-    #heart_rate_data.append((timestamp, rr_intervals, heart_rate))
+def notification_handler_wrapper(ecg):
+    return lambda sender, data: notification_handler(sender, data, ecg)
 
 
+def pmd_control_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
+    hex = [f"{i:02x}" for i in data]
+    print(f"CTRL: {hex}")
 
 
-async def connect_to_polar(address):
-    """Connect to Polar H10 and receive heart rate data."""
-    print("Connecting to Ostap...")
-    heart_rate_data = []
-    line = []
+def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray, ecg):
+    hex = [f"{i:02x}" for i in data]
+    print(f"DATA: {hex}")
+    if data[0] == 0x00:  # 0x00 = ECG
+        i = 9
+        frame_type = data[i]
+        if frame_type == 0:  # 0 = ECG Data
+            i += 1
+            while len(data[i:][0:3]) == 3:
+                ecg.append(int.from_bytes(data[i:][0:2], byteorder='little', signed=True))
+                i += 3
+
+
+async def connect(address):
     async with BleakClient(address) as client:
-        if client.is_connected:
-            print(f"Connected to Ostap ({address})")
-            await client.start_notify(HEART_RATE_UUID, notification_handler_wrapper(heart_rate_data, line))
-            await asyncio.sleep(60)  # Receive data for 60 seconds
-            await client.stop_notify(HEART_RATE_UUID)
-            plt.show()
+        print(f"Connected: {client.is_connected}")
+        ecg = []
+        await client.start_notify(PMD_CONTROL, pmd_control_handler)
+        await client.start_notify(PMD_DATA, notification_handler_wrapper(ecg))
 
+        await client.write_gatt_char(PMD_CONTROL,
+                                     bytearray([0x02, 0x00, 0x00, 0x01, 0x82, 0x00, 0x01, 0x01, 0x0e, 0x00]))
 
+        await asyncio.sleep(60)
 
-            return line
-        else:
-            print("Ostap is broken!")
+        await client.write_gatt_char(PMD_CONTROL, bytearray([0x03, 0x00]))
 
+        await client.stop_notify(PMD_DATA)
+        await client.stop_notify(PMD_CONTROL)
+    return ecg
 
 
 async def get_data():
     """Get data from Polar H10."""
     address = await scan()
-    return await connect_to_polar(address)
+    ecg = await connect(address)
+    n = len(ecg)
+    time = np.arange(0, n * (100 / 13), 100 / 13)
+    data = []
+    for i in range(n):
+        data.append((time[i], ecg[i]))
+    return data
+
+
+plt.show()
