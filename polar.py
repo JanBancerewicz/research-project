@@ -53,7 +53,7 @@ async def connect(address):
         await client.write_gatt_char(PMD_CONTROL,
                                      bytearray([0x02, 0x00, 0x00, 0x01, 0x82, 0x00, 0x01, 0x01, 0x0e, 0x00]))
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(600)
 
         await client.write_gatt_char(PMD_CONTROL, bytearray([0x03, 0x00]))
 
