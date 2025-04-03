@@ -6,20 +6,22 @@ from numeric.rr import filter_ecg_with_timestamps, find_r_peaks_values_with_time
 
 
 def plot(data):
-    timestamps = data["timestamp"] / 10 # 10 seconds of ECG signal sampled at 1000 Hz
+    timestamps = data["timestamp"]  # 10 seconds of ECG signal sampled at 1000 Hz
     ecg_values = data["ecg"]  # Example synthetic ECG signal
 
     # Sampling frequency
     fs = 130  # 1000 Hz
     ecg_signal = np.column_stack((timestamps, ecg_values))
 
+    f = filter_ecg_with_timestamps(ecg_signal, fs)
+
     # 2. Find R-peaks with timestamps
-    r_peaks_with_timestamps = find_r_peaks_values_with_timestamps(ecg_signal, fs)
+    r_peaks_with_timestamps = find_r_peaks_values_with_timestamps(f, fs)
 
     # 3. Plot the ECG signal with detected R-peaks
 
     plt.figure(figsize=(10, 6))
-    plt.plot(timestamps, ecg_values, label="ECG Signal", color="b")
+    plt.plot(timestamps, f[:,1], label="ECG Signal", color="b")
 
 
 
@@ -39,7 +41,7 @@ def plot(data):
 
     p = r_peaks_with_timestamps[:, 0]
 
-    x = np.diff(p) / fs
+    x = np.diff(p)
 
     # 4. Calculate FFT of RR intervals
     freqs, rr_fft = fft_rr_intervals(x, fs)
@@ -50,13 +52,14 @@ def plot(data):
 
     plt.tight_layout()
 
-    heart_rate = 60 / x
+    heart_rate = 60000 / x
     plt.figure(figsize=(10, 6))
     plt.plot(heart_rate, label="HR")
     plt.title("Heart Rate")
     plt.xlabel("Time [s]")
     plt.ylabel("bmp")
     plt.legend()
+
 
     # 5. Plot the FFT of RR intervals
     plt.figure(figsize=(10, 6))
