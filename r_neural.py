@@ -51,7 +51,10 @@ def main():
     s = []
     t = []
     r = []
-    for i in range(len(test_signals)):
+
+    t_t = []
+    r_t = []
+    for i in range(20):
         sig = test_signals[i]
         prediction = predict(device, model, sig)
         for v in sig:
@@ -64,10 +67,20 @@ def main():
             if prediction[j] == 1:
                 t.append(j + i*256)
                 r.append(sig[j])
+            if test_labels[i][j] == 1:
+                t_t.append(j + i*256)
+                r_t.append(sig[j])
 
     plt.plot(s)
     plt.plot(t, r, "ro", label="Detected R-peaks")
+
+    plt.figure()
+    plt.plot(s)
+    plt.plot(t_t, r_t, "ro", label="Detected R-peaks")
     plt.show()
+
+
+
 
 
 
