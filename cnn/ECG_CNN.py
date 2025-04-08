@@ -35,7 +35,7 @@ class ECG_CNN(nn.Module):
         x = self.dropout(x)
         x = self.fc2(x)
 
-        return x  # Output shape: (batch_size, window_size)
+        return x
 
 # class ECG_CNN(nn.Module):
 #     def __init__(self, window_size=256):
