@@ -16,7 +16,7 @@ def predict(device, model, sample):
     with torch.no_grad():
         output = model(sample).squeeze(0)
         prediction = torch.sigmoid(output)
-        binary_output = (prediction > 0.5).float().cpu().numpy()
+        binary_output = (prediction > 0.25).float().cpu().numpy()
     return binary_output
 
 
@@ -32,12 +32,11 @@ def get_model(device):
         return init_model()
 
 def main():
-    global sig
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     model = get_model(device)
 
-    df = pd.read_csv("data/R6.csv")  # Replace with your file path
+    df = pd.read_csv( "data/g4_R0.csv")  # Replace with your file path
 
     test_signals = np.array(split_into_chunks(df['ecg'].to_numpy()), dtype=np.float32)
     test_labels = np.array(split_into_chunks(df['R'].to_numpy()), dtype=np.float32)
@@ -46,8 +45,36 @@ def main():
 
     test_dataset = TensorDataset(torch.tensor(test_signals).unsqueeze(1), torch.tensor(test_labels))
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    correct = 0
+    all_pred = 0
+    all_peaks = 0
+    missed = 0
+    for i in range(len(test_signals)):
+        sig = test_signals[i]
+        prediction = predict(device, model, sig)
+        for j in range(len(prediction)):
+            if prediction[j] == test_labels[i][j] and test_labels[i][j] == 1:
+                correct += 1
+            if test_labels[i][j] == 1:
+                all_peaks += 1
+            if prediction[j] == 1:
+                all_pred += 1
+            if prediction[j] == 0 and test_labels[i][j] == 1:
+                missed += 1
+
+    p = correct / all_peaks * 100
+    p2 = max( (all_pred / all_peaks * 100) - 100, 0)
+    p3 = missed / all_peaks * 100
+
+    print(f"Accuracy: {p:.2f}%")
+    print(f"Additional: {p2:.2f}%")
+    print(f"Missed: {p3:.2f}%")
+    plot_ecg(device, model, test_signals, test_labels)
 
 
+
+
+def plot_ecg(device, model, test_signals, test_labels):
     s = []
     t = []
     r = []
@@ -60,7 +87,6 @@ def main():
         for v in sig:
             s.append(v)
 
-        print(f"Predykcja dla przykładowego sygnału:\n{len(prediction)}")
 
 
         for j in range(len(prediction)):

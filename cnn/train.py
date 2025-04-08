@@ -22,12 +22,12 @@ def train_model(model, train_loader, criterion, optimizer, epochs=20):
             loss.backward()
             optimizer.step()
 
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.6f}")
 
 def init_model():
     model = ECG_CNN().to(device)
     criterion = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
     train_signals = np.empty((0, 256), dtype=np.float32)
     train_labels = np.empty((0, 256), dtype=np.float32)
@@ -43,6 +43,9 @@ def init_model():
         "data/night_R9.csv",
         "data/R4.csv",
         "data/R5.csv",
+        "data/g1_R0.csv",
+        "data/g2_R0.csv",
+        "data/g3_R0.csv",
     ]
     for p in paths:
         df = pd.read_csv(p)  # Replace with your file path
@@ -54,6 +57,6 @@ def init_model():
     train_dataset = TensorDataset(torch.tensor(train_signals).unsqueeze(1), torch.tensor(train_labels))
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-    train_model(model, train_loader, criterion, optimizer, epochs=40)
+    train_model(model, train_loader, criterion, optimizer, epochs=100)
     torch.save(model.state_dict(), MODEL_PATH)
     return model

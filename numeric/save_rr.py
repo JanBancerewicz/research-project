@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from numeric.rr import find_r_peaks_values_with_timestamps
+from numeric.rr import find_r_peaks_values_with_timestamps, filter_ecg_with_timestamps
 
 
 def extract_r_indexes(data):
@@ -10,6 +10,7 @@ def extract_r_indexes(data):
 
     fs = 130
     ecg_signal = np.column_stack((timestamps, ecg_values))
+    #f = filter_ecg_with_timestamps(ecg_signal, fs)
 
     r_peaks_with_timestamps = find_r_peaks_values_with_timestamps(ecg_signal, fs)
 

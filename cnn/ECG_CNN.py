@@ -3,10 +3,13 @@ from torch import nn
 import torch.nn.functional as F
 
 MODEL_PATH = "cnn/ecgcnn.pth"
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 class ECG_CNN(nn.Module):
-    def __init__(self, window_size=256, dropout_prob=0.5):
+    def __init__(self, window_size=256, dropout_prob=0.3, lstm_hidden_size=64, lstm_layers=1):
         super(ECG_CNN, self).__init__()
 
         self.conv1 = nn.Conv1d(1, 16, kernel_size=5, stride=1, padding=2)
@@ -18,24 +21,78 @@ class ECG_CNN(nn.Module):
         self.conv3 = nn.Conv1d(32, 64, kernel_size=3, stride=1, padding=1)
         self.bn3 = nn.BatchNorm1d(64)
 
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-        self.dropout = nn.Dropout(dropout_prob)
+        self.conv4 = nn.Conv1d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.bn4 = nn.BatchNorm1d(128)
 
-        flattened_size = (window_size // 8) * 64
-        self.fc1 = nn.Linear(flattened_size, 128)
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
+        #self.dropout = nn.Dropout(dropout_prob)
+
+        # After 3 pooling layers, sequence length is divided by 8
+        self.lstm_input_size = 128  # from conv3 output channels
+        self.lstm_hidden_size = lstm_hidden_size*2
+
+        self.lstm = nn.LSTM(
+            input_size=self.lstm_input_size,
+            hidden_size=self.lstm_hidden_size,
+            num_layers=lstm_layers,
+            batch_first=True,
+            bidirectional=False
+        )
+
+        # Fully connected layers
+        self.fc1 = nn.Linear((window_size // 8) * lstm_hidden_size, 128)
         self.fc2 = nn.Linear(128, window_size)
 
     def forward(self, x):
-        x = self.pool(F.leaky_relu(self.bn1(self.conv1(x))))
-        x = self.pool(F.leaky_relu(self.bn2(self.conv2(x))))
-        x = self.pool(F.leaky_relu(self.bn3(self.conv3(x))))
+        # x: [batch_size, 1, window_size]
+        x = self.pool(F.leaky_relu(self.bn1(self.conv1(x))))  # -> [B, 16, L/2]
+        x = self.pool(F.leaky_relu(self.bn2(self.conv2(x))))  # -> [B, 32, L/4]
+        x = self.pool(F.leaky_relu(self.bn3(self.conv3(x))))  # -> [B, 64, L/8]
+        x = self.pool(F.leaky_relu(self.bn4(self.conv4(x))))  # -> [B, 64, L/8]
 
-        x = x.view(x.size(0), -1)
+
+        x = x.permute(0, 2, 1)  # [B, L/8, 64] -> for LSTM: [batch, seq_len, input_size]
+        x, _ = self.lstm(x)     # -> [B, L/8, hidden_size]
+
+        x = x.contiguous().view(x.size(0), -1)  # Flatten
         x = F.leaky_relu(self.fc1(x))
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.fc2(x)
 
         return x
+
+
+# class ECG_CNN(nn.Module):
+#     def __init__(self, window_size=256, dropout_prob=0.5):
+#         super(ECG_CNN, self).__init__()
+#
+#         self.conv1 = nn.Conv1d(1, 16, kernel_size=5, stride=1, padding=2)
+#         self.bn1 = nn.BatchNorm1d(16)
+#
+#         self.conv2 = nn.Conv1d(16, 32, kernel_size=5, stride=1, padding=2)
+#         self.bn2 = nn.BatchNorm1d(32)
+#
+#         self.conv3 = nn.Conv1d(32, 64, kernel_size=3, stride=1, padding=1)
+#         self.bn3 = nn.BatchNorm1d(64)
+#
+#         self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
+#         self.dropout = nn.Dropout(dropout_prob)
+#
+#         flattened_size = (window_size // 8) * 64
+#         self.fc1 = nn.Linear(flattened_size, 128)
+#         self.fc2 = nn.Linear(128, window_size)
+#
+#     def forward(self, x):
+#         x = self.pool(F.leaky_relu(self.bn1(self.conv1(x))))
+#         x = self.pool(F.leaky_relu(self.bn2(self.conv2(x))))
+#         x = self.pool(F.leaky_relu(self.bn3(self.conv3(x))))
+#
+#         x = x.view(x.size(0), -1)
+#         x = F.leaky_relu(self.fc1(x))
+#         x = self.dropout(x)
+#         x = self.fc2(x)
+#
+#         return x
 
 # class ECG_CNN(nn.Module):
 #     def __init__(self, window_size=256):
