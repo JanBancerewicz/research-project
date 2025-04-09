@@ -6,7 +6,7 @@ import polar
 from numeric.save_rr import extract_r_indexes, save_csv
 
 
-DATA_FILENAME = "data/ECG7.csv"
+DATA_FILENAME = "data/g2_ECG0.csv"
 R_FILENAME = "data/R_7.csv"
 RUN_POLAR = True
 #True for long measure
@@ -31,9 +31,9 @@ async def get_data(file, file_r):
 async def main():
 
    long_measure_b = False
-   lm = input("Long Measure? (y/n): ")
-   if lm == "y":
-      long_measure_b = True
+   # lm = input("Long Measure? (y/n): ")
+   # if lm == "y":
+   #    long_measure_b = True
 
 
    if long_measure_b:
@@ -42,8 +42,10 @@ async def main():
       label = input("File label: ")
       await long_measure(times, label)
    else:
-      data, _ = await get_data(DATA_FILENAME, R_FILENAME)
+      data = pd.read_csv(DATA_FILENAME)
+
       p.plot(data)
+
 
 
 asyncio.run(main())
