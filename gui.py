@@ -12,7 +12,7 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from r_neural import get_model
+from r_neural import get_model, predict
 
 SAMPLE_INTERVAL_MS = 100 / 13
 POLAR_NAME = "Polar H10 D222AF24"
@@ -20,6 +20,7 @@ PMD_CONTROL = "fb005c81-02e7-f387-1cad-8acd2d8df0c8"
 PMD_DATA = "fb005c82-02e7-f387-1cad-8acd2d8df0c8"
 
 ecg_data = []
+ecg_window = []
 lock = threading.Lock()
 
 
@@ -40,7 +41,9 @@ def handle_ecg_data(_: BleakGATTCharacteristic, data: bytearray):
             while len(data[i:]) >= 3:
                 with lock:
                     ecg_data.append(int.from_bytes(data[i:i+2], byteorder='little', signed=True))
+                    ecg_window.append(int.from_bytes(data[i:i+2], byteorder='little', signed=True))
                 i += 3
+
 
 
 async def connect_and_stream(address: str):
@@ -71,6 +74,7 @@ def start_ble_thread():
 async def main_async():
     address = await scan_for_device()
     await connect_and_stream(address)
+
 
 
 
@@ -105,11 +109,11 @@ class ECGApp:
         self.breath_regions = []  # (start_index, end_index, state)
         self.current_breath_state = None
         self.current_breath_start = None
+        self.r_peaks = []
         root.title("Live ECG Viewer")
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-        self.model = get_model(device)
+        self.model = get_model(self.device)
 
         # --- Button Frame ---
         btn_frame = tk.Frame(root)
@@ -154,6 +158,20 @@ class ECGApp:
 
         with lock:
             new_data = ecg_data[self.last_index:]
+            if len(ecg_window) >= 256:
+                rest = []
+                if len(ecg_window) > 256:
+                    rest = ecg_window[256:]
+                print(len(ecg_window[:256]))
+                d = predict(self.device, self.model, np.array(ecg_window[:256],  dtype=np.float32))
+                for i in d:
+                    self.r_peaks.append(i)
+                ecg_window.clear()
+                for i in rest:
+                    ecg_window.append(i)
+
+
+
 
             ##PRINT IF PRESSED DO IT
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
@@ -187,6 +205,28 @@ class ECGApp:
         if len(full_data) >= 2:
             y = np.array(full_data)
             x = np.arange(len(ecg_data))[-len(y):] * SAMPLE_INTERVAL_MS
+
+            # Remove previous dots if present
+
+            r_temp = self.r_peaks.copy()
+            for i in range(len(ecg_data) - len(r_temp)):
+                r_temp.append(0)
+            if hasattr(self, "r_peak_dots"):
+                self.r_peak_dots.remove()
+
+            # Get the most recent r_peaks for current visible window
+            r_peaks_visible = r_temp[-len(y):] if len(r_temp) >= len(y) else [0] * (
+                        len(y) - len(r_temp)) + r_temp
+
+            # Indices of peaks in current window
+            r_peak_indices = [i for i, val in enumerate(r_peaks_visible) if val == 1]
+
+            # Get x and y positions of peaks
+            r_peak_x = [x[i] for i in r_peak_indices]
+            r_peak_y = [y[i] for i in r_peak_indices]
+
+            # Plot as red dots
+            self.r_peak_dots = self.ax.scatter(r_peak_x, r_peak_y, color='red', s=30, zorder=5)
 
             self.line.set_xdata(x)
             self.line.set_ydata(y)
