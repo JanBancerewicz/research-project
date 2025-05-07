@@ -6,8 +6,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 
-from cnn.ECG_CNN import split_into_chunks, MODEL_PATH, ECG_CNN
-from cnn.train import init_model
+from cnn.ecg.ECG_CNN import split_into_chunks, MODEL_PATH, ECG_CNN
+from cnn.ecg.train import init_model
 
 
 def predict(device, model, sample):
@@ -16,7 +16,7 @@ def predict(device, model, sample):
     with torch.no_grad():
         output = model(sample).squeeze(0)
         prediction = torch.sigmoid(output)
-        binary_output = (prediction > 0.25).float().cpu().numpy()
+        binary_output = (prediction > 0.5).float().cpu().numpy()
     return binary_output
 
 
@@ -36,7 +36,7 @@ def main():
 
     model = get_model(device)
 
-    df = pd.read_csv( "data/g4_R0.csv")  # Replace with your file path
+    df = pd.read_csv( "data/r/R19.csv")  # Replace with your file path
 
     test_signals = np.array(split_into_chunks(df['ecg'].to_numpy()), dtype=np.float32)
     test_labels = np.array(split_into_chunks(df['R'].to_numpy()), dtype=np.float32)

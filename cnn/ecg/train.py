@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
-from cnn.ECG_CNN import ECG_CNN, split_into_chunks, MODEL_PATH
+from cnn.ecg.ECG_CNN import ECG_CNN, split_into_chunks, MODEL_PATH
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -32,20 +32,22 @@ def init_model():
     train_signals = np.empty((0, 256), dtype=np.float32)
     train_labels = np.empty((0, 256), dtype=np.float32)
     paths = [
-        "data/night_R0.csv",
-        "data/night_R1.csv",
-        "data/night_R2.csv",
-        "data/night_R3.csv",
-        "data/night_R4.csv",
-        "data/night_R5.csv",
-        "data/night_R7.csv",
-        "data/night_R8.csv",
-        "data/night_R9.csv",
-        "data/R4.csv",
-        "data/R5.csv",
-        "data/g1_R0.csv",
-        "data/g2_R0.csv",
-        "data/g3_R0.csv",
+        "data/r/R1.csv",
+        "data/r/R2.csv",
+        "data/r/R3.csv",
+        "data/r/R4.csv",
+        "data/r/R5.csv",
+        "data/r/R6.csv",
+        "data/r/R7.csv",
+        "data/r/R8.csv",
+        "data/r/R10.csv",
+        "data/r/R11.csv",
+        "data/r/R12.csv",
+        "data/r/R13.csv",
+        "data/r/R15.csv",
+        "data/r/R16.csv",
+        "data/r/R17.csv",
+        "data/r/R18.csv"
     ]
     for p in paths:
         df = pd.read_csv(p)  # Replace with your file path
@@ -57,6 +59,6 @@ def init_model():
     train_dataset = TensorDataset(torch.tensor(train_signals).unsqueeze(1), torch.tensor(train_labels))
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-    train_model(model, train_loader, criterion, optimizer, epochs=100)
+    train_model(model, train_loader, criterion, optimizer, epochs=20)
     torch.save(model.state_dict(), MODEL_PATH)
     return model
