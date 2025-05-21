@@ -84,7 +84,7 @@ async def main_async():
 
 
 def save_csv(data):
-    columns = ['rmssd', 'sdnn', 'hr', 'edr_mean', 'rr_slope' 'breath_state']
+    columns = ['rmssd', 'sdnn', 'hr', 'edr_mean', 'rr_slope', 'breath_state']
 
     df = pd.DataFrame(data, columns=columns)
     df.to_csv(CSV_DATA, index=False)
