@@ -78,5 +78,5 @@ class ECGProcessor:
             rsa_ln = np.log(hf_power) if hf_power > 0 else float('-inf')
             return rsa_ln, hf_power
         except:
-            return 0
+            return 0, 0
 

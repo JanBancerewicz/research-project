@@ -20,6 +20,10 @@ POLAR_NAME = "Polar H10 D222AF24"
 PMD_CONTROL = "fb005c81-02e7-f387-1cad-8acd2d8df0c8"
 PMD_DATA = "fb005c82-02e7-f387-1cad-8acd2d8df0c8"
 
+
+#CHANGE FILE TO SAVE OUTPUT
+CSV_DATA = "data.csv"
+
 ecg_data = []
 ecg_window = []
 lock = threading.Lock()
@@ -79,29 +83,12 @@ async def main_async():
 
 
 
-def save_csv(ecg, breath):
-    timestamp = np.linspace(0, len(ecg)*SAMPLE_INTERVAL_MS, len(ecg))
+def save_csv(data):
 
-    # Close off the last breath region
-    last_b = breath[-1]
-    breath.append([last_b[1], len(ecg), "inhale" if last_b[2] == "exhale" else "exhale"])
+    columns = ['rmssd', 'sdnn', 'rsa', 'hr', 'breath_state']
 
-    # Build full breath label list
-    b = []
-    for i in breath:
-        for j in range(i[0], i[1]):
-            b.append(i[2])
-
-    # Make sure lengths match before saving
-    min_len = min(len(timestamp), len(ecg), len(b))
-    data = {
-        "timestamp": timestamp[:min_len],
-        "ecg": ecg[:min_len],
-        "breath": b[:min_len],
-    }
-
-    df = pd.DataFrame(data)
-    df.to_csv("ecg.csv", index=False)
+    df = pd.DataFrame(data, columns=columns)
+    df.to_csv(CSV_DATA, index=False)
 
 # GUI Class
 class ECGApp:
@@ -112,7 +99,7 @@ class ECGApp:
         self.current_breath_start = None
         self.r_peaks = []
         self.r_peaks_times = []
-
+        self.ecg_metadata = []
         self.r_peak_x = []
         self.idx = 0
         self.processor = ECGProcessor()
@@ -180,7 +167,6 @@ class ECGApp:
                 for idx, s in enumerate(d):
                     if s == 1:
                         r_val.append(self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS)
-                print(np.diff(r_val)[-1], "RVALLLLLLLLLLLLLLLLL")
                 for i in d:
                     self.r_peaks.append(i)
                 ecg_window.clear()
@@ -197,6 +183,12 @@ class ECGApp:
                     f"HR: {features['hr']:.2f} bpm"
                 )
                 self.label.config(text=label_text)
+                print(self.current_breath_state)
+                if features['rsa'] != -float('inf'):
+                    self.ecg_metadata.append(
+                        [features['rmssd'], features['sdnn'], features['rsa'], features['hr'],
+                         self.current_breath_state]
+                    )
             ##PRINT IF PRESSED DO IT
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
             if new_state != self.current_breath_state:
@@ -273,7 +265,12 @@ class ECGApp:
         self.start_btn.config(state=tk.NORMAL)
         self.stop_btn.config(state=tk.DISABLED)
 
-        save_csv(ecg_data, self.breath_regions)
+        print("--------------------------------")
+        print("STREAM STOPPED")
+        print("len meta", len(self.ecg_metadata))
+
+
+        save_csv(self.ecg_metadata)
 
 
 
