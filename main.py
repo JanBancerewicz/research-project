@@ -30,7 +30,7 @@ async def get_data(file, file_r):
 
 async def main():
 
-   long_measure_b = False
+   long_measure_b = True
    # lm = input("Long Measure? (y/n): ")
    # if lm == "y":
    #    long_measure_b = True

@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
-
+import os
 from cnn.ecg.ECG_CNN import ECG_CNN, split_into_chunks, MODEL_PATH
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -31,26 +31,9 @@ def init_model():
 
     train_signals = np.empty((0, 256), dtype=np.float32)
     train_labels = np.empty((0, 256), dtype=np.float32)
-    paths = [
-        "data/r/R1.csv",
-        "data/r/R2.csv",
-        "data/r/R3.csv",
-        "data/r/R4.csv",
-        "data/r/R5.csv",
-        "data/r/R6.csv",
-        "data/r/R7.csv",
-        "data/r/R8.csv",
-        "data/r/R10.csv",
-        "data/r/R11.csv",
-        "data/r/R12.csv",
-        "data/r/R13.csv",
-        "data/r/R15.csv",
-        "data/r/R16.csv",
-        "data/r/R17.csv",
-        "data/r/R18.csv"
-    ]
+    paths = get_csv_file_paths("./data/r")
     for p in paths:
-        df = pd.read_csv(p)  # Replace with your file path
+        df = pd.read_csv(p)
         train_signal = np.array(split_into_chunks(df['ecg'].to_numpy()), dtype=np.float32)
         train_label = np.array(split_into_chunks(df['R'].to_numpy()), dtype=np.float32)
         train_signals = np.concatenate((train_signals, train_signal))
@@ -62,3 +45,11 @@ def init_model():
     train_model(model, train_loader, criterion, optimizer, epochs=20)
     torch.save(model.state_dict(), MODEL_PATH)
     return model
+
+def get_csv_file_paths(directory):
+    csv_file_paths = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.csv'):
+                csv_file_paths.append(os.path.join(root, file))
+    return csv_file_paths

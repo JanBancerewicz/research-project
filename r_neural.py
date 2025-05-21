@@ -104,10 +104,3 @@ def plot_ecg(device, model, test_signals, test_labels):
     plt.plot(s)
     plt.plot(t_t, r_t, "ro", label="Detected R-peaks")
     plt.show()
-
-
-
-
-
-
-main()

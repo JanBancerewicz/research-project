@@ -111,7 +111,9 @@ class ECGApp:
         self.current_breath_start = None
         self.r_peaks = []
         root.title("Live ECG Viewer")
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        print(f"Using device: {device}")
+        self.device = torch.device(device)
 
         self.model = get_model(self.device)
 
