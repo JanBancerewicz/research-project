@@ -27,6 +27,7 @@ def get_model(device):
         model = ECG_CNN().to(device)
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
+        print("MODEL LOADED")
         return model
     else:
         return init_model()

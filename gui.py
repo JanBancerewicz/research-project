@@ -1,8 +1,8 @@
 import asyncio
 import threading
 import time
+from pyexpat import features
 from tkinter import ttk
-
 import numpy as np
 import pandas as pd
 import torch
@@ -12,6 +12,7 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from ecg_calc import ECGProcessor
 from r_neural import get_model, predict
 
 SAMPLE_INTERVAL_MS = 100 / 13
@@ -110,6 +111,11 @@ class ECGApp:
         self.current_breath_state = None
         self.current_breath_start = None
         self.r_peaks = []
+        self.r_peaks_times = []
+
+        self.r_peak_x = []
+        self.idx = 0
+        self.processor = ECGProcessor()
         root.title("Live ECG Viewer")
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         print(f"Using device: {device}")
@@ -128,6 +134,9 @@ class ECGApp:
         self.stop_btn.pack(side=tk.LEFT, padx=5)
 
         self.breath_state_v = tk.BooleanVar(value=False)
+
+        self.label = tk.Label(root, text="Waiting for data...", font=("Helvetica", 14))
+        self.label.pack(pady=10)
 
         self.breath = ttk.Checkbutton(
             btn_frame,
@@ -157,6 +166,7 @@ class ECGApp:
     def update_plot(self):
         if not self.running:
             return
+        r_val = []
 
         with lock:
             new_data = ecg_data[self.last_index:]
@@ -166,6 +176,11 @@ class ECGApp:
                     rest = ecg_window[256:]
                 print(len(ecg_window[:256]))
                 d = predict(self.device, self.model, np.array(ecg_window[:256],  dtype=np.float32))
+                self.idx+=1
+                for idx, s in enumerate(d):
+                    if s == 1:
+                        r_val.append(self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS)
+                print(np.diff(r_val)[-1], "RVALLLLLLLLLLLLLLLLL")
                 for i in d:
                     self.r_peaks.append(i)
                 ecg_window.clear()
@@ -173,8 +188,15 @@ class ECGApp:
                     ecg_window.append(i)
 
 
-
-
+            features = self.processor.add_sample(np.diff(r_val))
+            if features:
+                label_text = (
+                    f"RMSSD: {features['rmssd']:.2f} ms\n"
+                    f"SDNN: {features['sdnn']:.2f} ms\n"
+                    f"RSA: {features['rsa']:.2f} ms^2\n"
+                    f"HR: {features['hr']:.2f} bpm"
+                )
+                self.label.config(text=label_text)
             ##PRINT IF PRESSED DO IT
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
             if new_state != self.current_breath_state:
@@ -220,15 +242,18 @@ class ECGApp:
             r_peaks_visible = r_temp[-len(y):] if len(r_temp) >= len(y) else [0] * (
                         len(y) - len(r_temp)) + r_temp
 
+
             # Indices of peaks in current window
             r_peak_indices = [i for i, val in enumerate(r_peaks_visible) if val == 1]
 
             # Get x and y positions of peaks
-            r_peak_x = [x[i] for i in r_peak_indices]
+            self.r_peak_x = [x[i] for i in r_peak_indices]
+
+
             r_peak_y = [y[i] for i in r_peak_indices]
 
             # Plot as red dots
-            self.r_peak_dots = self.ax.scatter(r_peak_x, r_peak_y, color='red', s=30, zorder=5)
+            self.r_peak_dots = self.ax.scatter(self.r_peak_x, r_peak_y, color='red', s=30, zorder=5)
 
             self.line.set_xdata(x)
             self.line.set_ydata(y)
