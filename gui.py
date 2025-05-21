@@ -84,8 +84,7 @@ async def main_async():
 
 
 def save_csv(data):
-
-    columns = ['rmssd', 'sdnn', 'rsa', 'hr', 'breath_state']
+    columns = ['rmssd', 'sdnn', 'hr', 'edr_mean', 'rr_slope' 'breath_state']
 
     df = pd.DataFrame(data, columns=columns)
     df.to_csv(CSV_DATA, index=False)
@@ -154,19 +153,20 @@ class ECGApp:
         if not self.running:
             return
         r_val = []
-
+        r_amp = []
         with lock:
             new_data = ecg_data[self.last_index:]
             if len(ecg_window) >= 256:
                 rest = []
                 if len(ecg_window) > 256:
                     rest = ecg_window[256:]
-                print(len(ecg_window[:256]))
+
                 d = predict(self.device, self.model, np.array(ecg_window[:256],  dtype=np.float32))
                 self.idx+=1
                 for idx, s in enumerate(d):
                     if s == 1:
                         r_val.append(self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS)
+                        r_amp.append(ecg_window[:256][idx])
                 for i in d:
                     self.r_peaks.append(i)
                 ecg_window.clear()
@@ -174,21 +174,21 @@ class ECGApp:
                     ecg_window.append(i)
 
 
-            features = self.processor.add_sample(np.diff(r_val))
+            features = self.processor.add_sample(np.diff(r_val), r_amp)
             if features:
                 label_text = (
                     f"RMSSD: {features['rmssd']:.2f} ms\n"
                     f"SDNN: {features['sdnn']:.2f} ms\n"
-                    f"RSA: {features['rsa']:.2f} ms^2\n"
-                    f"HR: {features['hr']:.2f} bpm"
+                    f"EDG: {features['edr_mean']:.2f}\n"
+                    f"HR: {features['hr']:.2f} bpm\n"
+                    f"RR_SLOPE: {features['rr_slope']:.2f} bpm\n"
                 )
                 self.label.config(text=label_text)
                 print(self.current_breath_state)
-                if features['rsa'] != -float('inf'):
-                    self.ecg_metadata.append(
-                        [features['rmssd'], features['sdnn'], features['rsa'], features['hr'],
-                         self.current_breath_state]
-                    )
+                self.ecg_metadata.append(
+                    [features['rmssd'], features['sdnn'], features['hr'], features['edr_mean'], features['rr_slope'],
+                     self.current_breath_state]
+                )
             ##PRINT IF PRESSED DO IT
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
             if new_state != self.current_breath_state:

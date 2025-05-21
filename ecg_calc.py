@@ -8,28 +8,67 @@ from scipy.signal import welch
 class ECGProcessor:
     def __init__(self, rr_buffer_size=5):
         self.rr_intervals = []
+        self.r_ampl = []
+        self.hr_history = []
 
-    def add_sample(self, rr):
+    def add_sample(self, rr, r_amp):
         """Dodaj nowy odstęp RR (w milisekundach) i oblicz cechy HRV."""
-        for i in rr:
+        for idx, i in enumerate(rr):
             if 300 < i <= 1000:
                 self.rr_intervals.append(i)
-        if len(self.rr_intervals) > 30:
-            self.rr_intervals = self.rr_intervals[len(self.rr_intervals)-30:]
+                self.r_ampl.append(r_amp[idx])
+        if len(self.rr_intervals) > 20:
+            self.rr_intervals = self.rr_intervals[5:]
+            self.r_ampl = self.r_ampl[5:]
 
         if len(self.rr_intervals) < 3:
             return {}
 
         rr = np.array(self.rr_intervals)
-        rsa, hf = self.compute_rsa_from_rr(rr)
+        if len(self.hr_history) > 1:
+            h = 60000.0 / np.mean(rr) if np.mean(rr) > 0 else 0.0
+            if self.hr_history[-1] != h:
+                self.hr_history.append(h)
+
+        hr_slope = self.hr_history[-1] - self.hr_history[-2] if len(self.hr_history) >= 2 else 0.0
+
         return {
             'rmssd': self.compute_rmssd(rr),
             'sdnn': self.compute_sdnn(rr),
-            'rsa': rsa,
-            'hf': hf,
-            'hr': 60000.0 / np.mean(rr) if np.mean(rr) > 0 else 0.0
+            'edr_mean': self.compute_edr_mean(self.r_ampl),
+            'hr': 60000.0 / np.mean(rr) if np.mean(rr) > 0 else 0.0,
+            'rr_slope': np.diff(rr)[-1],
         }
 
+    def compute_lf_hf(self, rr_intervals, fs=4.0):
+        """
+        Oblicza moce LF i HF oraz stosunek LF/HF na podstawie RR (w ms).
+        fs = częstość próbkowania interpolowanego sygnału RR (np. 4 Hz)
+        """
+        rr = np.array(rr_intervals)
+        if len(rr) < 4:
+            return 0.0, 0.0, 0.0  # brak danych
+
+        # interpolacja RR na równomierną siatkę czasu
+        time_rr = np.cumsum(rr) / 1000.0  # czas w sekundach
+        interpolated_time = np.arange(time_rr[0], time_rr[-1], 1.0 / fs)
+        interpolated_rr = np.interp(interpolated_time, time_rr, rr)
+
+        f, psd = welch(interpolated_rr, fs=fs, nperseg=min(256, len(interpolated_rr)))
+
+        lf_band = (0.04, 0.15)
+        hf_band = (0.15, 0.4)
+
+        lf_power = np.trapz(psd[(f >= lf_band[0]) & (f < lf_band[1])], f[(f >= lf_band[0]) & (f < lf_band[1])])
+        hf_power = np.trapz(psd[(f >= hf_band[0]) & (f < hf_band[1])], f[(f >= hf_band[0]) & (f < hf_band[1])])
+
+        lf_hf_ratio = lf_power / hf_power if hf_power > 0 else 0.0
+
+        return lf_power, hf_power, lf_hf_ratio
+    @staticmethod
+    def compute_edr_mean(edr_signal):
+        edr = np.array(edr_signal)
+        return float(np.mean(edr)) if len(edr) > 0 else 0.0
     @staticmethod
     def compute_rmssd(rr):
         diff_rr = np.diff(rr)
