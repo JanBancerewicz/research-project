@@ -1,10 +1,14 @@
 import asyncio
-import time
-from bleak import BleakScanner, BleakClient
 
+import numpy as np
+from bleak import BleakClient, BleakScanner
+from bleak.backends.characteristic import BleakGATTCharacteristic
+import matplotlib.pyplot as plt
+import struct
 
-HEART_RATE_UUID = "00002a37-0000-1000-8000-00805f9b34fb"
 POLAR_NAME = "Polar H10 D222AF24"
+PMD_CONTROL = "fb005c81-02e7-f387-1cad-8acd2d8df0c8"
+PMD_DATA = "fb005c82-02e7-f387-1cad-8acd2d8df0c8"
 
 async def scan():
     """Scan for BLE devices."""
@@ -17,37 +21,57 @@ async def scan():
     return addr
 
 
-
-def notification_handler_wrapper(heart_rate_data):
-    return lambda sender, data: notification_handler(sender, data,heart_rate_data)
-
-def notification_handler(sender, data, heart_rate_data):
-    """Handle incoming heart rate data and save with timestamp."""
-    heart_rate = data[1]
-    timestamp = time.time()
-    heart_rate_data.append((timestamp, heart_rate))
-    print(f"{time.strftime('%H:%M:%S')} - Heart rate: {heart_rate} BPM")
+def notification_handler_wrapper(ecg):
+    return lambda sender, data: notification_handler(sender, data, ecg)
 
 
+def pmd_control_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
+    hex = [f"{i:02x}" for i in data]
+    print(f"CTRL: {hex}")
 
 
-async def connect_to_polar(address):
-    """Connect to Polar H10 and receive heart rate data."""
-    print("Connecting to Ostap...")
+def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray, ecg):
+    hex = [f"{i:02x}" for i in data]
+    print(f"DATA: {hex}")
+    if data[0] == 0x00:  # 0x00 = ECG
+        i = 9
+        frame_type = data[i]
+        if frame_type == 0:  # 0 = ECG Data
+            i += 1
+            while len(data[i:][0:3]) == 3:
+                ecg.append(int.from_bytes(data[i:][0:2], byteorder='little', signed=True))
+                i += 3
+
+
+async def connect(address):
     async with BleakClient(address) as client:
-        if client.is_connected:
-            heart_rate_data = []
-            print(f"Connected to Ostap ({address})")
-            await client.start_notify(HEART_RATE_UUID, notification_handler_wrapper(heart_rate_data))
-            await asyncio.sleep(60)  # Receive data for 60 seconds
-            await client.stop_notify(HEART_RATE_UUID)
-            return heart_rate_data
-        else:
-            print("Ostap is broken!")
+        print(f"Connected: {client.is_connected}")
+        ecg = []
+        await client.start_notify(PMD_CONTROL, pmd_control_handler)
+        await client.start_notify(PMD_DATA, notification_handler_wrapper(ecg))
 
+        await client.write_gatt_char(PMD_CONTROL,
+                                     bytearray([0x02, 0x00, 0x00, 0x01, 0x82, 0x00, 0x01, 0x01, 0x0e, 0x00]))
+
+        await asyncio.sleep(60*30)
+
+        await client.write_gatt_char(PMD_CONTROL, bytearray([0x03, 0x00]))
+
+        await client.stop_notify(PMD_DATA)
+        await client.stop_notify(PMD_CONTROL)
+    return ecg
 
 
 async def get_data():
     """Get data from Polar H10."""
     address = await scan()
-    return await connect_to_polar(address)
+    ecg = await connect(address)
+    n = len(ecg)
+    time = np.arange(0, n * (100 / 13), 100 / 13)
+    data = []
+    for i in range(n):
+        data.append((time[i], ecg[i]))
+    return data
+
+
+plt.show()
