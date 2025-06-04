@@ -10,8 +10,9 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-
 import torch
+
+from cnn.rmssd.RMSSDModel import get_rmssd_model
 from ecg_calc import ECGProcessor
 from r_neural import get_model, predict
 
@@ -23,7 +24,7 @@ PMD_DATA = "fb005c82-02e7-f387-1cad-8acd2d8df0c8"
 
 #CHANGE FILE TO SAVE OUTPUT
 CSV_DATA = "data5.csv"
-
+rmssd_window_size = 10
 ecg_data = []
 ecg_window = []
 lock = threading.Lock()
@@ -108,6 +109,7 @@ class ECGApp:
         self.device = torch.device(device)
 
         self.model = get_model(self.device)
+        self.modelRMSSD = get_rmssd_model(self.device, rmssd_window_size)
 
         # --- Button Frame ---
         btn_frame = tk.Frame(root)
@@ -148,12 +150,14 @@ class ECGApp:
         self.window_size = 650
         self.last_index = 0
         self.running = False
+        self.rmssd_peaks = []
 
     def update_plot(self):
         if not self.running:
             return
         r_val = []
         r_amp = []
+        text = ""
         with lock:
             new_data = ecg_data[self.last_index:]
             if len(ecg_window) >= 256:
@@ -165,30 +169,42 @@ class ECGApp:
                 self.idx+=1
                 for idx, s in enumerate(d):
                     if s == 1:
-                        r_val.append(self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS)
+                        t=self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS
+                        r_val.append(t)
                         r_amp.append(ecg_window[:256][idx])
+                        self.rmssd_peaks.append(t)
                 for i in d:
                     self.r_peaks.append(i)
                 ecg_window.clear()
                 for i in rest:
                     ecg_window.append(i)
+                if len(self.rmssd_peaks) >= 11:
+                    rmmsd_p = [np.diff(self.rmssd_peaks[:11])]
+                    with torch.no_grad():
+                        input_tensor = torch.tensor(rmmsd_p, dtype=torch.float32).to(self.device)
+                        predictions = self.modelRMSSD(input_tensor)
+                        text += f"RMSSD: {predictions.cpu().numpy()[0][0]}\n"
+                        self.label.config(text=text)
+                    if len(self.rmssd_peaks) > 11:
+                        self.rmssd_peaks = self.rmssd_peaks[-10:]
+                    else:
+                        self.rmssd_peaks = [self.rmssd_peaks[0]]
 
 
-            features = self.processor.add_sample(np.diff(r_val), r_amp)
-            if features:
-                label_text = (
-                    f"RMSSD: {features['rmssd']:.2f} ms\n"
-                    f"SDNN: {features['sdnn']:.2f} ms\n"
-                    f"EDG: {features['edr_mean']:.2f}\n"
-                    f"HR: {features['hr']:.2f} bpm\n"
-                    f"RR_SLOPE: {features['rr_slope']:.2f} bpm\n"
-                )
-                self.label.config(text=label_text)
-                print(self.current_breath_state)
-                self.ecg_metadata.append(
-                    [features['rmssd'], features['sdnn'], features['hr'], features['edr_mean'], features['rr_slope'],
-                     self.current_breath_state]
-                )
+            # features = self.processor.add_sample(np.diff(r_val), r_amp)
+            # if features:
+            #     label_text = (
+            #         f"RMSSD: {features['rmssd']:.2f} ms\n"
+            #         f"SDNN: {features['sdnn']:.2f} ms\n"
+            #         f"EDG: {features['edr_mean']:.2f}\n"
+            #         f"HR: {features['hr']:.2f} bpm\n"
+            #         f"RR_SLOPE: {features['rr_slope']:.2f} bpm\n"
+            #     )
+            #
+            #     self.ecg_metadata.append(
+            #         [features['rmssd'], features['sdnn'], features['hr'], features['edr_mean'], features['rr_slope'],
+            #          self.current_breath_state]
+            #     )
             ##PRINT IF PRESSED DO IT
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
             if new_state != self.current_breath_state:
