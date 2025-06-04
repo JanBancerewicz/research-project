@@ -1,5 +1,6 @@
 import numpy as np
 from collections import deque
+import neurokit2 as nk
 
 from scipy.interpolate import interp1d
 from scipy.signal import welch
@@ -17,9 +18,9 @@ class ECGProcessor:
             if 300 < i <= 1000:
                 self.rr_intervals.append(i)
                 self.r_ampl.append(r_amp[idx])
-        if len(self.rr_intervals) > 20:
-            self.rr_intervals = self.rr_intervals[5:]
-            self.r_ampl = self.r_ampl[5:]
+        if len(self.rr_intervals) > 15:
+            self.rr_intervals = self.rr_intervals[1:]
+            self.r_ampl = self.r_ampl[1:]
 
         if len(self.rr_intervals) < 3:
             return {}
@@ -31,13 +32,22 @@ class ECGProcessor:
                 self.hr_history.append(h)
 
         hr_slope = self.hr_history[-1] - self.hr_history[-2] if len(self.hr_history) >= 2 else 0.0
-
+        print(len(rr))
+        rsa = 0
+        try:
+            rr_seconds = np.array(rr) / 1000
+            peaks = nk.intervals_to_peaks(rr_seconds, sampling_rate=130)
+            hrv_indices = nk.hrv_time(peaks, sampling_rate=130, show=False)
+            rsa = hrv_indices.get("RMSSD", None)
+        except:
+            pass
         return {
             'rmssd': self.compute_rmssd(rr),
             'sdnn': self.compute_sdnn(rr),
             'edr_mean': self.compute_edr_mean(self.r_ampl),
             'hr': 60000.0 / np.mean(rr) if np.mean(rr) > 0 else 0.0,
             'rr_slope': np.diff(rr)[-1],
+            'rsa': rsa,
         }
 
     def compute_lf_hf(self, rr_intervals, fs=4.0):
@@ -115,7 +125,7 @@ class ECGProcessor:
             hf_power = self.compute_hf_power(rr_detrended, fs)
 
             rsa_ln = np.log(hf_power) if hf_power > 0 else float('-inf')
-            return rsa_ln, hf_power
+            return rsa_ln
         except:
-            return 0, 0
+            return 0,
 

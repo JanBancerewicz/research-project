@@ -37,7 +37,7 @@ def main():
 
     model = get_model(device)
 
-    df = pd.read_csv( "data/r/R19.csv")  # Replace with your file path
+    df = pd.read_csv( "data/R7.csv")  # Replace with your file path
 
     test_signals = np.array(split_into_chunks(df['ecg'].to_numpy()), dtype=np.float32)
     test_labels = np.array(split_into_chunks(df['R'].to_numpy()), dtype=np.float32)
@@ -70,10 +70,10 @@ def main():
     print(f"Accuracy: {p:.2f}%")
     print(f"Additional: {p2:.2f}%")
     print(f"Missed: {p3:.2f}%")
-    plot_ecg(device, model, test_signals, test_labels)
+    #plot_ecg(device, model, test_signals, test_labels)
 
 
-
+main()
 
 def plot_ecg(device, model, test_signals, test_labels):
     s = []
