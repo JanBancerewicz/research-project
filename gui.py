@@ -19,6 +19,16 @@ from ecg_calc import ECGProcessor
 from r_neural import get_model, predict
 
 dane_queue = queue.Queue()
+def reduce_with_averaging(longer, target_length):
+    factor = len(longer) / target_length
+    result = []
+    for i in range(target_length):
+        start = int(i * factor)
+        end = int((i + 1) * factor)
+        segment = longer[start:end]
+        avg = np.mean(segment)
+        result.append(avg)
+    return np.array(result)
 
 def print_data(y_hr_2):
     try:
@@ -41,7 +51,7 @@ def run_websocket_server():
             print("❌ Connection closed")
 
     async def start():
-        server = await websockets.serve(handler, "localhost", 8765)
+        server = await websockets.serve(handler, "0.0.0.0", 8765)
         print("✅ Server is listening on port 8765")
         await server.wait_closed()
 
@@ -135,6 +145,7 @@ class ECGApp:
         self.r_peaks_times = []
         self.ecg_metadata = []
         self.r_peak_x = []
+        self.raw_ppg = []
         self.idx = 0
         self.processor = ECGProcessor()
         root.title("Live ECG Viewer")
@@ -184,7 +195,7 @@ class ECGApp:
         self.fig_hr = Figure(figsize=(3, 4))
         self.ax_hr = self.fig_hr.add_subplot(111)
         self.ax_hr.set_xlim(0, 100)
-        self.ax_hr.set_ylim(60, 130)
+        self.ax_hr.set_ylim(60, 100)
         self.ax_hr.set_title("Live HR")
         self.ax_hr.set_xlabel("Time (ms)")
         self.ax_hr.set_ylabel("bpm")
@@ -192,7 +203,6 @@ class ECGApp:
 
         self.line_hr1, = self.ax_hr.plot([], [], color='green', lw=1, label='HR POLAR (ai)')
         self.line_hr2, = self.ax_hr.plot([], [], color='blue', lw=1, label='HR APP')
-        self.line_hr3, = self.ax_hr.plot([], [], color='red', lw=1, label='HR POLAR (neurokit)')
 
 
         self.ax_hr.legend()  # Show legend to differentiate the lines
@@ -219,10 +229,8 @@ class ECGApp:
         r_val = []
         r_amp = []
         text = ""
-        self.y_hr_2 = print_data(self.y_hr_2)
-        self.line_hr2.set_xdata(np.arange(0, len(self.y_hr_2)))
-        self.line_hr2.set_ydata(self.y_hr_2)
-        self.canvas_hr.draw()
+
+        self.raw_ppg = print_data(self.raw_ppg)
 
         with lock:
             new_data = ecg_data[self.last_index:]
@@ -247,14 +255,44 @@ class ECGApp:
                 for i in r_val:
                     self.r_peaks_for_hr.append(i)
                 hr_1 = 60000.0 / np.diff(self.r_peaks_for_hr)
-
+                tmp = []
                 for i in hr_1:
-                    if 50 < i < 120:
+                    if 50 <= i <= 120:
+                        tmp.append(i)
+                hr_1 = tmp
+
+                if len(self.raw_ppg) != 0:
+
+                    window_size = 100
+
+                    for i in hr_1:
                         self.y_hr_1.append(i)
-                if len(self.y_hr_1) > 100:
-                    self.y_hr_1 = self.y_hr_1[-100:]
-                self.line_hr1.set_xdata(np.arange(0, len(self.y_hr_1)))
-                self.line_hr1.set_ydata(self.y_hr_1)
+                    for hr in self.raw_ppg:
+                        self.y_hr_2.append(hr)
+
+
+                    self.raw_ppg = []
+                    len1 = len(self.y_hr_1)
+                    len2 = len(self.y_hr_2)
+
+                    print(f'hr1: {len1} hr2: {len2}')
+
+                    y1 = self.y_hr_1[-window_size:]
+                    y2 = self.y_hr_2
+
+                    len1 = len(y1)
+                    len2 = len(y2)
+
+                    x1 = list(range(0, len1))
+                    x2 = list(range(0, len2))
+
+                    self.line_hr1.set_xdata(x1)
+                    self.line_hr1.set_ydata(y1)
+
+                    self.line_hr2.set_xdata(np.linspace(0, len1, len2))
+                    self.line_hr2.set_ydata(y2)
+
+                    self.canvas_hr.draw()
 
 
                 signals, info = nk.ecg_peaks(ecg_window, sampling_rate=130)
@@ -268,13 +306,12 @@ class ECGApp:
                     if 60 <= i <= 120:
                         self.y_hr_3.append(i)
 
-                print(min(bpm_values), max(bpm_values))
                 if len(self.y_hr_3) > 100:
                     self.y_hr_3 = self.y_hr_3[-100:]
-                self.line_hr3.set_xdata(np.arange(0, len(self.y_hr_3)))
-                self.line_hr3.set_ydata(self.y_hr_3)
 
-                self.canvas_hr.draw()
+
+
+
                 ecg_window.clear()
                 for i in rest:
                     ecg_window.append(i)
