@@ -11,7 +11,6 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
 import torch
 
 from cnn.rmssd.RMSSDModel import get_rmssd_model
@@ -39,7 +38,6 @@ def print_data(y_hr_2):
         return y_hr_2
     except queue.Empty:
         return y_hr_2
-
 
 def run_websocket_server():
     async def handler(websocket):
@@ -195,7 +193,7 @@ class ECGApp:
         self.fig_hr = Figure(figsize=(3, 4))
         self.ax_hr = self.fig_hr.add_subplot(111)
         self.ax_hr.set_xlim(0, 100)
-        self.ax_hr.set_ylim(60, 100)
+        self.ax_hr.set_ylim(60, 150)
         self.ax_hr.set_title("Live HR")
         self.ax_hr.set_xlabel("Time (ms)")
         self.ax_hr.set_ylabel("bpm")

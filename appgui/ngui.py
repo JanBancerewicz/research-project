@@ -1,0 +1,103 @@
+import queue
+import random
+import threading
+from math import sin, pi, cos
+from random import randint
+import tkinter as tk
+
+import numpy as np
+
+from appgui import plot, data
+from appgui.EcgDataFile import EcgDataFile
+from appgui.control import ControlPanel
+from appgui.ECGProcessor import ECGProcessor
+
+
+class LiveCounterApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("HR")
+
+        self.counter = 0
+        self.is_running = True
+        self.processorECG = ECGProcessor(window_size=256)
+        self.controls = ControlPanel(
+            root,
+            pause_callback=self.pause,
+            resume_callback=self.resume,
+            reset_callback=self.reset
+        )
+        self.controls.pack(pady=10)
+        frame1 = tk.Frame(root)
+        frame1.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        frame2 = tk.Frame(root)
+        frame2.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.queueECG = queue.Queue()
+        self.queuePPG = queue.Queue()
+
+        self.stop_event_PPG = threading.Event()
+        self.stop_event_ECG = threading.Event()
+
+        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]")
+
+
+
+
+
+        def signal2(t):
+            return  500*(2.8*sin(t/50) + (random.uniform(-0.2, 0.2) if t % 45 == 0 else 0) + random.uniform(-0.1, 0.1))
+
+        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread2 = data.DataProducerThread(self.queuePPG, self.stop_event_PPG, signal2, name="Thread-2")
+
+        self.thread1.start()
+        self.thread2.start()
+
+        self.update_loop()
+
+    def update_loop(self):
+        if self.is_running:
+            try:
+                while True:
+                    val1 = self.queueECG.get_nowait()
+                    self.plotECG.add_data(val1)
+                    self.counter += 1
+                    result = self.processorECG.add_sample(val1, self.counter)
+                    if result is not None:
+                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+
+            except queue.Empty:
+                pass
+
+            try:
+                while True:
+                    val2 = self.queuePPG.get_nowait()
+                    self.plotPPG.add_data(val2)
+            except queue.Empty:
+                pass
+
+        self.root.after(10, self.update_loop)
+
+    def pause(self):
+        self.is_running = False
+
+    def resume(self):
+        self.is_running = True
+
+    def reset(self):
+        self.plotPPG.reset()
+        self.plotECG.reset()
+
+    def on_closing(self):
+        self.stop_event_PPG.set()
+        self.stop_event_ECG.set()
+        self.thread1.join(timeout=1)
+        self.thread2.join(timeout=1)
+        self.root.destroy()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LiveCounterApp(root)
+    root.mainloop()

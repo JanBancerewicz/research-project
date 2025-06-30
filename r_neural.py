@@ -25,6 +25,7 @@ def predict(device, model, sample):
 
 
 def get_model(device):
+    print(os.path.exists("cnn/ecgcnn.pth"))
     if os.path.exists(MODEL_PATH):
         model = ECG_CNN().to(device)
         model.load_state_dict(torch.load(MODEL_PATH))
@@ -94,7 +95,7 @@ def main():
     #plot_ecg(device, model, test_signals, test_labels)
 
 
-main()
+
 
 def plot_ecg(device, model, test_signals, test_labels):
     s = []
