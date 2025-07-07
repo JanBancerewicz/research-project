@@ -9,6 +9,7 @@ import numpy as np
 
 from appgui import plot, data
 from appgui.EcgDataFile import EcgDataFile
+from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
 from appgui.ECGProcessor import ECGProcessor
 
@@ -20,7 +21,7 @@ class LiveCounterApp:
 
         self.counter = 0
         self.is_running = True
-        self.processorECG = ECGProcessor(window_size=256)
+        # self.processorECG = ECGProcessor(window_size=256)
         self.controls = ControlPanel(
             root,
             pause_callback=self.pause,
@@ -40,7 +41,7 @@ class LiveCounterApp:
         self.stop_event_ECG = threading.Event()
 
         self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(-1,1))
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]")
 
 
 
@@ -49,8 +50,10 @@ class LiveCounterApp:
         def signal2(t):
             return  500*(2.8*sin(t/50) + (random.uniform(-0.2, 0.2) if t % 45 == 0 else 0) + random.uniform(-0.1, 0.1))
 
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
-        self.thread2 = data.DataProducerThread(self.queuePPG, self.stop_event_PPG, signal2, name="Thread-2")
+        # self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = data.DataProducerThread(self.queueECG, self.stop_event_ECG, signal2, name="Thread-1")
+        # self.thread2 = data.DataProducerThread(self.queuePPG, self.stop_event_PPG, signal2, name="Thread-2")
+        self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
         self.thread2.start()
@@ -64,11 +67,11 @@ class LiveCounterApp:
                     val1 = self.queueECG.get_nowait()
                     self.plotECG.add_data(val1)
                     self.counter += 1
-                    result = self.processorECG.add_sample(val1, self.counter)
-                    if result is not None:
-                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                        for e in result.ecg_filtered:
-                            self.plotPPG.add_data(e)
+                    # result = self.processorECG.add_sample(val1, self.counter)
+                    # if result is not None:
+                    #     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                    #     for e in result.ecg_filtered:
+                    #         self.plotPPG.add_data(e)
 
             except queue.Empty:
                 pass
@@ -76,7 +79,7 @@ class LiveCounterApp:
             try:
                 while True:
                     val2 = self.queuePPG.get_nowait()
-                    #self.plotPPG.add_data(val2)
+                    self.plotPPG.add_data(val2)
             except queue.Empty:
                 pass
 

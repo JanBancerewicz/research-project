@@ -4,6 +4,7 @@ numpy~=2.2.4
 matplotlib~=3.10.1
 pandas~=2.2.3
 
-torch~=2.7.0+cu128
+torch~=2.6.0+cu126
 neurokit2~=0.2.10
 scikit-learn~=1.6.1
+websockets~=15.0.1
