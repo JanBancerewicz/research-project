@@ -1,9 +1,6 @@
-import tkinter as tk
-import random
 import threading
-import queue
+
 import time
-from math import sin, cos, pi
 
 class DataProducerThread(threading.Thread):
     def __init__(self, data_queue, stop_event, signal_func, name="Producer"):

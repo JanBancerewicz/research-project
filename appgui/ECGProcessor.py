@@ -1,19 +1,14 @@
 from collections import deque
 import numpy as np
-
-from collections import deque
-import numpy as np
-
-from collections import deque
-import numpy as np
 import torch
-
+import neurokit2 as nk
 from r_neural import get_model, predict
 
 class ECGOutput:
-    def __init__(self, x_peaks, y_peaks):
+    def __init__(self, x_peaks, y_peaks, ecg_filtered):
         self.x_peaks = x_peaks
         self.y_peaks = y_peaks
+        self.ecg_filtered = ecg_filtered
 
 
 class ECGProcessor:
@@ -60,17 +55,19 @@ class ECGProcessor:
             if peaks[i]  == 1:
                 peaks_x.append(time_data[i])
                 peaks_y.append(window_data[i])
-        return ECGOutput(peaks_x, peaks_y)
+
+        ecg_filtered = nk.signal_filter(window_data, sampling_rate=130, lowcut=0.5, highcut=45, method="butterworth", order=5)
+        return ECGOutput(peaks_x, peaks_y, self._normalize_window(ecg_filtered))
 
     def _normalize_window(self, window):
         """
-        Normalize window data to [0, 1]
+        Normalize window data to [-1, 1]
         """
         min_val = np.min(window)
         max_val = np.max(window)
         if max_val - min_val == 0:
-            return np.full_like(window, 0.5)
-        return (window - min_val) / (max_val - min_val)
+            return np.zeros_like(window)
+        return 2 * (window - min_val) / (max_val - min_val) - 1
 
     def reset(self):
         """

@@ -40,7 +40,7 @@ class LiveCounterApp:
         self.stop_event_ECG = threading.Event()
 
         self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]")
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(-1,1))
 
 
 
@@ -67,6 +67,8 @@ class LiveCounterApp:
                     result = self.processorECG.add_sample(val1, self.counter)
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                        for e in result.ecg_filtered:
+                            self.plotPPG.add_data(e)
 
             except queue.Empty:
                 pass
@@ -74,7 +76,7 @@ class LiveCounterApp:
             try:
                 while True:
                     val2 = self.queuePPG.get_nowait()
-                    self.plotPPG.add_data(val2)
+                    #self.plotPPG.add_data(val2)
             except queue.Empty:
                 pass
 
