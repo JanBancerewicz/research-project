@@ -47,7 +47,7 @@ def calculate_breathing_rate_realtime(rr_data, fs=1.0, hf_range=(0.15, 0.4)):
     max_amplitude_index = np.argmax(breath_amplitudes)
     breathing_freq = breath_freqs[max_amplitude_index]
 
-    # Częstotliwość oddechowa w oddechach na minutę (bpm - breaths per minute)
+    # Częstotliwość oddechowa w oddechach na minutę (signal - breaths per minute)
     breathing_rate = breathing_freq * 60  # konwersja z Hz na oddechy na minutę
 
     return breathing_rate

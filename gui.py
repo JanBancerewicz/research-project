@@ -197,8 +197,8 @@ class ECGApp:
             #         f"RMSSD: {features['rmssd']:.2f} ms\n"
             #         f"SDNN: {features['sdnn']:.2f} ms\n"
             #         f"EDG: {features['edr_mean']:.2f}\n"
-            #         f"HR: {features['hr']:.2f} bpm\n"
-            #         f"RR_SLOPE: {features['rr_slope']:.2f} bpm\n"
+            #         f"HR: {features['hr']:.2f} signal\n"
+            #         f"RR_SLOPE: {features['rr_slope']:.2f} signal\n"
             #     )
             #
             #     self.ecg_metadata.append(
