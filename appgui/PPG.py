@@ -7,8 +7,8 @@ import websockets
 from queue import Queue
 
 class PPGDATA(DataProducerThread):
-    def __init__(self, queue, stop_event, port=8765):
-        DataProducerThread.__init__(self, queue, stop_event, self.signal_func)
+    def __init__(self, queue, port=8765):
+        DataProducerThread.__init__(self, )
         self.port = port
         self.dane_queue = Queue()
         self.latest_value = None
