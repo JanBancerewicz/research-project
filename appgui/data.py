@@ -17,4 +17,3 @@ class DataProducerThread(threading.Thread):
             self.data_queue.put(val)
             self.counter += 1
             time.sleep(0.01)
-
