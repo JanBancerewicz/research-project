@@ -41,7 +41,7 @@ class LiveCounterApp:
         self.stop_event_ECG = threading.Event()
 
         self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]")
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(30,100))
 
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
@@ -65,12 +65,11 @@ class LiveCounterApp:
 
             except queue.Empty:
                 pass
-
-
             try:
-                val2 = self.queuePPG.get_nowait()
-                print(val2)
-                self.plotPPG.add_data(val2)
+                while True:
+                    val2 = self.queuePPG.get_nowait()
+                    print(val2)
+                    self.plotPPG.add_data(val2)
             except queue.Empty:
                 pass
 
