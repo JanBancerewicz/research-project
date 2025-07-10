@@ -56,23 +56,21 @@ class LiveCounterApp:
     def update_loop(self):
         if self.is_running:
             try:
-                while True:
-                    val1 = self.queueECG.get_nowait()
-                    self.plotECG.add_data(val1)
-                    self.counter += 1
-                    result = self.processorECG.add_sample(val1, self.counter)
-                    if result is not None:
-                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                        for e in result.ecg_filtered:
-                             self.plotPPG.add_data(e)
+                val1 = self.queueECG.get_nowait()
+                self.plotECG.add_data(val1)
+                self.counter += 1
+                result = self.processorECG.add_sample(val1, self.counter)
+                if result is not None:
+                    self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
 
             except queue.Empty:
                 pass
 
+
             try:
-                while True:
-                    val2 = self.queuePPG.get_nowait()
-                    self.plotPPG.add_data(val2)
+                val2 = self.queuePPG.get_nowait()
+                print(val2)
+                self.plotPPG.add_data(val2)
             except queue.Empty:
                 pass
 

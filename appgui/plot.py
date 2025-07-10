@@ -66,5 +66,5 @@ class LivePlot:
     def reset(self):
         self.x_data = list(range(self.window_size))
         self.y_data = [0] * self.window_size
-        self.update_plot()
+
 

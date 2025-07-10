@@ -7,20 +7,18 @@ import pandas as pd
 from appgui.data import DataProducerThread
 
 
-class PpgData(DataProducerThread):
+class PpgData(threading.Thread):
     def __init__(self, data_queue, stop_event, name="EcgDataFile"):
-        super().__init__(data_queue, stop_event, self.signal_func, name)
-        self.message_queue = Queue()  # przechowuje wiadomości odebrane przez WebSocket
+        super().__init__()
+        self.data_queue = data_queue
 
-    def signal_func(self, counter):
+    def run(self):
         # Startuje serwer WebSocket i zwraca wiadomość z kolejki, jeśli jakaś przyszła
         async def handler(websocket):
             print("🔌 Connected to client")
             try:
                 async for message in websocket:
-                    print(f"📨 Received message: {message}")
-                    self.message_queue.put(message)
-                    self.data_queue.put(message)  # oryginalne działanie
+                    self.data_queue.put(int(message))  # oryginalne działanie
             except websockets.exceptions.ConnectionClosed:
                 print("❌ Connection closed")
 
@@ -38,12 +36,6 @@ class PpgData(DataProducerThread):
 
         # Uruchom serwer w osobnym wątku tylko raz
         if not hasattr(self, 'ws_thread_started'):
-            self.ws_thread_started = True
             threading.Thread(target=run_server, daemon=True).start()
 
-        # Teraz czekaj, aż jakaś wiadomość pojawi się w kolejce i zwróć ją
-        try:
-            message = self.message_queue.get(timeout=1.0)  # czekaj max 1s
-            return message
-        except:
-            return None  # brak danych jeszcze
+

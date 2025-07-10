@@ -11,7 +11,7 @@ async def send_random_data():
                 value = random.randint(0, 2000)
                 await websocket.send(str(value))
                 print(f"📤 Sent: {value}")
-                await asyncio.sleep(0.1)  # 100 ms
+                await asyncio.sleep(0.01)  # 100 ms
     except Exception as e:
         print(f"❌ Connection failed or lost: {e}")
 
