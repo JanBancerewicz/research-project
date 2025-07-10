@@ -21,7 +21,7 @@ class LiveCounterApp:
 
         self.counter = 0
         self.is_running = True
-        # self.processorECG = ECGProcessor(window_size=256)
+        self.processorECG = ECGProcessor(window_size=256)
         self.controls = ControlPanel(
             root,
             pause_callback=self.pause,
@@ -43,9 +43,6 @@ class LiveCounterApp:
         self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
         self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]")
 
-        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal")
-
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal")
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
@@ -65,8 +62,8 @@ class LiveCounterApp:
                     self.counter += 1
                     result = self.processorECG.add_sample(val1, self.counter)
                     if result is not None:
-                       self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                         for e in result.ecg_filtered:
+                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                        for e in result.ecg_filtered:
                              self.plotPPG.add_data(e)
 
             except queue.Empty:
