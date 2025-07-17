@@ -14,7 +14,7 @@ class EDR_CNN(nn.Module):
 
         self.fc1 = nn.Linear(128, 64)
         self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(64, 1)  # regresja BPM
+        self.fc2 = nn.Linear(64, 1)  # regresja signal
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))   # [B, 32, ~49]
