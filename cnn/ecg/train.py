@@ -9,7 +9,7 @@ from cnn.ecg.ECG_CNN import ECG_CNN, split_into_chunks, MODEL_PATH
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def train_model(model, train_loader, criterion, optimizer, epochs=20):
+def train_model(model, train_loader, criterion, optimizer, epochs=50):
     model.train()
     for epoch in range(epochs):
         for inputs, labels in train_loader:
@@ -42,7 +42,7 @@ def init_model():
     train_dataset = TensorDataset(torch.tensor(train_signals).unsqueeze(1), torch.tensor(train_labels))
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-    train_model(model, train_loader, criterion, optimizer, epochs=20)
+    train_model(model, train_loader, criterion, optimizer, epochs=50)
     torch.save(model.state_dict(), MODEL_PATH)
     return model
 

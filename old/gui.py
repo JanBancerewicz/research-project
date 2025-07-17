@@ -1,20 +1,62 @@
 import asyncio
+import queue
 import threading
 from tkinter import ttk
 import numpy as np
 import pandas as pd
-
+import websockets
+import neurokit2 as nk
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
 import torch
 
 from cnn.rmssd.RMSSDModel import get_rmssd_model
 from ecg_calc import ECGProcessor
 from r_neural import get_model, predict
+
+dane_queue = queue.Queue()
+def reduce_with_averaging(longer, target_length):
+    factor = len(longer) / target_length
+    result = []
+    for i in range(target_length):
+        start = int(i * factor)
+        end = int((i + 1) * factor)
+        segment = longer[start:end]
+        avg = np.mean(segment)
+        result.append(avg)
+    return np.array(result)
+
+def print_data(y_hr_2):
+    try:
+        dane = dane_queue.get(timeout=1)
+        y_hr_2.append(float(dane))
+        if len(y_hr_2) > 100:
+            y_hr_2 = y_hr_2[-100:]
+        return y_hr_2
+    except queue.Empty:
+        return y_hr_2
+
+def run_websocket_server():
+    async def handler(websocket):
+        print("🔌 Connected to client")
+        try:
+            async for message in websocket:
+                dane_queue.put(message)
+        except websockets.exceptions.ConnectionClosed:
+            print("❌ Connection closed")
+
+    async def start():
+        server = await websockets.serve(handler, "0.0.0.0", 8765)
+        print("✅ Server is listening on port 8765")
+        await server.wait_closed()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(start())
+    loop.run_forever()
 
 SAMPLE_INTERVAL_MS = 100 / 13
 POLAR_NAME = "Polar H10 D222AF24"
@@ -101,6 +143,7 @@ class ECGApp:
         self.r_peaks_times = []
         self.ecg_metadata = []
         self.r_peak_x = []
+        self.raw_ppg = []
         self.idx = 0
         self.processor = ECGProcessor()
         root.title("Live ECG Viewer")
@@ -147,10 +190,36 @@ class ECGApp:
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        self.fig_hr = Figure(figsize=(3, 4))
+        self.ax_hr = self.fig_hr.add_subplot(111)
+        self.ax_hr.set_xlim(0, 100)
+        self.ax_hr.set_ylim(60, 150)
+        self.ax_hr.set_title("Live HR")
+        self.ax_hr.set_xlabel("Time (ms)")
+        self.ax_hr.set_ylabel("bpm")
+        self.ax_hr.grid(True)
+
+        self.line_hr1, = self.ax_hr.plot([], [], color='green', lw=1, label='HR POLAR (ai)')
+        self.line_hr2, = self.ax_hr.plot([], [], color='blue', lw=1, label='HR APP')
+
+
+        self.ax_hr.legend()  # Show legend to differentiate the lines
+
+        self.canvas_hr = FigureCanvasTkAgg(self.fig_hr, master=root)
+        self.canvas_hr.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+        self.y_hr_1 = []
+        self.y_hr_2 = []
+        self.y_hr_3 = []
+
         self.window_size = 650
         self.last_index = 0
         self.running = False
         self.rmssd_peaks = []
+
+        self.r_peaks_for_hr = []
+        self.r_peaks_for_hr_neurokit = []
 
     def update_plot(self):
         if not self.running:
@@ -158,6 +227,9 @@ class ECGApp:
         r_val = []
         r_amp = []
         text = ""
+
+        self.raw_ppg = print_data(self.raw_ppg)
+
         with lock:
             new_data = ecg_data[self.last_index:]
             if len(ecg_window) >= 256:
@@ -167,6 +239,8 @@ class ECGApp:
 
                 d = predict(self.device, self.model, np.array(ecg_window[:256],  dtype=np.float32))
                 self.idx+=1
+                if len(self.r_peaks_for_hr) > 0:
+                    self.r_peaks_for_hr = [self.r_peaks_for_hr[-1]]
                 for idx, s in enumerate(d):
                     if s == 1:
                         t=self.idx*SAMPLE_INTERVAL_MS*len(d) + idx*SAMPLE_INTERVAL_MS
@@ -175,6 +249,67 @@ class ECGApp:
                         self.rmssd_peaks.append(t)
                 for i in d:
                     self.r_peaks.append(i)
+
+                for i in r_val:
+                    self.r_peaks_for_hr.append(i)
+                hr_1 = 60000.0 / np.diff(self.r_peaks_for_hr)
+                tmp = []
+                for i in hr_1:
+                    if 50 <= i <= 120:
+                        tmp.append(i)
+                hr_1 = tmp
+
+                if len(self.raw_ppg) != 0:
+
+                    window_size = 100
+
+                    for i in hr_1:
+                        self.y_hr_1.append(i)
+                    for hr in self.raw_ppg:
+                        self.y_hr_2.append(hr)
+
+
+                    self.raw_ppg = []
+                    len1 = len(self.y_hr_1)
+                    len2 = len(self.y_hr_2)
+
+                    print(f'hr1: {len1} hr2: {len2}')
+
+                    y1 = self.y_hr_1[-window_size:]
+                    y2 = self.y_hr_2
+
+                    len1 = len(y1)
+                    len2 = len(y2)
+
+                    x1 = list(range(0, len1))
+                    x2 = list(range(0, len2))
+
+                    self.line_hr1.set_xdata(x1)
+                    self.line_hr1.set_ydata(y1)
+
+                    self.line_hr2.set_xdata(np.linspace(0, len1, len2))
+                    self.line_hr2.set_ydata(y2)
+
+                    self.canvas_hr.draw()
+
+
+                signals, info = nk.ecg_peaks(ecg_window, sampling_rate=130)
+                rpeaks = info["ECG_R_Peaks"]
+                for peak in rpeaks:
+                    self.r_peaks_for_hr_neurokit.append(peak)
+
+                rr_intervals = np.diff(rpeaks) / 130
+                bpm_values = 60 / rr_intervals
+                for i in bpm_values:
+                    if 60 <= i <= 120:
+                        self.y_hr_3.append(i)
+
+                if len(self.y_hr_3) > 100:
+                    self.y_hr_3 = self.y_hr_3[-100:]
+
+
+
+
                 ecg_window.clear()
                 for i in rest:
                     ecg_window.append(i)
@@ -183,7 +318,10 @@ class ECGApp:
                     with torch.no_grad():
                         input_tensor = torch.tensor(rmmsd_p, dtype=torch.float32).to(self.device)
                         predictions = self.modelRMSSD(input_tensor)
-                        text += f"RMSSD: {predictions.cpu().numpy()[0][0]}\n"
+                        t = 60000.0 / np.mean(np.diff(r_val))
+
+
+                        text += f"RMSSD: {predictions.cpu().numpy()[0][0]}\n  HR: {t} bmp"
                         self.label.config(text=text)
                     if len(self.rmssd_peaks) > 11:
                         self.rmssd_peaks = self.rmssd_peaks[-10:]
@@ -191,21 +329,8 @@ class ECGApp:
                         self.rmssd_peaks = [self.rmssd_peaks[0]]
 
 
-            # features = self.processor.add_sample(np.diff(r_val), r_amp)
-            # if features:
-            #     label_text = (
-            #         f"RMSSD: {features['rmssd']:.2f} ms\n"
-            #         f"SDNN: {features['sdnn']:.2f} ms\n"
-            #         f"EDG: {features['edr_mean']:.2f}\n"
-            #         f"HR: {features['hr']:.2f} signal\n"
-            #         f"RR_SLOPE: {features['rr_slope']:.2f} signal\n"
-            #     )
-            #
-            #     self.ecg_metadata.append(
-            #         [features['rmssd'], features['sdnn'], features['hr'], features['edr_mean'], features['rr_slope'],
-            #          self.current_breath_state]
-            #     )
-            ##PRINT IF PRESSED DO IT
+
+
             new_state = "inhale" if self.breath_state_v.get() else "exhale"
             if new_state != self.current_breath_state:
                 now_index = self.last_index
@@ -227,7 +352,6 @@ class ECGApp:
             color = 'green' if state == "inhale" else 'red'
             self.ax.axvspan(start_x, end_x, facecolor=color, alpha=0.1)
 
-        # Handle current active region (if stream is still ongoing)
         if self.current_breath_start is not None:
             start_x = self.current_breath_start * SAMPLE_INTERVAL_MS
             end_x = self.last_index * SAMPLE_INTERVAL_MS
@@ -266,6 +390,7 @@ class ECGApp:
             self.line.set_xdata(x)
             self.line.set_ydata(y)
             self.ax.set_xlim(x[0], x[-1])
+
             self.canvas.draw()
 
         self.root.after(100, self.update_plot)
@@ -291,7 +416,12 @@ class ECGApp:
 
 
 if __name__ == "__main__":
+
     start_ble_thread()
+    server_socket = threading.Thread(target=run_websocket_server, daemon=True)
+    server_socket.start()
     root = tk.Tk()
     app = ECGApp(root)
     root.mainloop()
+
+

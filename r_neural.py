@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from cnn.ecg.ECG_CNN import split_into_chunks, MODEL_PATH, ECG_CNN
 from cnn.ecg.train import init_model
+from sklearn.metrics import confusion_matrix, f1_score
+
 
 
 def predict(device, model, sample):
@@ -23,6 +25,7 @@ def predict(device, model, sample):
 
 
 def get_model(device):
+    print(os.path.exists("cnn/ecgcnn.pth"))
     if os.path.exists(MODEL_PATH):
         model = ECG_CNN().to(device)
         model.load_state_dict(torch.load(MODEL_PATH))
@@ -37,7 +40,7 @@ def main():
 
     model = get_model(device)
 
-    df = pd.read_csv( "data/R7.csv")  # Replace with your file path
+    df = pd.read_csv( "data/R7.csv")
 
     test_signals = np.array(split_into_chunks(df['ecg'].to_numpy()), dtype=np.float32)
     test_labels = np.array(split_into_chunks(df['R'].to_numpy()), dtype=np.float32)
@@ -50,9 +53,13 @@ def main():
     all_pred = 0
     all_peaks = 0
     missed = 0
+    all_preds = []
+    all_targets = []
+
     for i in range(len(test_signals)):
         sig = test_signals[i]
         prediction = predict(device, model, sig)
+
         for j in range(len(prediction)):
             if prediction[j] == test_labels[i][j] and test_labels[i][j] == 1:
                 correct += 1
@@ -62,6 +69,8 @@ def main():
                 all_pred += 1
             if prediction[j] == 0 and test_labels[i][j] == 1:
                 missed += 1
+            all_preds.append( prediction[j])
+            all_targets.append(test_labels[i][j])
 
     p = correct / all_peaks * 100
     p2 = max( (all_pred / all_peaks * 100) - 100, 0)
@@ -70,10 +79,23 @@ def main():
     print(f"Accuracy: {p:.2f}%")
     print(f"Additional: {p2:.2f}%")
     print(f"Missed: {p3:.2f}%")
+
+    all_preds_np = np.array(all_preds)
+    all_targets_np = np.array(all_targets)
+
+    cm = confusion_matrix(all_targets_np, all_preds_np)
+    print("\nMacierz konfuzji:")
+    print(cm)
+
+    f1 = f1_score(all_targets_np, all_preds_np)
+    print(f"\nF1-score: {f1:.4f}")
+
+
+
     #plot_ecg(device, model, test_signals, test_labels)
 
 
-main()
+
 
 def plot_ecg(device, model, test_signals, test_labels):
     s = []
