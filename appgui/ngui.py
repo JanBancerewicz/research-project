@@ -13,6 +13,7 @@ from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
 from appgui.ECGProcessor import ECGProcessor
+from appgui.EcgData import EcgDataBluetooth
 
 
 class LiveCounterApp:
@@ -51,7 +52,7 @@ class LiveCounterApp:
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG) # EcgDataFile(self.queueECG, self.stop_event_ECG)
 
         self.thread1.start()
         self.thread2.start()
