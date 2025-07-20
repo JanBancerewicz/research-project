@@ -6,6 +6,7 @@ from random import randint
 import tkinter as tk
 
 import numpy as np
+import pandas as pd
 
 from appgui import plot, data
 from appgui.EcgDataFile import EcgDataFile
@@ -16,12 +17,17 @@ from appgui.ECGProcessor import ECGProcessor
 from appgui.EcgData import EcgDataBluetooth
 
 
+
+
 class LiveCounterApp:
     def __init__(self, root):
         self.counter2 = 0
 
         self.root = root
         self.root.title("HR")
+
+        self.ppg_out_data = []
+        self.ppg_out_time = []
 
         self.counter = 0
         self.is_running = True
@@ -74,8 +80,10 @@ class LiveCounterApp:
             try:
                 while True:
                     val2 = self.queuePPG.get_nowait()
+                    self.ppg_out_data.append(val2[1])
+                    self.ppg_out_time.append(val2[0])
                     self.counter2 += 1
-                    result = self.processorPPG.add_sample(val2, self.counter2)
+                    result = self.processorPPG.add_sample(val2[1], self.counter2)
                     if result is not None:
                         print(val2)
                         d = result.filtered_signal
@@ -90,6 +98,12 @@ class LiveCounterApp:
 
     def pause(self):
         self.is_running = False
+        df = pd.DataFrame({
+            'time': self.ppg_out_time,
+            'ppg': self.ppg_out_data,
+        })
+        df.to_csv('ppg_data.csv', index=False)
+
 
     def resume(self):
         self.is_running = True
