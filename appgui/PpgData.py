@@ -18,7 +18,8 @@ class PpgData(threading.Thread):
             print("🔌 Connected to client")
             try:
                 async for message in websocket:
-                    self.data_queue.put(float(message))  # oryginalne działanie
+                    f = message.split(' ')
+                    self.data_queue.put(float(f[1]))  # oryginalne działanie
             except websockets.exceptions.ConnectionClosed:
                 print("❌ Connection closed")
 

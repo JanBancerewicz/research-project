@@ -9,6 +9,7 @@ import numpy as np
 
 from appgui import plot, data
 from appgui.EcgDataFile import EcgDataFile
+from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
 from appgui.ECGProcessor import ECGProcessor
@@ -16,12 +17,16 @@ from appgui.ECGProcessor import ECGProcessor
 
 class LiveCounterApp:
     def __init__(self, root):
+        self.counter2 = 0
+
         self.root = root
         self.root.title("HR")
 
         self.counter = 0
         self.is_running = True
         self.processorECG = ECGProcessor(window_size=256)
+        self.processorPPG = PPGProcessor()
+
         self.controls = ControlPanel(
             root,
             pause_callback=self.pause,
@@ -41,7 +46,7 @@ class LiveCounterApp:
         self.stop_event_ECG = threading.Event()
 
         self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(30,100))
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(50,70))
 
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
@@ -68,8 +73,15 @@ class LiveCounterApp:
             try:
                 while True:
                     val2 = self.queuePPG.get_nowait()
-                    print(val2)
-                    self.plotPPG.add_data(val2)
+                    self.counter2 += 1
+                    result = self.processorPPG.add_sample(val2, self.counter2)
+                    if result is not None:
+                        print(val2)
+                        d = result.filtered_signal
+                        raw = result.raw_signal
+                        for r in range(len(raw)):
+                            self.plotPPG.add_data(raw[r], d[r])
+                        self.plotPPG.add_scatter_points(result.peak_times, result.peak_values)
             except queue.Empty:
                 pass
 
