@@ -52,13 +52,13 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal [normalized]")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(50,70))
+        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal")
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(-2,2))
 
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
-        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG) # EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)#EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
 
         self.thread1.start()
         self.thread2.start()
@@ -89,7 +89,7 @@ class LiveCounterApp:
                         d = result.filtered_signal
                         raw = result.raw_signal
                         for r in range(len(raw)):
-                            self.plotPPG.add_data(raw[r], d[r])
+                            self.plotPPG.add_data(d[r])
                         self.plotPPG.add_scatter_points(result.peak_times, result.peak_values)
             except queue.Empty:
                 pass

@@ -1,7 +1,7 @@
 from collections import deque
 from dataclasses import dataclass
 import numpy as np
-from scipy.signal import savgol_filter, find_peaks
+from scipy.signal import savgol_filter, find_peaks, filtfilt, butter
 
 
 @dataclass
@@ -14,7 +14,7 @@ class PPGResult:
 
 
 class PPGProcessor:
-    def __init__(self, window_size=21, polyorder=3, peak_distance=3, peak_prominence=0.3):
+    def __init__(self, window_size=50, polyorder=3, peak_distance=3, peak_prominence=0.3):
         """
         window_size: number of samples per window (must be odd for savgol)
         peak_distance: minimal distance between peaks (in samples)
@@ -56,11 +56,18 @@ class PPGProcessor:
         else:
             return None
 
+    def bandpass_filter(self, signal_data, fs=30, lowcut=0.5, highcut=5.0, order=4):
+        nyquist = 0.5 * fs
+        low = lowcut / nyquist
+        high = highcut / nyquist
+        b, a = butter(order, [low, high], btype='band')
+        return filtfilt(b, a, signal_data)
+
     def process_func(self, window_data):
         """
         Apply Savitzky-Golay filter.
         """
-        return savgol_filter(window_data, window_length=self.window_size, polyorder=self.polyorder)
+        return self._normalize_window(self.bandpass_filter(window_data))
 
     def detect_peaks(self, signal, time_array):
         """
@@ -69,7 +76,7 @@ class PPGProcessor:
         """
         try:
             peaks, _ = find_peaks(
-                self._normalize_window(signal),
+                signal,
                 distance=self.peak_distance,
                 prominence=self.peak_prominence
             )

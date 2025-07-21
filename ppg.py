@@ -78,30 +78,35 @@ output_df = pd.DataFrame({
     'peak': 0  # domyślnie 0
 })
 
+def min_max_normalize(x):
+    return (x - np.min(x)) / (np.max(x) - np.min(x))
+
+
 # Oznaczenie pików jako 1
 output_df.loc[peaks_bandpass, 'peak'] = 1
 
 # === 12. Zapis do pliku CSV ===
-output_df.to_csv('ppg_bandpass_with_peaks.csv', index=False)
-print("Zapisano plik: ppg_bandpass_with_peaks.csv")
+#output_df.to_csv('ppg_bandpass_with_peaks.csv', index=False)
+#print("Zapisano plik: ppg_bandpass_with_peaks.csv")
 
 # === 7. Wykres z pikami ===
 plt.figure(figsize=(14, 8))
-plt.plot(time, filtered_savgol, label='Savitzky-Golay', linewidth=2)
-plt.plot(time[peaks_savgol], filtered_savgol[peaks_savgol], 'ro', label='Peaki SG')
+#plt.plot(time, filtered_savgol, label='Savitzky-Golay', linewidth=2)
+#plt.plot(time[peaks_savgol], filtered_savgol[peaks_savgol], 'ro', label='Peaki SG')
 
-plt.plot(time, filtered_bandpass, label='Butterworth bandpass', linewidth=2)
-plt.plot(time[peaks_bandpass], filtered_bandpass[peaks_bandpass], 'go', label='Peaki BP')
+plt.plot(time[100:300], min_max_normalize(ppg[100:300]), label='Czysty Sygnał', linewidth=1)
+plt.plot(time[100:300], min_max_normalize(filtered_bandpass[100:300]), label='Butterworth bandpass', linewidth=2)
+#plt.plot(time[peaks_bandpass], filtered_bandpass[peaks_bandpass], 'go', label='Peaki BP')
 
-plt.plot(time, filtered_lowpass, label='Butterworth lowpass', linewidth=2)
-plt.plot(time[peaks_lowpass], filtered_lowpass[peaks_lowpass], 'mo', label='Peaki LP')
+#plt.plot(time, filtered_lowpass, label='Butterworth lowpass', linewidth=2)
+#plt.plot(time[peaks_lowpass], filtered_lowpass[peaks_lowpass], 'mo', label='Peaki LP')
 
-plt.plot(time, filtered_median, label='Medianowy', linewidth=2)
-plt.plot(time[peaks_median], filtered_median[peaks_median], 'ko', label='Peaki Med')
+#plt.plot(time, filtered_median, label='Medianowy', linewidth=2)
+#plt.plot(time[peaks_median], filtered_median[peaks_median], 'ko', label='Peaki Med')
 
 plt.legend(loc='upper right')
 plt.title("Detekcja pików w sygnale PPG po filtracji")
-plt.xlabel("Czas (s)")
+plt.xlabel("Czas (ms)")
 plt.ylabel("Amplituda")
 plt.grid(True)
 plt.tight_layout()
