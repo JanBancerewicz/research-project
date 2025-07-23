@@ -21,7 +21,7 @@ from appgui.EcgData import EcgDataBluetooth
 
 class LiveCounterApp:
     def __init__(self, root):
-        self.counter2 = 0
+        self.ppg_start_time = -1
 
         self.root = root
         self.root.title("HR")
@@ -52,8 +52,8 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [ms]", "Signal")
-        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [ms]", "Signal [normalized]", y_lim=(-2,2))
+        self.plotECG = plot.LivePlot(frame1, "ECG", "Time [s]", "Signal")
+        self.plotPPG = plot.LivePlot(frame2, "PPG", "Time [s]", "Signal [normalized]", y_lim=(-2,2), fs=30)
 
 
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
@@ -71,8 +71,10 @@ class LiveCounterApp:
                 val1 = self.queueECG.get_nowait()
                 self.plotECG.add_data(val1)
                 self.counter += 1
-                result = self.processorECG.add_sample(val1, self.counter)
+
+                result = self.processorECG.add_sample(val1, (self.counter*(1.0/130.0)))
                 if result is not None:
+                    print(result.x_peaks)
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
 
             except queue.Empty:
@@ -82,15 +84,23 @@ class LiveCounterApp:
                     val2 = self.queuePPG.get_nowait()
                     self.ppg_out_data.append(val2[1])
                     self.ppg_out_time.append(val2[0])
-                    self.counter2 += 1
-                    result = self.processorPPG.add_sample(val2[1], self.counter2)
+                    t = 0
+                    if self.ppg_start_time == -1:
+                        self.ppg_start_time = self.ppg_out_time[0]
+                    else:
+                        t = val2[0] - self.ppg_start_time
+                    result = self.processorPPG.add_sample(val2[1], t)
                     if result is not None:
                         print(val2)
                         d = result.filtered_signal
                         raw = result.raw_signal
                         for r in range(len(raw)):
                             self.plotPPG.add_data(d[r])
-                        self.plotPPG.add_scatter_points(result.peak_times, result.peak_values)
+                        print("PPG VALUESSSSSSSSSS")
+                        x_p = []
+                        for i in result.peak_times:
+                            x_p.append(i/1000.0)
+                        self.plotPPG.add_scatter_points( x_p, result.peak_values)
             except queue.Empty:
                 pass
 

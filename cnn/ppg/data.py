@@ -1,6 +1,4 @@
-import neurokit2 as nk
-import numpy as np
-import torch
+from sklearn.metrics import confusion_matrix, f1_score
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
@@ -30,7 +28,7 @@ def normalize_signal(signal):
 
 def generate_ppg_to_file(
     output_file="ppg_data_gen.csv",
-    duration=1000,
+    duration=10000,
     sampling_rate=30,
     lowcut=0.4,
     highcut=5
@@ -86,8 +84,17 @@ def generate_ppg_segment(segment_length=50, sampling_rate=100):
 
 def load_ppg_segments_from_csv(filepath, segment_length=50):
     df = pd.read_csv(filepath)
-    ppg = df['ppg'].values
-    peaks = df['peak'].values.astype(int)
+    ppg = df['ppg'].values[20:]
+
+    filtered_ppg = butter_bandpass_filter(ppg, 0.5, 5.0, fs=30)
+    ppg = normalize_signal(filtered_ppg)
+
+    peak_indices, _ = find_peaks(ppg, distance=30 // 2, prominence=0.1)
+    peaks = np.zeros_like(ppg)
+    peaks[peak_indices] = 1
+
+    plt.plot(ppg)
+    plt.show()
 
     segments = []
     labels = []
@@ -126,10 +133,13 @@ class PPGFileDataset(Dataset):
 
 
 def train_model(model, dataloader, epochs=5, lr=0.001):
+    print("foo")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("foo")
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
+    print("foo")
 
     for epoch in range(epochs):
         model.train()
@@ -183,6 +193,12 @@ def test_model(model, dataset, num_windows=100):
     true_peak_indices = np.where(all_true == 1)[0]
     pred_peak_indices = np.where(all_pred == 1)[0]
 
+    cm = confusion_matrix(all_true, all_pred)
+    print("\nMacierz konfuzji:")
+    print(cm)
+
+    f1 = f1_score(all_true, all_pred)
+    print(f"\nF1-score: {f1:.4f}")
     # Plot
     plt.figure(figsize=(14, 4))
     plt.plot(all_ppg, color='black', label='PPG Signal')
@@ -195,16 +211,70 @@ def test_model(model, dataset, num_windows=100):
     plt.tight_layout()
     plt.show()
 
+import os
+import torch
 
+def get_or_train_model(
+    model_path="ppg_model.pth",
+    csv_path="ppg_data.csv",
+    max_segments=1000,
+    epochs=10,
+    batch_size=32,
+    lr=0.001
+):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Prepare data
-dataset = PPGFileDataset("ppg_data_gen.csv", max_segments=1000)
-dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
+    # If model file exists, load and return
+    if os.path.exists(model_path):
+        print(f"📦 Loading model from {model_path}")
+        model = PPGPeakDetector()
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.to(device)
+        return model
 
-# Initialize and train model
-model = PPGPeakDetector()
-train_model(model, dataloader, epochs=10)
+    # Otherwise, train and save
+    print("🚀 Training new model...")
+    dataset = PPGFileDataset(csv_path, max_segments=max_segments)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-# Test on one example
-test_model(model, dataset)
+    model = PPGPeakDetector()
+    train_model(model, dataloader, epochs=epochs, lr=lr)
 
+    test_model(model, dataset)
+
+    torch.save(model.state_dict(), model_path)
+    print(f"💾 Model saved to {model_path}")
+    return model
+
+def predict_ppg_segment(model, input_array):
+    """
+    Predict peaks for a single PPG segment using the trained model.
+
+    Args:
+        model: Trained PyTorch model.
+        input_array (np.ndarray): Input PPG segment, shape (50,) or (1, 50).
+
+    Returns:
+        np.ndarray: Output prediction, shape (50,), values in [0, 1].
+    """
+    import numpy as np
+    import torch
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval()
+    model.to(device)
+
+    # Ensure correct shape: (1, 1, 50)
+    if input_array.ndim == 1:
+        input_array = input_array[np.newaxis, np.newaxis, :]
+    elif input_array.ndim == 2:
+        input_array = input_array[np.newaxis, :]
+    elif input_array.shape != (1, 1, 50):
+        raise ValueError(f"Expected input shape (50,), (1, 50), or (1, 1, 50), got {input_array.shape}")
+
+    input_tensor = torch.tensor(input_array, dtype=torch.float32).to(device)
+
+    with torch.no_grad():
+        output_tensor = model(input_tensor)
+
+    return output_tensor.squeeze().cpu().numpy()

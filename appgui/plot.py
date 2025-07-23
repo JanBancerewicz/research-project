@@ -4,10 +4,12 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class LivePlot:
-    def __init__(self, parent, title, x_axis, y_axis, window_size=1000, figsize=(10, 5), y_lim=(-1500, 2000)):
+    def __init__(self, parent, title, x_axis, y_axis, window_size=1000, figsize=(10, 5), y_lim=(-1500, 2000), fs=130):
         self.window_size = window_size
         self.x_data = [0]
         self.y_data = [0]
+        self.fs = fs
+
 
         self.y_data2 = None  # opcjonalna druga linia
         self.line2 = None
@@ -35,7 +37,7 @@ class LivePlot:
         self.y_data.append(value)
         self.y_data = self.y_data[-self.window_size:]
 
-        last_x = self.x_data[-1] + 1 if self.x_data else 0
+        last_x = self.x_data[-1] + (1.0/self.fs) if self.x_data else 0
         self.x_data.append(last_x)
         self.x_data = self.x_data[-self.window_size:]
 
@@ -61,6 +63,7 @@ class LivePlot:
         min_visible_x = self.x_data[0]
         max_visible_x = self.x_data[-1]
         visible_indices = [i for i, x in enumerate(self.scatter_x) if min_visible_x <= x <= max_visible_x]
+
         self.scatter_x = [self.scatter_x[i] for i in visible_indices]
         self.scatter_y = [self.scatter_y[i] for i in visible_indices]
 
@@ -75,7 +78,10 @@ class LivePlot:
 
     def add_scatter_points(self, x_points, y_points):
         """Dodaje scatter (np. R-peaks), pozostają do momentu przewinięcia."""
-        self.scatter_x.extend(x_points)
+        x = []
+        for i in x_points:
+            x.append(i)
+        self.scatter_x.extend(x)
         self.scatter_y.extend(y_points)
 
     def reset(self):

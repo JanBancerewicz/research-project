@@ -2,8 +2,9 @@ from collections import deque
 from dataclasses import dataclass
 import numpy as np
 from scipy.signal import savgol_filter, find_peaks, filtfilt, butter
+from cnn.ppg.data import get_or_train_model, predict_ppg_segment
 
-
+import neurokit2 as nk
 @dataclass
 class PPGResult:
     time_array: np.ndarray
@@ -14,7 +15,7 @@ class PPGResult:
 
 
 class PPGProcessor:
-    def __init__(self, window_size=50, polyorder=3, peak_distance=3, peak_prominence=0.3):
+    def __init__(self, window_size=100, polyorder=3, peak_distance=3, peak_prominence=0.3):
         """
         window_size: number of samples per window (must be odd for savgol)
         peak_distance: minimal distance between peaks (in samples)
@@ -28,6 +29,10 @@ class PPGProcessor:
         self.sample_buffer = deque(maxlen=window_size)
         self.time_buffer = deque(maxlen=window_size)
 
+       # self.model = get_or_train_model()
+
+        self.r = []
+
     def add_sample(self, sample, time):
         """
         Add new PPG sample and time.
@@ -38,13 +43,26 @@ class PPGProcessor:
         self.time_buffer.append(time)
 
         if len(self.sample_buffer) == self.window_size:
+
+
             window_data = np.array(self.sample_buffer)
             time_data = np.array(self.time_buffer)
             filtered = self.process_func(window_data)
+
             peak_times, peak_values = self.detect_peaks(filtered, time_data)
 
+
+            for i in peak_times:
+                self.r.append(i)
+            print(peak_times)
+
+            diff = 60/np.mean(np.diff(np.array(self.r)))
+            print("BMP: ", diff*1000)
             self.sample_buffer.clear()
             self.time_buffer.clear()
+
+           # out_model = predict_ppg_segment(self.model, filtered)
+            #print(out_model)
 
             return PPGResult(
                 time_array=time_data,
@@ -75,11 +93,8 @@ class PPGProcessor:
         Returns peak times and values.
         """
         try:
-            peaks, _ = find_peaks(
-                signal,
-                distance=self.peak_distance,
-                prominence=self.peak_prominence
-            )
+
+            peaks = nk.ppg_findpeaks(signal, sampling_rate=30)['PPG_Peaks']
             peak_times = time_array[peaks]
             peak_values = signal[peaks]
             return peak_times.tolist(), peak_values.tolist()

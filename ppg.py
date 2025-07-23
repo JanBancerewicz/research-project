@@ -12,6 +12,8 @@ time = np.array(data['time'])
 # === 2. Przygotowanie sygnału ===
 ppg = ppg[20:]
 time = time[20:]
+ppg = ppg[:51]
+time = time[:51]
 time -= time[0]
 
 # === 3. Parametry ===
@@ -94,8 +96,8 @@ plt.figure(figsize=(14, 8))
 #plt.plot(time, filtered_savgol, label='Savitzky-Golay', linewidth=2)
 #plt.plot(time[peaks_savgol], filtered_savgol[peaks_savgol], 'ro', label='Peaki SG')
 
-plt.plot(time[100:300], min_max_normalize(ppg[100:300]), label='Czysty Sygnał', linewidth=1)
-plt.plot(time[100:300], min_max_normalize(filtered_bandpass[100:300]), label='Butterworth bandpass', linewidth=2)
+plt.plot(time, min_max_normalize(ppg), label='Czysty Sygnał', linewidth=1)
+plt.plot(time, min_max_normalize(filtered_bandpass), label='Butterworth bandpass', linewidth=2)
 #plt.plot(time[peaks_bandpass], filtered_bandpass[peaks_bandpass], 'go', label='Peaki BP')
 
 #plt.plot(time, filtered_lowpass, label='Butterworth lowpass', linewidth=2)

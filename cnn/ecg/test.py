@@ -19,7 +19,7 @@ def test_model(device, model, test_loader, criterion):
             prediction = torch.sigmoid(outputs) > 0.5
             correct_predictions += (prediction == labels).sum().item()
             total_predictions += labels.numel()
-
+            
     avg_loss = test_loss / len(test_loader)
     accuracy = correct_predictions / total_predictions * 100
 
