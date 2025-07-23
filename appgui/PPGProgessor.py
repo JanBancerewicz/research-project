@@ -29,7 +29,7 @@ class PPGProcessor:
         self.sample_buffer = deque(maxlen=window_size)
         self.time_buffer = deque(maxlen=window_size)
 
-       # self.model = get_or_train_model()
+        #self.model = get_or_train_model()
 
         self.r = []
 
