@@ -70,7 +70,7 @@ class LiveCounterApp:
             # EKG (lewa kolumna)
             frame_ekg = tk.Frame(self.tab2)
             frame_ekg.grid(row=row, column=0, sticky="nsew", padx=5, pady=5)
-            plot_ekg = plot.LivePlot(frame_ekg, f"EKG - {name.upper()}", "Time [s]", name.upper())
+            plot_ekg = plot.LivePlot(frame_ekg, f"EKG - {name.upper()}", "Time [s]", name.upper(), y_lim=(0,100))
             self.hrv_plots[f"ekg_{name}"] = plot_ekg
 
             # PPG (prawa kolumna)
@@ -110,6 +110,13 @@ class LiveCounterApp:
                 result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
                 if result is not None:
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                    rmssd = result.hrv["rmssd"]
+                    sdnn = result.hrv["sdnn"]
+                    pnn50 = result.hrv["pnn50"]
+                    self.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                    self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                    self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                    print("HRV:", rmssd, sdnn, pnn50)
             except queue.Empty:
                 pass
 
