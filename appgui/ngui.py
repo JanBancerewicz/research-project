@@ -107,8 +107,23 @@ class LiveCounterApp:
                 self.plotECG.add_data(val1)
                 self.counter += 1
 
+                # result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
+                # if result is not None:
+                #     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                #     rmssd = result.hrv["rmssd"]
+                #     sdnn = result.hrv["sdnn"]
+                #     pnn50 = result.hrv["pnn50"]
+                #     self.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                #     self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                #     self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                #     print("HRV:", rmssd, sdnn, pnn50)
+
                 result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
                 if result is not None:
+                    # Use the correct attribute name: ecg_filtered
+                    d = result.ecg_filtered
+                    for r in range(len(d)):
+                        self.plotECG.add_data(d[r])
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                     rmssd = result.hrv["rmssd"]
                     sdnn = result.hrv["sdnn"]
@@ -132,13 +147,25 @@ class LiveCounterApp:
                     else:
                         t = val2[0] - self.ppg_start_time
 
-                    result = self.processorPPG.add_sample(val2[1], t)
-                    if result is not None:
-                        d = result.filtered_signal
-                        for r in range(len(d)):
-                            self.plotPPG.add_data(d[r])
-                        x_p = [i / 1000.0 for i in result.peak_times]
-                        self.plotPPG.add_scatter_points(x_p, result.peak_values)
+                    # result, hrv = self.processorPPG.add_sample(val2[1], t)
+                    result_tuple = self.processorPPG.add_sample(val2[1], t)
+                    if result_tuple is not None:
+                        result, hrv = result_tuple
+                        if result is not None:
+                            # Use the correct attribute name for the filtered signal
+                            d = result.filtered_signal  # Replace with the correct attribute if needed
+                            for r in range(len(d)):
+                                self.plotPPG.add_data(d[r])
+                            x_p = [i / 1000.0 for i in result.peak_times]
+                            self.plotPPG.add_scatter_points(x_p, result.peak_values)
+
+                            # Calculate HRV for PPG
+                            # hrv = self.processorPPG.calculate_hrv()
+                            if hrv:
+                                self.hrv_plots["ppg_rmssd"].add_data(hrv["rmssd"])
+                                self.hrv_plots["ppg_sdnn"].add_data(hrv["sdnn"])
+                                self.hrv_plots["ppg_pnn50"].add_data(hrv["pnn50"])
+                                print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["pnn50"])
             except queue.Empty:
                 pass
 

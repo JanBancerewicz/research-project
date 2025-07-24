@@ -26,12 +26,55 @@ class PPGProcessor:
         self.peak_distance = peak_distance
         self.peak_prominence = peak_prominence
 
+
+
         self.sample_buffer = deque(maxlen=window_size)
         self.time_buffer = deque(maxlen=window_size)
 
         #self.model = get_or_train_model()
 
-        self.r = []
+        self.r = [] # Store detected peak times
+
+    # def add_sample(self, sample, time):
+    #     """
+    #     Add new PPG sample and time.
+    #     When buffer is full, return a PPGResult.
+    #     Otherwise, return None.
+    #     """
+    #     self.sample_buffer.append(sample)
+    #     self.time_buffer.append(time)
+    #
+    #     if len(self.sample_buffer) == self.window_size:
+    #
+    #
+    #         window_data = np.array(self.sample_buffer)
+    #         time_data = np.array(self.time_buffer)
+    #         filtered = self.process_func(window_data)
+    #
+    #         peak_times, peak_values = self.detect_peaks(filtered, time_data)
+    #
+    #
+    #         for i in peak_times:
+    #             self.r.append(i)
+    #         print(peak_times)
+    #
+    #         diff = 60/np.mean(np.diff(np.array(self.r)))
+    #         print("BMP: ", diff*1000)
+    #         self.sample_buffer.clear()
+    #         self.time_buffer.clear()
+    #
+    #        # out_model = predict_ppg_segment(self.model, filtered)
+    #         #print(out_model)
+    #
+    #         return PPGResult(
+    #             time_array=time_data,
+    #             filtered_signal=filtered,
+    #             raw_signal=window_data,
+    #             peak_times=peak_times,
+    #             peak_values=peak_values
+    #         )
+    #     else:
+    #         return None
 
     def add_sample(self, sample, time):
         """
@@ -43,34 +86,40 @@ class PPGProcessor:
         self.time_buffer.append(time)
 
         if len(self.sample_buffer) == self.window_size:
-
-
+            # Convert buffers to numpy arrays
             window_data = np.array(self.sample_buffer)
             time_data = np.array(self.time_buffer)
+
+            # Process the signal (filtering and normalization)
             filtered = self.process_func(window_data)
 
+            # Detect peaks
             peak_times, peak_values = self.detect_peaks(filtered, time_data)
 
+            # Save R-peak times and calculate HRV
+            for peak_time in peak_times:
+                self.r.append(peak_time)
+                if len(self.r) >= 2:
+                    # Calculate HRV (time difference between last two peaks)
+                    hrv = (self.r[-1] - self.r[-2]) * 1000  # Convert to milliseconds
+                    print(f"HRV (ms): {hrv:.2f}")
 
-            for i in peak_times:
-                self.r.append(i)
-            print(peak_times)
+            # Calculate HRV
+            hrv = self.compute_hrv()
+            print(f"HRV Metrics: {hrv}")  # Log HRV metrics
 
-            diff = 60/np.mean(np.diff(np.array(self.r)))
-            print("BMP: ", diff*1000)
+            # Clear buffers after processing
             self.sample_buffer.clear()
             self.time_buffer.clear()
 
-           # out_model = predict_ppg_segment(self.model, filtered)
-            #print(out_model)
-
+            # Return the result
             return PPGResult(
                 time_array=time_data,
                 filtered_signal=filtered,
                 raw_signal=window_data,
                 peak_times=peak_times,
                 peak_values=peak_values
-            )
+            ), hrv
         else:
             return None
 
@@ -87,20 +136,57 @@ class PPGProcessor:
         """
         return self._normalize_window(self.bandpass_filter(window_data))
 
+    # def detect_peaks(self, signal, time_array):
+    #     """
+    #     Detect peaks using scipy.signal.find_peaks.
+    #     Returns peak times and values.
+    #     """
+    #     try:
+    #
+    #         peaks = nk.ppg_findpeaks(signal, sampling_rate=30)['PPG_Peaks']
+    #         peak_times = time_array[peaks]
+    #         peak_values = signal[peaks]
+    #         return peak_times.tolist(), peak_values.tolist()
+    #     except Exception as e:
+    #         print(f"[PPGProcessor] Peak detection error: {e}")
+    #         return [], []
+
     def detect_peaks(self, signal, time_array):
         """
-        Detect peaks using scipy.signal.find_peaks.
+        Detect peaks using neurokit2's PPG peak detection.
         Returns peak times and values.
         """
         try:
-
+            # Use neurokit2 to find PPG peaks
             peaks = nk.ppg_findpeaks(signal, sampling_rate=30)['PPG_Peaks']
+            if len(peaks) == 0:
+                print("[PPGProcessor] No peaks detected.")
+                return [], []
+
+            # Extract peak times and values
             peak_times = time_array[peaks]
             peak_values = signal[peaks]
             return peak_times.tolist(), peak_values.tolist()
         except Exception as e:
             print(f"[PPGProcessor] Peak detection error: {e}")
             return [], []
+
+    def compute_hrv(self):
+        if len(self.r) < 3:
+            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+
+        rr_intervals = np.diff(np.array(self.r)) * 1000  # w ms
+        if len(rr_intervals) < 2:
+            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+
+        diff_rr = np.diff(rr_intervals)
+        rmssd = np.sqrt(np.mean(diff_rr ** 2))
+        sdnn = np.std(rr_intervals)
+        nn50 = np.sum(np.abs(diff_rr) > 50)
+        pnn50 = 100.0 * nn50 / len(diff_rr)
+
+        return {"rmssd": rmssd, "sdnn": sdnn, "pnn50": pnn50}
+
 
     def _normalize_window(self, window):
         min_val = np.min(window)
