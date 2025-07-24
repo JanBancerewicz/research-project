@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class PPGPeakDetector(nn.Module):
     def __init__(self):
         super(PPGPeakDetector, self).__init__()
