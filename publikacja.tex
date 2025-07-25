@@ -107,7 +107,7 @@ Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego r
 
 \newpage
 \subsection{Model do wykrywania załamków R}
-Sieć neuronowa została zaimplementowana z wykorzystaniem biblioteki PyTorch. Architektura obejmuje cztery warstwy splotowe typu 1D, jednokierunkową warstwę LSTM oraz bloki dwóch warstw liniowych. Sygnał wejściowy ma postać jednowymiarowej sekwencji o wymiarach [1 × 256], obejmującą 256 próbek w pojedynczym kanale.
+Sieć neuronowa została zaimplementowana z wykorzystaniem biblioteki PyTorch. Architektura składa się z czterech warstw splotowych typu 1D, jednokierunkowej warstwy LSTM oraz bloków dwóch warstw liniowych. Sygnał wejściowy ma postać jednowymiarowej sekwencji o wymiarach [1 × 256], zawierającą 256 próbek w pojedynczym kanale.
 
 Pierwszy etap obejmuje ekstrakcję cech przy użyciu czterech warstw konwolucyjnych 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Każda warstwa rozszerza reprezentację sygnału, zwiększając liczbę kanałów od 16 do 128, wykorzystując filtry o rozmiarach 5 lub 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Maksymalne próbkowanie MaxPooling1D z jądrem o rozmiarze 2 redukuje długość sekwencji z 256 do 16 wzdłuż osi czasowej, zwiększając efektywność przetwarzania.
 
