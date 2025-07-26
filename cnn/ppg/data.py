@@ -3,7 +3,7 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
 from cnn.ppg.PPGPeakDetector import PPGPeakDetector
-from cnn.ppg.HRVCalculator import calculate_rr_intervals
+#from cnn.ppg.HRVCalculator import calculate_rr_intervals
 
 import numpy as np
 import pandas as pd

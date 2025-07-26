@@ -120,10 +120,7 @@ class LiveCounterApp:
 
                 result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
                 if result is not None:
-                    # Use the correct attribute name: ecg_filtered
-                    d = result.ecg_filtered
-                    for r in range(len(d)):
-                        self.plotECG.add_data(d[r])
+
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                     rmssd = result.hrv["rmssd"]
                     sdnn = result.hrv["sdnn"]
