@@ -78,7 +78,7 @@ W niniejszej pracy została zaprojektowana sieć łącząca warstwy splotowe ora
 
 Model przetwarza jednowymiarowe sygnały napięcia elektrycznego, podzielone na fragmenty o długości 256 próbek. Moduły splotowe odpowiadają za ekstrakcję cech z danych wejściowych przez zastosowanie kolejnych warstw konwolucyjnych wraz z nieliniowymi funkcjami aktywacji. Realizacja procesu redukcji wymiarowości przez wybór największych wartości pozwala na zwiększenie odporności na szum oraz zakłócenia. Po przekształceniu sygnału przez część konwolucyjną, dane są przekazywane do jednokierunkowej warstwy LSTM, która umożliwia analizę zależności czasowych między kolejnymi próbkami sygnału. W końcowej części modelu wykorzystano połączone moduły liniowe, których celem jest przekształcenie wewnętrznej reprezentacji cech w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu wystąpienia załamka R w odpowiadającej mu próbce sygnału wejściowego. Zaprojektowane rozwiązanie umożliwia binarną klasyfikację dla każdej próbki w szeregu czasowym.
 
-Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodzących z czujnika tętna Polar H10. Do przygotowania danych treningowych wykorzystano funkcję ecg\_peaks z biblioteki NeuroKit2, implementującą algorytm Pan–Tompkins, który umożliwia detekcję załamków R w surowym sygnale EKG. Dla każdej próbki przygotowano etykiety binarne wskazujące obecność lub brak lokalnego maksimum. W rezultacie sieć neuronowa uczyła się realizować klasyfikację fragmentów sygnału EKG poprzez identyfikację wzorców odpowiadającym rzeczywistym szczytom R.
+Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodzących z czujnika tętna Polar H10. Dla danych treningowych wykorzystano funkcję ecg\_peaks z biblioteki NeuroKit2, implementującą algorytm Pan–Tompkins, który umożliwia detekcję załamków R w surowym sygnale EKG. Dla każdej próbki przygotowano etykiety binarne wskazujące obecność lub brak lokalnego maksimum. W rezultacie sieć neuronowa uczyła się realizować klasyfikację fragmentów sygnału EKG poprzez identyfikację wzorców odpowiadającym rzeczywistym szczytom R.
 
 
 \subsection{Fotopletyzmografia}
@@ -91,14 +91,14 @@ Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodz�
 \section{Opis systemu i danych}
 
 \subsection{Akwizacja danych EKG}
-Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, umożliwiającego rejestrację sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Zastosowana częstotliwość próbkowania umożliwia charakterystykę przebiegu sygnału istotną dla oceny aktywności serca oraz analizy zmienności rytmu zatokowego.
+Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, umożliwiającego rejestrację sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu sygnału istotną dla oceny aktywności serca oraz analizę zmienności rytmu zatokowego.
 
 W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane przebiegi były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, mogących wprowadzać zakłócenia w sygnale.
 
-Transmisja danych między czujnikiem a komputerem realizowana była bezprzewodowo z wykorzystaniem technologii Bluetooth Low Energy. Dane przesyłano w czasie rzeczywistym w pakietach zawierających około 13 próbek, zgodnych z zastosowaną częstotliwością próbkowania, a następnie zapisywano je w formacie CSV. Każda próbka odpowiadała wartości potencjału elektrycznego rejestrowanego z powierzchni klatki piersiowej użytkownika.
+Transmisja danych między czujnikiem a komputerem zrealizowano bezprzewodowo z wykorzystaniem technologii Bluetooth Low Energy. Dane przesyłano w czasie rzeczywistym w pakietach zawierających 13 próbek, zgodnych z zastosowaną częstotliwością próbkowania, a następnie zapisywano je w formacie CSV. Każdy odczyt odpowiadał wartości potencjału elektrycznego rejestrowanego z powierzchni klatki piersiowej użytkownika.
 
 \subsection{Filtracja sygnału – filtr Butterwortha}
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, w celu eliminacji szumów oraz zakłóceń. Dolna granica filtru redukuje powolne zmiany w sygnale wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{4}. Z kolei górna granica tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{5}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
+Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, mający na celu eliminację szumów oraz zakłóceń. Dolna granica pasma redukuje powolne zmiany w sygnale wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{4}. Z kolei górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{5}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
 
 
 ----------------------------------------------------------------
@@ -109,11 +109,11 @@ Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego r
 \subsection{Model do wykrywania załamków R}
 Sieć neuronowa została zaimplementowana z wykorzystaniem biblioteki PyTorch. Architektura składa się z czterech warstw splotowych typu 1D, jednokierunkowej warstwy LSTM oraz bloków dwóch warstw liniowych. Sygnał wejściowy ma postać jednowymiarowej sekwencji o wymiarach [1 × 256], zawierającą 256 próbek w pojedynczym kanale.
 
-Pierwszy etap obejmuje ekstrakcję cech przy użyciu czterech warstw konwolucyjnych 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Każda warstwa rozszerza reprezentację sygnału, zwiększając liczbę kanałów od 16 do 128, wykorzystując filtry o rozmiarach 5 lub 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Maksymalne próbkowanie MaxPooling1D z jądrem o rozmiarze 2 redukuje długość sekwencji z 256 do 16 wzdłuż osi czasowej, zwiększając efektywność przetwarzania.
+Pierwszy etap obejmuje ekstrakcję cech przy użyciu czterech warstw konwolucyjnych 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Warstwy te rozszerzają reprezentację sygnału, zwiększając liczbę kanałów od 16 do 128, wykorzystując filtry o rozmiarach 5 lub 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Maksymalne próbkowanie MaxPooling1D z jądrem o rozmiarze 2 redukuje długość sekwencji z 256 do 16 wzdłuż osi czasowej, zwiększając efektywność przetwarzania.
 
-Macierz danych o wymiarach [128 × 16] jest przekształcana przez jednokierunkową LSTM z 128 jednostkami ukrytymi, działającą w trybie batch\_first=True. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do końcowego bloku zawierającego 256 neuronów, odwzorowującego kolejne próbki sygnału wejściowego. Każdy logit w wektorze reprezentuje miarę pewności modelu dotyczącą obecności piku R w danej próbce.
+Macierz danych o wymiarach [128 × 16] jest przekształcana przez jednokierunkową LSTM z 128 jednostkami ukrytymi, działającą w trybie batch\_first=True. Otrzymany wektor został spłaszczony i przekazany do warstwy z 128 neuronami, a następnie do końcowego bloku zawierającego 256 elementów, odwzorowującego kolejne próbki sygnału wejściowego. Każdy logit w wektorze reprezentuje miarę pewności modelu dotyczącą obecności piku R w danej próbce.
 
-Trening modelu przeprowadzono w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCEWithLogitsLoss, umożliwiającej binarną klasyfikację próbek sygnału. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,0001.
+Trening modelu przeprowadzono w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCEWithLogitsLoss, umożliwiającej binarną klasyfikację sygnału. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,0001.
 
 \begin{table}[h!]
 \centering
@@ -170,15 +170,22 @@ Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 
 
 \subsection{Akwizacja danych PPG}
+Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu tylnej kamery smartfona z systemem Android. Rejestrację sygnału fotopletyzmograficznego przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle światła LED. Przyjęte ustawienie umożliwiło transmisję światła przez tkanki skórne i zapis zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymana wartość stanowiła pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
+
+W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
+
+Transmisja danych pomiędzy smartfonem a komputerem zrealizowano z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze próbki sygnału wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywane w formacie CSV.
+
+\subsection{Filtracja sygnału}
 
 
 
-
+\newpage
 \begin{thebibliography}{1}
 \bibitem{1}
  O. Faust, U. R. Acharya, H. Adeli, and A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
 \bibitem{2}
- Rajpurkar, P., Hannun, A. Y., Haghpanahi, M., Bourn, C., & Ng, A. Y. (2017), "Cardiologist-level arrhythmia detection with convolutional neural networks"
+ Rajpurkar, P., Hannun, A. Y., Haghpanahi, M., Bourn, C., \& Ng, A. Y. (2017), "Cardiologist-level arrhythmia detection with convolutional neural networks"
 \bibitem{3}
  Yildirim, O. (2018), "A novel wavelet sequence based on deep bidirectional LSTM network model for ECG signal classification. Computers in Biology and Medicine"
 \bibitem{4} 
