@@ -107,17 +107,6 @@ class LiveCounterApp:
                 self.plotECG.add_data(val1)
                 self.counter += 1
 
-                # result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
-                # if result is not None:
-                #     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                #     rmssd = result.hrv["rmssd"]
-                #     sdnn = result.hrv["sdnn"]
-                #     pnn50 = result.hrv["pnn50"]
-                #     self.hrv_plots["ekg_rmssd"].add_data(rmssd)
-                #     self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                #     self.hrv_plots["ekg_pnn50"].add_data(pnn50)
-                #     print("HRV:", rmssd, sdnn, pnn50)
-
                 result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
                 if result is not None:
 

@@ -31,50 +31,28 @@ class PPGProcessor:
         self.sample_buffer = deque(maxlen=window_size)
         self.time_buffer = deque(maxlen=window_size)
 
-        #self.model = get_or_train_model()
+        DATA_DIR = "cnn/ppg/train_data"
+        MODEL_PATH = "ppg_peak_model.pth"
+        SEGMENT_LENGTH = window_size
+        MAX_SEGMENTS = 10000
+        EPOCHS = 200
+        BATCH_SIZE = 32
+        LR = 0.001
+        MAX_FILES = None
+
+        self.model = get_or_train_model(
+            model_path=MODEL_PATH,
+            data_dir=DATA_DIR,
+            segment_length=SEGMENT_LENGTH,
+            max_segments=MAX_SEGMENTS,
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE,
+            lr=LR,
+            max_files=MAX_FILES
+        )
 
         self.r = [] # Store detected peak times
 
-    # def add_sample(self, sample, time):
-    #     """
-    #     Add new PPG sample and time.
-    #     When buffer is full, return a PPGResult.
-    #     Otherwise, return None.
-    #     """
-    #     self.sample_buffer.append(sample)
-    #     self.time_buffer.append(time)
-    #
-    #     if len(self.sample_buffer) == self.window_size:
-    #
-    #
-    #         window_data = np.array(self.sample_buffer)
-    #         time_data = np.array(self.time_buffer)
-    #         filtered = self.process_func(window_data)
-    #
-    #         peak_times, peak_values = self.detect_peaks(filtered, time_data)
-    #
-    #
-    #         for i in peak_times:
-    #             self.r.append(i)
-    #         print(peak_times)
-    #
-    #         diff = 60/np.mean(np.diff(np.array(self.r)))
-    #         print("BMP: ", diff*1000)
-    #         self.sample_buffer.clear()
-    #         self.time_buffer.clear()
-    #
-    #        # out_model = predict_ppg_segment(self.model, filtered)
-    #         #print(out_model)
-    #
-    #         return PPGResult(
-    #             time_array=time_data,
-    #             filtered_signal=filtered,
-    #             raw_signal=window_data,
-    #             peak_times=peak_times,
-    #             peak_values=peak_values
-    #         )
-    #     else:
-    #         return None
 
     def add_sample(self, sample, time):
         """
@@ -136,37 +114,26 @@ class PPGProcessor:
         """
         return self._normalize_window(self.bandpass_filter(window_data))
 
-    # def detect_peaks(self, signal, time_array):
-    #     """
-    #     Detect peaks using scipy.signal.find_peaks.
-    #     Returns peak times and values.
-    #     """
-    #     try:
-    #
-    #         peaks = nk.ppg_findpeaks(signal, sampling_rate=30)['PPG_Peaks']
-    #         peak_times = time_array[peaks]
-    #         peak_values = signal[peaks]
-    #         return peak_times.tolist(), peak_values.tolist()
-    #     except Exception as e:
-    #         print(f"[PPGProcessor] Peak detection error: {e}")
-    #         return [], []
-
     def detect_peaks(self, signal, time_array):
         """
         Detect peaks using neurokit2's PPG peak detection.
         Returns peak times and values.
         """
         try:
-            # Use neurokit2 to find PPG peaks
-            peaks = nk.ppg_findpeaks(signal, sampling_rate=30)['PPG_Peaks']
-            if len(peaks) == 0:
+            out = predict_ppg_segment(self.model, signal)
+            peak_times = []
+            peak_values = []
+            for i in range(len(out)):
+                if out[i]:
+                    print("------------", time_array[i], signal[i])
+                    peak_times.append(time_array[i])
+                    peak_values.append(signal[i])
+
+            if len(peak_times) == 0:
                 print("[PPGProcessor] No peaks detected.")
                 return [], []
 
-            # Extract peak times and values
-            peak_times = time_array[peaks]
-            peak_values = signal[peaks]
-            return peak_times.tolist(), peak_values.tolist()
+            return peak_times, peak_values
         except Exception as e:
             print(f"[PPGProcessor] Peak detection error: {e}")
             return [], []
