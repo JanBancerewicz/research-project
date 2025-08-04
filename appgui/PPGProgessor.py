@@ -52,6 +52,7 @@ class PPGProcessor:
         )
 
         self.r = [] # Store detected peak times
+        self.r_for_rr = []
 
 
     def add_sample(self, sample, time):
@@ -138,34 +139,21 @@ class PPGProcessor:
             print(f"[PPGProcessor] Peak detection error: {e}")
             return [], []
 
-    # def compute_hrv(self):
-    #     if len(self.r) < 3:
-    #         return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
-    #
-    #     rr_intervals = np.diff(np.array(self.r)) * 1000  # w ms
-    #     if len(rr_intervals) < 2:
-    #         return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
-    #
-    #     diff_rr = np.diff(rr_intervals)
-    #     rmssd = np.sqrt(np.mean(diff_rr ** 2))
-    #     sdnn = np.std(rr_intervals)
-    #     nn50 = np.sum(np.abs(diff_rr) > 50)
-    #     pnn50 = 100.0 * nn50 / len(diff_rr)
-    #
-    #     return {"rmssd": rmssd, "sdnn": sdnn, "pnn50": pnn50}
-
     def compute_hrv(self):
         if len(self.r) < 3:
-            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": []}
 
         rr_intervals = np.diff(np.array(self.r))  # w sek
         if len(rr_intervals) < 2:
-            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": []}
 
         diff_rr = np.diff(rr_intervals)
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
-        mean_rr = np.mean(rr_intervals)
+        if len(rr_intervals) > 1:
+            mean_rr = np.diff(rr_intervals)
+        else:
+            mean_rr = []
 
         return {"rmssd": rmssd, "sdnn": sdnn, "mean_rr": mean_rr}
 
