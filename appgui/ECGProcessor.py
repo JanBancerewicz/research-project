@@ -10,7 +10,7 @@ class ECGOutput:
         self.x_peaks = x_peaks
         self.y_peaks = y_peaks
         self.ecg_filtered = ecg_filtered
-        self.hrv = hrv or {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+        self.hrv = hrv or {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
 
 
 class ECGProcessor:
@@ -80,21 +80,36 @@ class ECGProcessor:
         while self.r_peak_times and (current_time - self.r_peak_times[0] > self.hrv_window_sec):
             self.r_peak_times.popleft()
 
+    # def compute_hrv(self):
+    #     if len(self.r_peak_times) < 3:
+    #         return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
+    #
+    #     rr_intervals = np.diff(np.array(self.r_peak_times)) * 1000  # w ms
+    #     if len(rr_intervals) < 2:
+    #         return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
+    #
+    #     diff_rr = np.diff(rr_intervals)
+    #     rmssd = np.sqrt(np.mean(diff_rr ** 2))
+    #     sdnn = np.std(rr_intervals)
+    #     nn50 = np.sum(np.abs(diff_rr) > 50)
+    #     mean_rr = 100.0 * nn50 / len(diff_rr)
+    #
+    #     return {"rmssd": rmssd, "sdnn": sdnn, "mean_rr": mean_rr}
+
     def compute_hrv(self):
         if len(self.r_peak_times) < 3:
-            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
 
-        rr_intervals = np.diff(np.array(self.r_peak_times)) * 1000  # w ms
+        rr_intervals = np.diff(np.array(self.r_peak_times)) * 1000  # w ms i dobrze
         if len(rr_intervals) < 2:
-            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
 
         diff_rr = np.diff(rr_intervals)
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
-        nn50 = np.sum(np.abs(diff_rr) > 50)
-        pnn50 = 100.0 * nn50 / len(diff_rr)
+        mean_rr = np.mean(rr_intervals)
 
-        return {"rmssd": rmssd, "sdnn": sdnn, "pnn50": pnn50}
+        return {"rmssd": rmssd, "sdnn": sdnn, "mean_rr": mean_rr}
 
     def _normalize_window(self, window):
         min_val = np.min(window)

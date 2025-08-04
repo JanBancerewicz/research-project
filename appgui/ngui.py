@@ -61,7 +61,7 @@ class LiveCounterApp:
         label_ppg = tk.Label(self.tab2, text="PPG", font=("Arial", 12, "bold"))
         label_ppg.grid(row=0, column=1, padx=5, pady=5)
 
-        hrv_names = ["rmssd", "sdnn", "pnn50"]
+        hrv_names = ["rmssd", "sdnn", "mean_rr"]
         self.hrv_plots = {}
 
         for i, name in enumerate(hrv_names):
@@ -113,11 +113,11 @@ class LiveCounterApp:
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                     rmssd = result.hrv["rmssd"]
                     sdnn = result.hrv["sdnn"]
-                    pnn50 = result.hrv["pnn50"]
+                    mean_rr = result.hrv["mean_rr"]
                     self.hrv_plots["ekg_rmssd"].add_data(rmssd)
                     self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                    self.hrv_plots["ekg_pnn50"].add_data(pnn50)
-                    print("HRV:", rmssd, sdnn, pnn50)
+                    self.hrv_plots["ekg_mean_rr"].add_data(mean_rr)
+                    print("HRV:", rmssd, sdnn, mean_rr)
             except queue.Empty:
                 pass
 
@@ -150,8 +150,8 @@ class LiveCounterApp:
                             if hrv:
                                 self.hrv_plots["ppg_rmssd"].add_data(hrv["rmssd"])
                                 self.hrv_plots["ppg_sdnn"].add_data(hrv["sdnn"])
-                                self.hrv_plots["ppg_pnn50"].add_data(hrv["pnn50"])
-                                print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["pnn50"])
+                                self.hrv_plots["ppg_mean_rr"].add_data(hrv["mean_rr"])
+                                print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["mean_rr"])
             except queue.Empty:
                 pass
 

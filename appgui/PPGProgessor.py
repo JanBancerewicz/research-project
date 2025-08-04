@@ -138,22 +138,36 @@ class PPGProcessor:
             print(f"[PPGProcessor] Peak detection error: {e}")
             return [], []
 
+    # def compute_hrv(self):
+    #     if len(self.r) < 3:
+    #         return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+    #
+    #     rr_intervals = np.diff(np.array(self.r)) * 1000  # w ms
+    #     if len(rr_intervals) < 2:
+    #         return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+    #
+    #     diff_rr = np.diff(rr_intervals)
+    #     rmssd = np.sqrt(np.mean(diff_rr ** 2))
+    #     sdnn = np.std(rr_intervals)
+    #     nn50 = np.sum(np.abs(diff_rr) > 50)
+    #     pnn50 = 100.0 * nn50 / len(diff_rr)
+    #
+    #     return {"rmssd": rmssd, "sdnn": sdnn, "pnn50": pnn50}
+
     def compute_hrv(self):
         if len(self.r) < 3:
-            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
 
-        rr_intervals = np.diff(np.array(self.r)) * 1000  # w ms
+        rr_intervals = np.diff(np.array(self.r))  # w sek
         if len(rr_intervals) < 2:
-            return {"rmssd": 0.0, "sdnn": 0.0, "pnn50": 0.0}
+            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
 
         diff_rr = np.diff(rr_intervals)
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
-        nn50 = np.sum(np.abs(diff_rr) > 50)
-        pnn50 = 100.0 * nn50 / len(diff_rr)
+        mean_rr = np.mean(rr_intervals)
 
-        return {"rmssd": rmssd, "sdnn": sdnn, "pnn50": pnn50}
-
+        return {"rmssd": rmssd, "sdnn": sdnn, "mean_rr": mean_rr}
 
     def _normalize_window(self, window):
         min_val = np.min(window)
@@ -165,3 +179,4 @@ class PPGProcessor:
     def reset(self):
         self.sample_buffer.clear()
         self.time_buffer.clear()
+        self.r.clear() # dodane eksperymentalnie, aby wyczyścić r-peak times
