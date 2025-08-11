@@ -17,6 +17,7 @@ class CompareProcessor:
 
     def add_ppg_peaks(self, arr):
         """Add detected PPG peak times (seconds)."""
+        print(f"PPG peak: {arr}")
         self.ppg_peaks.extend(arr)
         self.compare()
 

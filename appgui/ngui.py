@@ -149,7 +149,7 @@ class LiveCounterApp:
                     else:
                         t = val2[0] - self.ppg_start_time
 
-                    result_tuple = self.processorPPG.add_sample(val2[1], t)
+                    result_tuple = self.processorPPG.add_sample(val2[1], t, val2[0])
                     if result_tuple is not None:
                         result, hrv = result_tuple
                         if result is not None:
