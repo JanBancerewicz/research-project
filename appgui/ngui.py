@@ -5,7 +5,8 @@ from tkinter import ttk
 import pandas as pd
 
 from appgui import plot
-from appgui.EcgDataFile import EcgDataFile
+from appgui.EcgDataFile import (EcgDataFile)
+from appgui.EcgData import EcgDataBluetooth
 from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
@@ -92,7 +93,7 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -103,22 +104,23 @@ class LiveCounterApp:
     def update_loop(self):
         if self.is_running:
             try:
-                val1 = self.queueECG.get_nowait()
-                self.plotECG.add_data(val1)
-                self.counter += 1
+                while True:
+                    val1 = self.queueECG.get_nowait()
+                    self.plotECG.add_data(val1)
+                    self.counter += 1
 
-                result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
-                if result is not None:
+                    result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
+                    if result is not None:
 
-                    self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                    rmssd = result.hrv["rmssd"]
-                    sdnn = result.hrv["sdnn"]
-                    rr_intervals = result.hrv["rr_intervals"]
-                    self.hrv_plots["ekg_rmssd"].add_data(rmssd)
-                    self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                    for i in rr_intervals:
-                        self.hrv_plots["ekg_rr"].add_data(i)
-                    print("HRV:", rmssd, sdnn, rr_intervals)
+                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                        rmssd = result.hrv["rmssd"]
+                        sdnn = result.hrv["sdnn"]
+                        rr_intervals = result.hrv["rr_intervals"]
+                        self.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                        self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                        for i in rr_intervals:
+                            self.hrv_plots["ekg_rr"].add_data(i)
+                        print("HRV:", rmssd, sdnn, rr_intervals)
             except queue.Empty:
                 pass
 
@@ -151,7 +153,7 @@ class LiveCounterApp:
                             if hrv:
                                 self.hrv_plots["ppg_rmssd"].add_data(hrv["rmssd"])
                                 self.hrv_plots["ppg_sdnn"].add_data(hrv["sdnn"])
-                                self.hrv_plots["ppg_rr"].add_data(hrv["mean_rr"])
+                                #self.hrv_plots["ppg_rr"].add_data(hrv["mean_rr"])
                                 print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["mean_rr"])
             except queue.Empty:
                 pass
