@@ -13,10 +13,6 @@ class CompareProcessor:
     def add_ecg_peaks(self, arr):
         """Add detected ECG peak times (seconds)."""
         self.ecg_peaks.extend(arr)
-        a = []
-        for i in range(max(len(arr)-1, 1)):
-            a.append(arr[i] +  random.randint(0,1000)/1000.0)  # Simulate some noise in ECG peaks
-        self.ppg_peaks.extend(a)
         self.compare()
 
     def add_ppg_peaks(self, arr):

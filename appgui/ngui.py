@@ -98,9 +98,7 @@ class LiveCounterApp:
         # Add a plot for diffs (below or overlay)
         frame_diff = tk.Frame(self.tab3)
         frame_diff.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.plotPeaksDiff = plot.LivePlot(
-            frame_diff, "PPG-ECG Peak Time Diff", "Peak Index", "Time Diff [s]"
-        )
+
 
         # Kolejki i wątki
         self.queueECG = queue.Queue()
@@ -128,7 +126,6 @@ class LiveCounterApp:
                 if result is not None:
                     self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                     self.compareProcessor.add_ecg_peaks(result.x_peaks)
-                    self.plotPeaksCompare.add_scatter_points(result.x_peaks, result.y_peaks)
                     #rmssd = result.hrv["rmssd"]
                     sdnn = result.hrv["sdnn"]
                     pnn50 = result.hrv["pnn50"]
@@ -161,7 +158,6 @@ class LiveCounterApp:
                             x_p = [i / 1000.0 for i in result.peak_times]
                             self.plotPPG.add_scatter_points(x_p, result.peak_values)
                             self.compareProcessor.add_ppg_peaks(x_p)
-                            self.plotPeaksCompare.add_scatter_points(x_p, result.peak_values)
                             # Calculate HRV for PPG
                             # hrv = self.processorPPG.calculate_hrv()
                             if hrv:
@@ -182,7 +178,7 @@ class LiveCounterApp:
         diffs = self.compareProcessor.diff
         if diffs:
             x = list(range(len(diffs)))
-            self.plotPeaksDiff.set_data(x, diffs)
+            self.plotPeaksCompare.set_data(x, diffs)
     def pause(self):
         self.is_running = False
         df = pd.DataFrame({
@@ -197,8 +193,6 @@ class LiveCounterApp:
     def reset(self):
         self.plotPPG.reset()
         self.plotECG.reset()
-        for plot_obj in self.analysis_plots:
-            plot_obj.reset()
 
     def on_closing(self):
         self.stop_event_PPG.set()

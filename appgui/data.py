@@ -16,4 +16,4 @@ class DataProducerThread(threading.Thread):
             val = self.signal_func(self.counter)
             self.data_queue.put(val)
             self.counter += 1
-            time.sleep(0.01)
+            time.sleep(1/130.0)  # Adjust the sleep time as needed for your data rate
