@@ -12,6 +12,7 @@ class PPGResult:
     raw_signal: np.ndarray
     peak_times: list
     peak_values: list
+    peak_unix_times: list
 
 
 class PPGProcessor:
@@ -25,6 +26,7 @@ class PPGProcessor:
         self.window_size = window_size
         self.peak_distance = peak_distance
         self.peak_prominence = peak_prominence
+        self.time_unix = []
 
 
 
@@ -54,7 +56,7 @@ class PPGProcessor:
         self.r = [] # Store detected peak times
 
 
-    def add_sample(self, sample, time):
+    def add_sample(self, sample, time, time_unix):
         """
         Add new PPG sample and time.
         When buffer is full, return a PPGResult.
@@ -62,17 +64,28 @@ class PPGProcessor:
         """
         self.sample_buffer.append(sample)
         self.time_buffer.append(time)
+        self.time_unix.append(time_unix)
 
         if len(self.sample_buffer) == self.window_size:
             # Convert buffers to numpy arrays
             window_data = np.array(self.sample_buffer)
             time_data = np.array(self.time_buffer)
+            unix_data = np.array(self.time_unix)
 
             # Process the signal (filtering and normalization)
             filtered = self.process_func(window_data)
 
             # Detect peaks
             peak_times, peak_values = self.detect_peaks(filtered, time_data)
+
+            # Match peak_times to unix times
+            peak_unix_times = []
+            for pt in peak_times:
+                idx = np.where(time_data == pt)[0]
+                if len(idx) > 0:
+                    peak_unix_times.append(unix_data[idx[0]])
+                else:
+                    peak_unix_times.append(None)
 
             # Save R-peak times and calculate HRV
             for peak_time in peak_times:
@@ -89,13 +102,15 @@ class PPGProcessor:
             # Clear buffers after processing
             self.sample_buffer.clear()
             self.time_buffer.clear()
+            self.time_unix.clear()
 
-            # Return the result
+            # Return the result with unix peak times
             return PPGResult(
                 time_array=time_data,
                 filtered_signal=filtered,
                 raw_signal=window_data,
                 peak_times=peak_times,
+                peak_unix_times=peak_unix_times,
                 peak_values=peak_values
             ), hrv
         else:

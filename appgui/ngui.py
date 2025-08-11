@@ -118,21 +118,22 @@ class LiveCounterApp:
     def update_loop(self):
         if self.is_running:
             try:
-                val1 = self.queueECG.get_nowait()
-                self.plotECG.add_data(val1)
-                self.counter += 1
+                while True:
+                    val1 = self.queueECG.get_nowait()
+                    self.plotECG.add_data(val1)
+                    self.counter += 1
 
-                result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
-                if result is not None:
-                    self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                    self.compareProcessor.add_ecg_peaks(result.x_peaks)
-                    #rmssd = result.hrv["rmssd"]
-                    sdnn = result.hrv["sdnn"]
-                    pnn50 = result.hrv["pnn50"]
-                    #self.hrv_plots["ekg_rmssd"].add_data(rmssd)
-                    self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                    self.hrv_plots["ekg_pnn50"].add_data(pnn50)
-                    print("HRV:", sdnn, pnn50)
+                    result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
+                    if result is not None:
+                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                        self.compareProcessor.add_ecg_peaks(result.x_peaks)
+                        # rmssd = result.hrv["rmssd"]
+                        sdnn = result.hrv["sdnn"]
+                        pnn50 = result.hrv["pnn50"]
+                        # self.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                        self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                        self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                        print("HRV:", sdnn, pnn50)
             except queue.Empty:
                 pass
 
@@ -157,7 +158,7 @@ class LiveCounterApp:
                                 self.plotPPG.add_data(d[r])
                             x_p = [i / 1000.0 for i in result.peak_times]
                             self.plotPPG.add_scatter_points(x_p, result.peak_values)
-                            self.compareProcessor.add_ppg_peaks(x_p)
+                            self.compareProcessor.add_ppg_peaks(result.peak_unix_times)
                             # Calculate HRV for PPG
                             # hrv = self.processorPPG.calculate_hrv()
                             if hrv:
