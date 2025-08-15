@@ -60,20 +60,21 @@ IEEEtran.cls version 1.8b and later.
 
 \newpage
 \section{Przegląd metod z użyciem uczenia maszynowego}
-Analiza sygnałów elektrokardiograficznych coraz częściej wykorzystuje metody uczenia maszynowego, jak sieci splotowe czy rekurencyjne, ze względu na możliwość detekcji złożonych zależności czasowych. W związku z wysoką odpornością na szumy i zakłócenia modele oparte na CNN implementowane są do automatycznej detekcji załamków R. 
 
-W literaturze opisywane są również klasyczne metody, takie jak filtry progowe czy transformacje sygnału. Ich zastosowanie w warunkach rzeczywistych jest utrudnione spadkiem efektywności w obecności zakłóceń spowodowanych ruchem. W odpowiedzi na ograniczenia, wykorzstuje się modele głębokiego uczenia, które posiadają zdolność do samodzielnego wyodrębniania istotnych cech bez potrzeby stosowania ręcznie definiowanych progów lub filtrów \cite{1}.
+Metody uczenia maszynowego znajdują szerokie zastosowanie w przetwarzaniu sygnałów biomedycznych, w tym w elektrokardiografii oraz fotopletyzmografii. Techniki te umożliwiają automatyczną detekcję istotnych cech, ocenę długotrwałych zależności czasowych oraz szacowanie parametrów fizjologicznych. W literaturze wyróżnia się dwa główne podejścia: metody oparte na filtracji sygnałów i analizie w dziedzinie czasu oraz modele uczące się, zdolne do samodzielnego wyodrębniania wzorców z danych pomiarowych.
+
+Analiza sygnałów elektrokardiograficznych coraz częściej wykorzystuje metody uczenia maszynowego, jak sieci splotowe czy rekurencyjne, ze względu na możliwość detekcji złożonych zależności czasowych. W związku z wysoką odpornością na szumy i zakłócenia modele oparte na CNN implementowane są do automatycznej detekcji załamków R. W opracowaniach opisywane są również klasyczne metody, takie jak filtry progowe czy transformacje sygnału. Ich zastosowanie w warunkach rzeczywistych jest utrudnione spadkiem efektywności w obecności zakłóceń spowodowanych ruchem. W odpowiedzi na ograniczenia, wykorzstuje się modele głębokiego uczenia, które posiadają zdolność do samodzielnego wyodrębniania istotnych cech bez potrzeby stosowania ręcznie definiowanych progów lub filtrów \cite{1}.
 
 Algorytm Pan-Tompkins, mimo powszechnego zastosowania w analizie sygnału EKG, charakteryzuje się niewystarczającą skutecznością w warunkach niskiej jakości sygnału. Ze względu na zdolność predykcji przebiegów czasowych sieci LSTM, stosowane są do wykrywania korelacji między obserwacjami interwałów RR, stanowią istotne narzędzie w analizie zmienności rytmu serca.
-
-
 Model wykorzystujący połączenie sieci splotowych i rekurencyjnych umożliwia jednoczesną detekcje krótkozasięgowych zmian w sygnale oraz długoterminowych zależności czasowych, co ma szczególne znaczenie w analizie nieregularnych sygnałów EKG \cite{2}. Niezależne zastosowanie rozwiązania CNN może prowadzić do utraty dynamiki przebiegu czasowego, natomiast sieci LSTM bez ekstrakcji cech są podatne na zakłócenia w danych wejściowych \cite{3}.
 
------------------------------------------------------------------
-% Tu dodać o PPG jak będzie sieć i jak jest widoczne PPG w nauce
-%Tu dodac o metodach z hrv  jak są brane z ECG i PGG po PPG
-
 \newpage
+Analogicznie do sygnałów elektrokardiograficznych, w fotopletyzmografii obserwuje się wykorzystanie algorytmów uczenia maszynowego w monitorowaniu i analizie częstości pracy serca. Wysoka podatność zapisu PPG na zakłócenia ruchowe oraz zmiany oświetlenia ogranicza skuteczność metod filtracji i detekcji. Zastosowanie sieci splotowych umożliwia precyzyjne wykrywanie szczytów fali, poprawiając wiarygodność klasyfikacji \cite{4}.
+
+W przetwarzaniu sygnałow PPG powszechnie stosuje się filtrację pasmową oraz algorytmy detekcji lokalnych maksimów i progów, uwzględniające adaptację do zmian amplitudy. Pomimo wysokiej skuteczności w warunkach kontrolowanych, metody te charakteryzują się obniżoną efektywnością w obecności nasilonych zakłóceń. W literaturze podkreśla się rosnące znaczenie  uczenia maszynowego, w tym architektur głębokich sieci neuronowych, stanowiących  alternatywę dla tradycyjnych technik analizy. Połączenie warstw konwolucyjnych z rekurencyjnymi LSTM umożliwia modelowanie zarówno krótkookresowych, jak i długoterminowych zmian przebiegu fali \cite{5}. W procesie klasyfikacji wyodrębnionych cech stosuje się również wielowarstwowe perceptrony MLP oraz sieci GRU, które przy mniejszej liczbie parametrów modelują zależności czasowe z dokładnością zbliżoną do architektury LSTM.
+Z sygnału PPG wyznacza się interwały międzyuderzeniowe IBI, odpowiadające interwałom RR w EKG, pozwalając na analizę zmienności rytmu serca niezależnie od zapisów elektrokardiograficznych. W wybranych rozwiązaniach wykorzystuje się uczenie transferowe, umożliwiające dostosowanie modeli wytrenowanych na odmiennych zbiorach danych, zapewniając wyższą precyzję detekcji oraz odporność na zakłócenia \cite{6}.
+
+
 \subsection{Elektrokardiografia}
 Jednym z elementów zaprojektowanych w ramach niniejszej pracy jest sieć łącząca warstwy splotowe oraz rekurencyjne, przeznaczoną do rozpoznawania szczytów R w sygnale EKG. Stanowi ona pierwszy etap w procesie wyznaczania interwałów RR oraz parametrów zmienności rytmu serca.
 
@@ -90,9 +91,9 @@ System przetwarza jednowymiarowe sygnały reprezentujące zmiany objętości krw
 
 Uczenie nadzorowane, zastosowane do analizy sygnału EKG pozyskanego z pulsometru, zostało analogicznie zaimplementowane w odniesieniu do danych PPG rejestrowanych za pomocą urządzenia mobilnego. Proces etykietowania oparto na identyfikacji szczytów lokalnych, wykorzystując funkcję find\_peaks z modułu scipy.signal, w przefiltrowanym przebiegu sygnału. Każdej próbce przypisano wartość binarną, odzwierciedlającą obecność bądź brak piku fali. Na podstawie zdefiniowanych etykiet sieć neuronowa została wytrenowana do rozpoznawania wzorców odpowiadających obecnościom szczytów.
 
+\newpage
 \section{Opis systemu i danych}
 \subsection{Akwizycja danych}
-
 \subsubsection{Akwizycja danych EKG}
 Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu sygnału istotną dla oceny aktywności serca oraz analizę zmienności rytmu zatokowego.
 
@@ -108,20 +109,20 @@ W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z 
 Transmisja danych pomiędzy smartfonem a komputerem zrealizowano z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze próbki sygnału wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywane w formacie CSV.
 
 \subsection{Filtracja sygnału – filtr Butterwortha}
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, mający na celu eliminację szumów oraz zakłóceń. Dolna granica pasma redukuje powolne zmiany w sygnale wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{4}. Z kolei górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{5}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
+Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, mający na celu eliminację szumów oraz zakłóceń. Dolna granica pasma redukuje powolne zmiany w sygnale wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{7}. Z kolei górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{8}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.78\linewidth]{Filtr_EKG.png} 
+    \includegraphics[width=0.76\linewidth]{Filtr_EKG.png} 
     \caption{Porównanie surowego i przefiltrowanego sygnału EKG}
     \label{fig:filtr_ekg}
 \end{figure}
 
-W celu poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{6}. Filtracja została zrealizowana z wykorzystaniem funkcji butter oraz filtfilt z modułu scipy.signal, zapewniając obróbkę sygnału bez przesunięcia fazowego.
+W celu poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{9}. Filtracja została zrealizowana z wykorzystaniem funkcji butter oraz filtfilt z modułu scipy.signal, zapewniając obróbkę sygnału bez przesunięcia fazowego.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.78\linewidth]{Filtr_PPG.png} 
+    \includegraphics[width=0.76\linewidth]{Filtr_PPG.png} 
     \caption{Porównanie surowego i przefiltrowanego sygnału PPG}
     \label{fig:filtr_ppg}
 \end{figure}
@@ -137,7 +138,6 @@ Macierz danych o wymiarach [128 × 16] jest przekształcana przez jednokierunkow
 
 Trening modelu przeprowadzono w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCEWithLogitsLoss, umożliwiającej binarną klasyfikację sygnału. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,0001.
 
-\newpage
 \begin{table}[h!]
 \centering
 \caption{Parametry warstw konwolucyjnych sieci}
@@ -162,15 +162,16 @@ Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uz
 \label{tab:conf_matrix}
 \begin{tabular}{|c|c|c|}
 \hline
-\textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu R} & \textbf{Szczyt R} \\
+\textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu } & \textbf{Szczyt } \\
 \hline
-Brak szczytu R & 231170 & 53 \\
+Brak szczytu  & 231170 & 53 \\
 \hline
-Szczyt R & 83 & 2678 \\
+Szczyt  & 83 & 2678 \\
 \hline
 \end{tabular}
 \end{table}
 
+\newpage
 Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 2678 z jego rzeczywistą obecnością. Liczba fałszywie pozytywnych predykcji wyniosła 53, natomiast fałszywie negatywnych -- 83. Wartość miary F1 równa 0,9753 świadczy o wysokiej równowadze pomiędzy precyzją a czułością modelu, co jest kluczowe w automatycznej analizie sygnałów elektrokardiograficznych. Podstawowe metryki oceny jakości modelu przedstawiono w Tabeli~\ref{tab:metrics}.
 
 \begin{table}[ht]
@@ -195,11 +196,8 @@ Analogicznie do podejścia zastosowanego w detekcji załamków R w sygnale EKG, 
 
 Do ekstrakcji lokalnych cech zastosowano dwie warstwy konwolucyjne 1D z filtrami o szerokości 5 oraz rosnącą liczbą kanałów od 1 do 32. Każde z przekształceń obejmuje normalizację BatchNorm1d oraz nieliniową funkcję aktywacji ReLU. Końcowy blok z filtrem o rozmiarze 1 generuje jednowymiarowy wektor, którego wartości wyznaczane przez funkcję sigmoidalną odpowiadają prawdopodobieństwom wystąpienia szczytu w danej próbce sygnału. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ppg_layers}.
 
---- trening
---- efektywnosc
---- poprawnosc klasyfikacji
+Model trenowano w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCELoss, odpowiedniej do binarnej klasyfikacji sygnałów. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,001.
 
-\newpage
 \begin{table}[ht]
 \centering
 \caption{Parametry warstw konwolucyjnych sieci}
@@ -215,6 +213,25 @@ Conv1D-3 & 32 & 1 & 1 & 0 & Sigmoid \\
 \end{tabular}
 \end{table}
 
+Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy użyciu wcześniej wytrenowanych parametrów. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
+
+\begin{table}[ht]
+\centering
+\caption{Macierz konfuzji dla detekcji pików fali}
+\label{tab:conf_matrix_ppg}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu } & \textbf{Szczyt} \\
+\hline
+Brak szczytu  & 9610 & 8 \\
+\hline
+Szczyt  & 12 & 370 \\
+\hline
+\end{tabular}
+\end{table}
+
+--- poprawnosc klasyfikacji
+
 \newpage
 \begin{thebibliography}{1}
 \bibitem{1}
@@ -223,11 +240,17 @@ Conv1D-3 & 32 & 1 & 1 & 0 & Sigmoid \\
  Rajpurkar, P., Hannun, A. Y., Haghpanahi, M., Bourn, C., \& Ng, A. Y. (2017), "Cardiologist-level arrhythmia detection with convolutional neural networks"
 \bibitem{3}
  Yildirim, O. (2018), "A novel wavelet sequence based on deep bidirectional LSTM network model for ECG signal classification. Computers in Biology and Medicine"
-\bibitem{4} 
+\bibitem{4}
+ Elgendi, M. (2012), "On the Analysis of Fingertip Photoplethysmogram Signals. Current Cardiology Reviews"
+\bibitem{5}
+Chen, W., et al., "Deep learning and remote photoplethysmography: A comprehensive review" 
+\bibitem{6}
+Zanelli, S., et al., "Transfer learning of CNN-based signal quality assessment for photoplethysmography"
+\bibitem{7} 
  G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, and O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
-\bibitem{5} 
+\bibitem{8} 
  R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
-\bibitem{6} 
+\bibitem{9} 
  Pimentel, M.A.F., et al. (2016), "Toward a robust estimation of heart rate from wrist-type PPG signals"
 
 \end{thebibliography}
