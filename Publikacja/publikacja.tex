@@ -24,7 +24,7 @@
 
 \begin{document}
 
-\title{ECG vs PPG}
+\title{Ocena zmienności rytmu serca w oparciu o uczenie maszynowe}
 \author{
     J. Bancerewicz, J. Kotłowski, O. Lozovyy, J. Morawska, M. Rzęsa\\
     \textit{Politechnika Gdańska}\\
@@ -213,6 +213,7 @@ Conv1D-3 & 32 & 1 & 1 & 0 & Sigmoid \\
 \end{tabular}
 \end{table}
 
+\newpage
 Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy użyciu wcześniej wytrenowanych parametrów. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
 
 \begin{table}[ht]
@@ -232,6 +233,31 @@ Szczyt  & 12 & 370 \\
 
 --- poprawnosc klasyfikacji
 
+
+\section{Synchronizacja czasowa i analiza porównawcza parametrów HRV}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Tu coś o HRV może dodać i ddoiero póżniej wstawka o synchroniazacji
+
+% do zastanowienia się 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Podczas rejestracji wykorzystywane są różne schematy zapisu znaczników czasowych w sygnałach EKG i PPG. W elektrokardiogramie punkty wystąpienia załamków R określane są względem chwili rozpoczęcia akwizycji i wyrażane w sekundach, stanowiąc układ odniesienia oparty na czasie względnym.
+W przypadku fotopletyzmografii detekcja szczytów fali zapisywana jest w czasie absolutnym, odpowiadającym znacznikom systemowym w formacie UNIX. Każda z metod reprezentacji jest poprawna w przypadku analizy pojedynczego sygnału, jednak ich bezpośrednie porównanie jest utrudnione, ponieważ wektory czasowe odwołują się do różnych osi odniesienia
+
+Dla zapewnienia spójnej synchronizacji danych niezbędne jest ujednolicenie układu czasowego.
+Realizacja tego procesu może polegać na przekształceniu znaczników PPG do postaci względnej od momentu rozpoczęcia rejestracji
+lub na wprowadzeniu do zapisu EKG odpowiadających im punktów odniesienia w sygnale, określonych na podstawie początku pomiaru i znanej częstotliwości próbkowania.
+W przedstawionej implementacji zastosowano pierwsze podejście, zakładające normalizację przebiegów względem chwili $t_{0}$. Przekształcenie znacznika $t_{UNIX}$ na na czas względny $t_{rel}$ opisuje równanie (1).
+\begin{equation}
+t_{\mathrm{rel}} = t_{\mathrm{UNIX}} - t_{0}
+\end{equation}
+Przetworzone sygnały umożliwiają wyznaczenie czasu propagacji fali tętna PTT. Parametr ten definiuje się jako różnica pomiędzy chwilą detekcji szczytu przebiegu PPG a odpowiadającym mu załamkiem R w EKG zgodnie z wyrażeniem (2).
+\begin{equation}
+PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}}
+\end{equation}
+
+ 
 \newpage
 \begin{thebibliography}{1}
 \bibitem{1}
