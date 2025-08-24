@@ -32,20 +32,25 @@ class CompareProcessor:
 
         # For each PPG peak, find the closest ECG peak in time
         diffs = []
+        start_index = 0
         if len(ecg_times) < len(ppg_times):
             for i in range(len(ppg_times)):
-                # Find the closest ECG peak to this PPG peak
-                ppg_time = ppg_times[i]
-                idx = np.argmin(np.abs(np.array(ecg_times) - ppg_time))
-                diff = ppg_time - ecg_times[idx]
-                diffs.append(diff)
+                if abs(ecg_times[i] - ppg_times[i]) > self.big_epsilon:
+                    start_index = i
+                    break
+            for i in range(start_index, len(ppg_times)):
+                if i < len(ecg_times):
+                    diff = ppg_times[i] - ecg_times[i]
+                    diffs.append(diff)
         else:
             for i in range(len(ecg_times)):
-                # Find the closest PPG peak to this ECG peak
-                ecg_time = ecg_times[i]
-                idx = np.argmin(np.abs(np.array(ppg_times) - ecg_time))
-                diff = ppg_times[idx] - ecg_time
-                diffs.append(diff)
+                if abs(ppg_times[i] - ecg_times[i]) > self.big_epsilon:
+                    start_index = i
+                    break
+            for i in range(start_index, len(ecg_times)):
+                if i < len(ppg_times):
+                    diff = ppg_times[i] - ecg_times[i]
+                    diffs.append(diff)
 
         self.diff = diffs
 
