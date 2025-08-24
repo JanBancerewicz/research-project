@@ -19,7 +19,10 @@ class PpgData(threading.Thread):
             try:
                 async for message in websocket:
                     f = message.split(' ')
-                    self.data_queue.put((int(f[0]),float(f[1].replace(',', '.'))))  # oryginalne działanie
+                    try:
+                        self.data_queue.put((int(f[0]),float(f[1].replace(',', '.'))))  # oryginalne działanie
+                    except:
+                        pass
             except websockets.exceptions.ConnectionClosed:
                 print("❌ Connection closed")
 

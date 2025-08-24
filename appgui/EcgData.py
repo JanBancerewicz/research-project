@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from queue import Queue
+import time  # <-- Add import
 
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
@@ -33,10 +34,13 @@ class EcgDataBluetooth(threading.Thread):
             frame_type = data[i]
             if frame_type == 0:
                 i += 1
+                timestamp = time.time() * 1000 - (1.0/130.0)*1000
                 while len(data[i:]) >= 3:
                     ecg_sample = int.from_bytes(data[i:i+2], byteorder='little', signed=True)
+                     # UNIX timestamp
+                    timestamp += (1/130)*1000  # Increment timestamp for each sample
                     with self.lock:
-                        self.data_queue.put(ecg_sample)
+                        self.data_queue.put((timestamp, ecg_sample))  # Put tuple (timestamp, sample)
                     i += 3
 
     async def connect_and_stream(self, address: str):

@@ -109,6 +109,10 @@ def test_model(model, dataset, num_windows=100):
     model.to(device)
     model.eval()
     all_ppg, all_true, all_pred = [], [], []
+    correct = 0
+    all_pred_peaks = 0
+    all_true_peaks = 0
+    missed = 0
     for i in range(min(num_windows, len(dataset))):
         X_sample, y_true = dataset[i]
         X_tensor = X_sample.unsqueeze(0).to(device)
@@ -116,7 +120,26 @@ def test_model(model, dataset, num_windows=100):
             y_pred = model(X_tensor).squeeze().cpu().numpy()
         all_ppg.extend(X_sample.squeeze().numpy())
         all_true.extend(y_true.numpy())
-        all_pred.extend((y_pred > 0.5).astype(int))
+        pred_binary = (y_pred > 0.5).astype(int)
+        all_pred.extend(pred_binary)
+        # Stats calculation
+        for j in range(len(pred_binary)):
+            if pred_binary[j] == y_true[j].item() and y_true[j].item() == 1:
+                correct += 1
+            if y_true[j].item() == 1:
+                all_true_peaks += 1
+            if pred_binary[j] == 1:
+                all_pred_peaks += 1
+            if pred_binary[j] == 0 and y_true[j].item() == 1:
+                missed += 1
+    # Print stats like r_neural.py
+    if all_true_peaks > 0:
+        p = correct / all_true_peaks * 100
+        p2 = max((all_pred_peaks / all_true_peaks * 100) - 100, 0)
+        p3 = missed / all_true_peaks * 100
+        print(f"Accuracy: {p:.2f}%")
+        print(f"Additional: {p2:.2f}%")
+        print(f"Missed: {p3:.2f}%")
     all_ppg = np.array(all_ppg)
     all_true = np.array(all_true)
     all_pred = np.array(all_pred)
