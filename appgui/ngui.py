@@ -120,10 +120,10 @@ class LiveCounterApp:
             try:
                 while True:
                     val1 = self.queueECG.get_nowait()
-                    self.plotECG.add_data(val1)
+                    self.plotECG.add_data(val1[0])
                     self.counter += 1
 
-                    result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
+                    result = self.processorECG.add_sample(val1[0], (self.counter * (1.0 / 130.0)))
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                         self.compareProcessor.add_ecg_peaks(result.x_peaks)
