@@ -3,6 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd
+import numpy as np
 
 from appgui import plot
 from appgui.CompareProcessor import CompareProcessor
@@ -121,15 +122,14 @@ class LiveCounterApp:
             try:
                 while True:
                     val1 = self.queueECG.get_nowait()
-                    print(f"ECG: Timestamp {round(val1[0])}")
+                    # print(f"ECG: Timestamp {round(val1[0])}")
                     self.plotECG.add_data(val1[1])
                     self.counter += 1
 
                     result = self.processorECG.add_sample(val1[1],val1[0], (self.counter * (1.0 / 130.0)))
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                        self.compareProcessor.add_ecg_peaks(result.x_peaks)
-                        self.compareProcessor.add_ppg_peaks(result.peak_unix_times)
+                        self.compareProcessor.add_ecg_peaks(result.peak_unix_times)
                         # rmssd = result.hrv["rmssd"]
                         sdnn = result.hrv["sdnn"]
                         pnn50 = result.hrv["pnn50"]
