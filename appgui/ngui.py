@@ -7,6 +7,7 @@ import pandas as pd
 from appgui import plot
 from appgui.CompareProcessor import CompareProcessor
 from appgui.EcgDataFile import EcgDataFile
+from appgui.EcgData import EcgDataBluetooth
 from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
@@ -107,7 +108,7 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -120,10 +121,11 @@ class LiveCounterApp:
             try:
                 while True:
                     val1 = self.queueECG.get_nowait()
-                    self.plotECG.add_data(val1[0])
+                    print(f"ECG: Timestamp {round(val1[0])}")
+                    self.plotECG.add_data(val1[1])
                     self.counter += 1
 
-                    result = self.processorECG.add_sample(val1[0], (self.counter * (1.0 / 130.0)))
+                    result = self.processorECG.add_sample(val1[1], (self.counter * (1.0 / 130.0)))
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                         self.compareProcessor.add_ecg_peaks(result.x_peaks)
