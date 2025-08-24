@@ -34,7 +34,7 @@ class EcgDataBluetooth(threading.Thread):
             frame_type = data[i]
             if frame_type == 0:
                 i += 1
-                timestamp = time.time() - (1.0/130.0)*1000
+                timestamp = time.time() * 1000 - (1.0/130.0)*1000
                 while len(data[i:]) >= 3:
                     ecg_sample = int.from_bytes(data[i:i+2], byteorder='little', signed=True)
                      # UNIX timestamp
