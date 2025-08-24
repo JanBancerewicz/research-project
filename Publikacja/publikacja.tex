@@ -231,31 +231,74 @@ Szczyt  & 12 & 370 \\
 \end{tabular}
 \end{table}
 
---- poprawnosc klasyfikacji
+Dla sygnałów fotopletyzmograficznych model poprawnie rozpoznał 9610 próbek bez obecności fali oraz 370 z jej wystąpieniem. Niepoprawne predykcje odnotowano w 8 przypadkach fałszywie dodatnich oraz 12  fałszywie ujemnych. Otrzymana wartość miary F1, wynosząca 0,9737, jest zbliżona do wyników uzyskanych dla modelu EKG, potwierdzając wiarygodność zastosowanego rozwiązania w analizie obu typów sygnałów.
+Podstawowe metryki oceny jakości architektury przedstawiono w Tabeli~\ref{tab:metrics_ppg}.
 
+\begin{table}[ht]
+\centering
+\caption{Parametry detekcji szczytów fali}
+\label{tab:metrics_ppg}
+\begin{tabular}{|c|c|p{4.6cm}|}
+\hline
+\textbf{Metryka} & \textbf{Wartość} & \textbf{Opis} \\
+\hline
+Skuteczność & 97,12\% & Odsetek poprawnych klasyfikacji obecności lub braku piku fali. \\
+\hline
+Błędne detekcje & 0,00\% & Odsetek próbek fałszywie zaklasyfikowanych jako zawierające pik fali. \\
+\hline
+Pominięte załamki & 2,88\% & Odsetek próbek z niewykrytym rzeczywistym pikiem fali. \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Synchronizacja czasowa i analiza porównawcza parametrów HRV}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%       Tu coś o HRV może dodać i ddoiero póżniej wstawka o synchroniazacji
 
-% do zastanowienia się 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Synchronizacja czasowa sygnałów}
 Podczas rejestracji wykorzystywane są różne schematy zapisu znaczników czasowych w sygnałach EKG i PPG. W elektrokardiogramie punkty wystąpienia załamków R określane są względem chwili rozpoczęcia akwizycji i wyrażane w sekundach, stanowiąc układ odniesienia oparty na czasie względnym.
 W przypadku fotopletyzmografii detekcja szczytów fali zapisywana jest w czasie absolutnym, odpowiadającym znacznikom systemowym w formacie UNIX. Każda z metod reprezentacji jest poprawna w przypadku analizy pojedynczego sygnału, jednak ich bezpośrednie porównanie jest utrudnione, ponieważ wektory czasowe odwołują się do różnych osi odniesienia
 
 Dla zapewnienia spójnej synchronizacji danych niezbędne jest ujednolicenie układu czasowego.
 Realizacja tego procesu może polegać na przekształceniu znaczników PPG do postaci względnej od momentu rozpoczęcia rejestracji
 lub na wprowadzeniu do zapisu EKG odpowiadających im punktów odniesienia w sygnale, określonych na podstawie początku pomiaru i znanej częstotliwości próbkowania.
-W przedstawionej implementacji zastosowano pierwsze podejście, zakładające normalizację przebiegów względem chwili $t_{0}$. Przekształcenie znacznika $t_{UNIX}$ na na czas względny $t_{rel}$ opisuje równanie (1).
+W przedstawionej implementacji zastosowano pierwsze podejście, zakładające normalizację przebiegów względem chwili $t_{0}$. 
+\newpage
+Przekształcenie znacznika $t_{UNIX}$ na na czas względny $t_{rel}$ opisuje równanie (1).
 \begin{equation}
 t_{\mathrm{rel}} = t_{\mathrm{UNIX}} - t_{0}
 \end{equation}
-Przetworzone sygnały umożliwiają wyznaczenie czasu propagacji fali tętna PTT. Parametr ten definiuje się jako różnica pomiędzy chwilą detekcji szczytu przebiegu PPG a odpowiadającym mu załamkiem R w EKG zgodnie z wyrażeniem (2).
+Przetworzone sygnały umożliwiają wyznaczenie czasu propagacji fali tętna PTT. Parametr ten definiuje się jako różnicę pomiędzy chwilą detekcji szczytu przebiegu PPG a odpowiadającym mu załamkiem R w EKG zgodnie z wyrażeniem (2).
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}}
 \end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Dodać tu wykres i parametry typu średnia i odchylenie
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Wskaźniki HRV}
+Ujednolicenie osi czasowych umożliwia równoległą analizę odstępów kolejnych uderzeń serca w obu przebiegach. Dla sygnału EKG określa się interwały RR, odpowiadające odległościom między załamkami R, natomiast w PPG interwały międzyuderzenowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla odstępów IBI.
+
+\noindent\textit{1) Średnia długość interwału:} 
+Średnia arytmetyczna odstępów RR, wyrażona wzorem:
+\begin{equation}
+    Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
+\end{equation}
+gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
+
+\noindent\textit{2) Odchylenie standardowe odstępów NN:} 
+Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem:
+\begin{equation}
+    SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
+\end{equation}
+gdzie $Mean$ – średnia długość interwału, $RR_i$ – $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów. \textbf{}
+
+\noindent\textit{3) Pierwiastek kwadratowy z uśrednionych kwadratów różnic kolejnych odstępów NN:} 
+Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem:
+\begin{equation}
+    RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
+\end{equation}
+gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
+
 
  
 \newpage
