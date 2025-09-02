@@ -37,16 +37,11 @@
 {Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for IEEE Journals}
 \maketitle
 
-% As a general rule, do not put math, special symbols or citations
-% in the abstract or keywords.
-\begin{abstract}
-The abstract goes here.
-\end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
-\begin{IEEEkeywords}
-IEEE, IEEEtran, journal, \LaTeX, paper, template.
-\end{IEEEkeywords}
+%\begin{IEEEkeywords}
+%IEEE, IEEEtran, journal, \LaTeX, paper, template.
+%\end{IEEEkeywords}
 
 \IEEEpeerreviewmaketitle
 
@@ -54,42 +49,42 @@ IEEE, IEEEtran, journal, \LaTeX, paper, template.
 
 \section{Wstęp}
 
-\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
-for IEEE journal papers produced under \LaTeX\ using
-IEEEtran.cls version 1.8b and later.
+%\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
+%for IEEE journal papers produced under \LaTeX\ using
+%IEEEtran.cls version 1.8b and later.
 
 \newpage
 \section{Przegląd metod z użyciem uczenia maszynowego}
 
 Metody uczenia maszynowego znajdują szerokie zastosowanie w przetwarzaniu sygnałów biomedycznych, w tym w elektrokardiografii oraz fotopletyzmografii. Techniki te umożliwiają automatyczną detekcję istotnych cech, ocenę długotrwałych zależności czasowych oraz szacowanie parametrów fizjologicznych. W literaturze wyróżnia się dwa główne podejścia: metody oparte na filtracji sygnałów i analizie w dziedzinie czasu oraz modele uczące się, zdolne do samodzielnego wyodrębniania wzorców z danych pomiarowych.
 
-Analiza sygnałów elektrokardiograficznych coraz częściej wykorzystuje metody uczenia maszynowego, jak sieci splotowe czy rekurencyjne, ze względu na możliwość detekcji złożonych zależności czasowych. W związku z wysoką odpornością na szumy i zakłócenia modele oparte na CNN implementowane są do automatycznej detekcji załamków R. W opracowaniach opisywane są również klasyczne metody, takie jak filtry progowe czy transformacje sygnału. Ich zastosowanie w warunkach rzeczywistych jest utrudnione spadkiem efektywności w obecności zakłóceń spowodowanych ruchem. W odpowiedzi na ograniczenia, wykorzstuje się modele głębokiego uczenia, które posiadają zdolność do samodzielnego wyodrębniania istotnych cech bez potrzeby stosowania ręcznie definiowanych progów lub filtrów \cite{1}.
+Analiza sygnałów elektrokardiograficznych coraz częściej wykorzystuje metody uczenia maszynowego, jak sieci splotowe czy rekurencyjne, ze względu na możliwość detekcji złożonych zależności czasowych. W związku z wysoką odpornością na szumy i zakłócenia modele ML implementowane są do automatycznej detekcji załamków R. W opracowaniach opisywane są również klasyczne metody, takie jak filtry progowe czy transformacje sygnału. Ich zastosowanie w warunkach rzeczywistych jest utrudnione spadkiem efektywności w obecności zniekształceń ruchowych. W odpowiedzi na ograniczenia, modele głębokiego uczenia stanowią alternatywę dla standardowych metod analizy danych \cite{1}.
 
-Algorytm Pan-Tompkins, mimo powszechnego zastosowania w analizie sygnału EKG, charakteryzuje się niewystarczającą skutecznością w warunkach niskiej jakości sygnału. Ze względu na zdolność predykcji przebiegów czasowych sieci LSTM, stosowane są do wykrywania korelacji między obserwacjami interwałów RR, stanowią istotne narzędzie w analizie zmienności rytmu serca.
-Model wykorzystujący połączenie sieci splotowych i rekurencyjnych umożliwia jednoczesną detekcje krótkozasięgowych zmian w sygnale oraz długoterminowych zależności czasowych, co ma szczególne znaczenie w analizie nieregularnych sygnałów EKG \cite{2}. Niezależne zastosowanie rozwiązania CNN może prowadzić do utraty dynamiki przebiegu czasowego, natomiast sieci LSTM bez ekstrakcji cech są podatne na zakłócenia w danych wejściowych \cite{3}.
+Algorytm Pan-Tompkins, szeroko stosowany w przetwarzaniu EKG, wykazuje ograniczoną skuteczność przy niskiej jakości danych. Zaawansowane metody wykorzystują architektury splotowe do ekstrakcji lokalnych cech sygnału oraz sieci rekurencyjne do detekcji zależności czasowych, opisujących relacje między kolejnymi interwałami RR, istotnych dla analizy zmienności rytmu serca \cite{2}. Natomiast modele Transformer umożliwiają jednoczesną identyfikację dynamiki zapisu, zwiększając jego odporność na zakłócenia.  Architektury hybrydowe łączące sieci CNN i RNN osiągają wyższą skuteczność w klasyfikacji nieregularnych przebiegów EKG oraz poprawiają dokładność analizy HRV, jednocześnie minimalizując wady pojedynczych rozwiązań \cite{3}.
 
 \newpage
-Analogicznie do sygnałów elektrokardiograficznych, w fotopletyzmografii obserwuje się wykorzystanie algorytmów uczenia maszynowego w monitorowaniu i analizie częstości pracy serca. Wysoka podatność zapisu PPG na zakłócenia ruchowe oraz zmiany oświetlenia ogranicza skuteczność metod filtracji i detekcji. Zastosowanie sieci splotowych umożliwia precyzyjne wykrywanie szczytów fali, poprawiając wiarygodność klasyfikacji \cite{4}.
+Analogicznie do sygnałów elektrokardiograficznych, w fotopletyzmografii obserwuje się wykorzystanie algorytmów uczenia maszynowego w monitorowaniu i analizie częstości pracy serca. Wysoka podatność zapisu PPG na zakłócenia ruchowe oraz zmiany oświetlenia ogranicza skuteczność metod filtracji i detekcji. Zastosowanie uczenia głębokiego umożliwia precyzyjne wykrywanie szczytów fali, poprawiając wiarygodność klasyfikacji \cite{4}.
 
-W przetwarzaniu sygnałow PPG powszechnie stosuje się filtrację pasmową oraz algorytmy detekcji lokalnych maksimów i progów, uwzględniające adaptację do zmian amplitudy. Pomimo wysokiej skuteczności w warunkach kontrolowanych, metody te charakteryzują się obniżoną efektywnością w obecności nasilonych zakłóceń. W literaturze podkreśla się rosnące znaczenie  uczenia maszynowego, w tym architektur głębokich sieci neuronowych, stanowiących  alternatywę dla tradycyjnych technik analizy. Połączenie warstw konwolucyjnych z rekurencyjnymi LSTM umożliwia modelowanie zarówno krótkookresowych, jak i długoterminowych zmian przebiegu fali \cite{5}. W procesie klasyfikacji wyodrębnionych cech stosuje się również wielowarstwowe perceptrony MLP oraz sieci GRU, które przy mniejszej liczbie parametrów modelują zależności czasowe z dokładnością zbliżoną do architektury LSTM.
+W przetwarzaniu sygnałów PPG wykorzystuje się filtrację pasmową oraz algorytmy detekcji lokalnych maksimów i progów, uwzględniające adaptację do zmian amplitudy. Pomimo wysokiej skuteczności w warunkach kontrolowanych, metody te charakteryzują się obniżoną efektywnością w obecności nasilonych zakłóceń. W nowoczesnej analizie stosuje się architektury głębokiego uczenia, w których warstwy konwolucyjne łączone są z rekurencyjnymi LSTM umożliwiając modelowanie zarówno krótkookresowych, jak i długoterminowych zmian przebiegu fali \cite{5}. W procesie klasyfikacji wyodrębnionych cech implementuje się również wielowarstwowe perceptrony MLP oraz sieci GRU, które przy mniejszej liczbie parametrów wykrywają zależności czasowe z dokładnością zbliżoną do architektury LSTM.
 Z sygnału PPG wyznacza się interwały międzyuderzeniowe IBI, odpowiadające interwałom RR w EKG, pozwalając na analizę zmienności rytmu serca niezależnie od zapisów elektrokardiograficznych. W wybranych rozwiązaniach wykorzystuje się uczenie transferowe, umożliwiające dostosowanie modeli wytrenowanych na odmiennych zbiorach danych, zapewniając wyższą precyzję detekcji oraz odporność na zakłócenia \cite{6}.
 
 
 \subsection{Elektrokardiografia}
 Jednym z elementów zaprojektowanych w ramach niniejszej pracy jest sieć łącząca warstwy splotowe oraz rekurencyjne, przeznaczoną do rozpoznawania szczytów R w sygnale EKG. Stanowi ona pierwszy etap w procesie wyznaczania interwałów RR oraz parametrów zmienności rytmu serca.
 
-Model przetwarza jednowymiarowe sygnały napięcia elektrycznego, podzielone na fragmenty o długości 256 próbek. Moduły splotowe odpowiadają za ekstrakcję cech z danych wejściowych przez zastosowanie kolejnych warstw konwolucyjnych wraz z nieliniowymi funkcjami aktywacji. Realizacja procesu redukcji wymiarowości przez wybór największych wartości pozwala na zwiększenie odporności na szum oraz zakłócenia. Po przekształceniu sygnału przez część konwolucyjną, dane są przekazywane do jednokierunkowej warstwy LSTM, która umożliwia analizę zależności czasowych między kolejnymi próbkami sygnału. W końcowej części modelu wykorzystano połączone moduły liniowe, których celem jest przekształcenie wewnętrznej reprezentacji cech w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu wystąpienia załamka R w odpowiadającej mu próbce sygnału wejściowego. Zaprojektowane rozwiązanie umożliwia binarną klasyfikację dla każdej próbki w szeregu czasowym.
+Model przetwarza jednowymiarowe sygnały napięcia elektrycznego, podzielone na fragmenty o długości 256 próbek. Moduły splotowe odpowiadają za ekstrakcję cech z danych wejściowych przez zastosowanie kolejnych warstw konwolucyjnych wraz z nieliniowymi funkcjami aktywacji. Realizacja procesu redukcji wymiarowości przez wybór największych wartości pozwala na zwiększenie odporności na szum oraz zakłócenia. Po przekształceniu sygnału przez część konwolucyjną, dane przekazywane są do jednokierunkowej warstwy LSTM, umożliwiającej analizę zależności czasowych między kolejnymi próbkami sygnału. W końcowej części modelu wykorzystano połączone moduły liniowe, których celem jest konwersja wewnętrznych cech w przestrzeń logitów. Każdy element wektora reprezentuje prawdopodobieństwo wystąpienia załamka R w odpowiadającej mu próbce sygnału wejściowego. Zaprojektowane rozwiązanie umożliwia binarną klasyfikację dla każdego punktu czasowego.
 
-Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodzących z czujnika tętna Polar H10. Dla danych treningowych wykorzystano funkcję ecg\_peaks z biblioteki NeuroKit2, implementującą algorytm Pan–Tompkins, który umożliwia detekcję załamków R w przefiltrowanym sygnale EKG. Dla każdej próbki przygotowano etykiety binarne wskazujące obecność lub brak lokalnego maksimum. W rezultacie sieć neuronowa uczyła się realizować klasyfikację fragmentów sygnału EKG poprzez identyfikację wzorców odpowiadającym rzeczywistym szczytom R.
+\newpage
+Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodzących z czujnika tętna Polar H10. Dla danych treningowych wykorzystano funkcję ecg\_peaks z biblioteki NeuroKit2, implementującą algorytm Pan–Tompkins, umożliwiający detekcję załamków R w przefiltrowanym zapisie EKG. Dla każdej próbki przygotowano etykiety binarne wskazujące obecność lub brak lokalnego maksimum. W konsekwencji sieć neuronowa uczyła się klasyfikacji poprzez identyfikację wzorców odpowiadającym rzeczywistym szczytom R.
 
 
 \subsection{Fotopletyzmografia}
-Drugim opracowanym rozwiązaniem jest sieć wykorzystująca warstwy splotowe, przeznaczona do analizy sygnału fotopletyzmograficznego. Model ten odpowiada za detekcję lokalnych szczytów, na podstawie których wyznaczane są interwały międzyuderzeniowe, służące do estymacji wskaźników rytmu serca.
+Drugim opracowanym rozwiązaniem jest sieć wykorzystująca warstwy splotowe, przeznaczona do analizy sygnału fotopletyzmograficznego. Model ten odpowiada za detekcję lokalnych szczytów, na podstawie których wyznaczane są interwały międzyuderzeniowe, służące do szacowania wskaźników rytmu serca.
 
-System przetwarza jednowymiarowe sygnały reprezentujące zmiany objętości krwi w naczyniach obwodowych, podzielone na segmenty o długości 50 próbek. Kolejne warstwy splotowe, wykorzystujące nieliniowe funkcje aktywacji, odpowiadają za identyfikację lokalnych wzorców w danych wejściowych. Selekcja wartości o największej amplitudzie zwiększa odporność modelu na niepożądane fluktuacje i zakłócenia. Na wyjściu modelu generowany jest wektor prawdopodobieństw, powstały w wyniku zastosowania funkcji sigmoidalnej do surowych sygnałów warstwy konwolucyjnej. Uzyskane wartości odzwierciedlają lokalizacje szczytów fali, umożliwiając klasyfikację binarną próbek w reprezentacji czasowej.
+System przetwarza jednowymiarowe sygnały reprezentujące zmiany objętości krwi w naczyniach obwodowych, podzielone na segmenty o długości 50 próbek. Kolejne moduły splotowe, wykorzystujące nieliniowe funkcje aktywacji, odpowiadają za identyfikację lokalnych wzorców w danych wejściowych. Selekcja wartości o największej amplitudzie zwiększa odporność na niepożądane zakłócenia. Na wyjściu modelu generowany jest wektor prawdopodobieństw, otrzymany przez zastosowanie funkcji sigmoidalnej do surowych sygnałów warstwy konwolucyjnej. Uzyskane wartości odzwierciedlają lokalizacje szczytów fali, umożliwiając klasyfikację binarną próbek w reprezentacji czasowej.
 
 
-Uczenie nadzorowane, zastosowane do analizy sygnału EKG pozyskanego z pulsometru, zostało analogicznie zaimplementowane w odniesieniu do danych PPG rejestrowanych za pomocą urządzenia mobilnego. Proces etykietowania oparto na identyfikacji szczytów lokalnych, wykorzystując funkcję find\_peaks z modułu scipy.signal, w przefiltrowanym przebiegu sygnału. Każdej próbce przypisano wartość binarną, odzwierciedlającą obecność bądź brak piku fali. Na podstawie zdefiniowanych etykiet sieć neuronowa została wytrenowana do rozpoznawania wzorców odpowiadających obecnościom szczytów.
+Uczenie nadzorowane, zastosowane w analizie sygnału EKG pozyskanego z pulsometru, zostało analogicznie zaimplementowane dla danych PPG rejestrowanych za pomocą urządzenia mobilnego. Proces etykietowania oparto na identyfikacji szczytów lokalnych, wykorzystując funkcję find\_peaks z modułu scipy.signal, w przefiltrowanym przebiegu. Każdej próbce przypisano wartość binarną, odzwierciedlającą obecność bądź brak piku fali. Na podstawie zdefiniowanych etykiet sieć neuronowa została wytrenowana do rozpoznawania wzorców odpowiadających detekcji szczytów.
 
 \newpage
 \section{Opis systemu i danych}
@@ -254,46 +249,42 @@ Pominięte załamki & 2,88\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \section{Synchronizacja czasowa i analiza porównawcza parametrów HRV}
 
 \subsection{Synchronizacja czasowa sygnałów}
-Podczas rejestracji wykorzystywane są różne schematy zapisu znaczników czasowych w sygnałach EKG i PPG. W elektrokardiogramie punkty wystąpienia załamków R określane są względem chwili rozpoczęcia akwizycji i wyrażane w sekundach, stanowiąc układ odniesienia oparty na czasie względnym.
-W przypadku fotopletyzmografii detekcja szczytów fali zapisywana jest w czasie absolutnym, odpowiadającym znacznikom systemowym w formacie UNIX. Każda z metod reprezentacji jest poprawna w przypadku analizy pojedynczego sygnału, jednak ich bezpośrednie porównanie jest utrudnione, ponieważ wektory czasowe odwołują się do różnych osi odniesienia
+Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te przekształcane są do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
-Dla zapewnienia spójnej synchronizacji danych niezbędne jest ujednolicenie układu czasowego.
-Realizacja tego procesu może polegać na przekształceniu znaczników PPG do postaci względnej od momentu rozpoczęcia rejestracji
-lub na wprowadzeniu do zapisu EKG odpowiadających im punktów odniesienia w sygnale, określonych na podstawie początku pomiaru i znanej częstotliwości próbkowania.
-W przedstawionej implementacji zastosowano pierwsze podejście, zakładające normalizację przebiegów względem chwili $t_{0}$. 
+Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (1):
+\begin{equation}
+t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
+\end{equation}
+gdzie $t_{\mathrm{UNIX}}$ - czas w formacie UNIX, $t_{\mathrm{rel}}$ – czas względny, a $t_{0}$ – początek akwizycji.
+
 \newpage
-Przekształcenie znacznika $t_{UNIX}$ na na czas względny $t_{rel}$ opisuje równanie (1).
+Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Różnice między odpowiadającymi pikami wyznaczono zgodnie z równaniem (2):
 \begin{equation}
-t_{\mathrm{rel}} = t_{\mathrm{UNIX}} - t_{0}
+PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
-Przetworzone sygnały umożliwiają wyznaczenie czasu propagacji fali tętna PTT. Parametr ten definiuje się jako różnicę pomiędzy chwilą detekcji szczytu przebiegu PPG a odpowiadającym mu załamkiem R w EKG zgodnie z wyrażeniem (2).
-\begin{equation}
-PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}}
-\end{equation}
+gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w sygnale PPG i EKG. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Dodać tu wykres i parametry typu średnia i odchylenie
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Wskaźnik PTT wykorzystywany jest do oceny poprawności synchronizacji sygnałów.%
 
 \subsection{Wskaźniki HRV}
 Ujednolicenie osi czasowych umożliwia równoległą analizę odstępów kolejnych uderzeń serca w obu przebiegach. Dla sygnału EKG określa się interwały RR, odpowiadające odległościom między załamkami R, natomiast w PPG interwały międzyuderzenowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla odstępów IBI.
 
 \noindent\textit{1) Średnia długość interwału:} 
-Średnia arytmetyczna odstępów RR, wyrażona wzorem:
+Średnia arytmetyczna odstępów RR, wyrażona wzorem (3):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
 \end{equation}
 gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
 
 \noindent\textit{2) Odchylenie standardowe odstępów NN:} 
-Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem:
+Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (4):
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
 gdzie $Mean$ – średnia długość interwału, $RR_i$ – $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów. \textbf{}
 
 \noindent\textit{3) Pierwiastek kwadratowy z uśrednionych kwadratów różnic kolejnych odstępów NN:} 
-Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem:
+Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem (5):
 \begin{equation}
     RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
 \end{equation}
