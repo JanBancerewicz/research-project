@@ -141,21 +141,17 @@ class PPGProcessor:
 
     def compute_hrv(self):
         if len(self.r) < 3:
-            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": []}
+            return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
-        rr_intervals = np.diff(np.array(self.r))  # w sek
+        rr_intervals = np.diff(np.array(self.r))  # in seconds
         if len(rr_intervals) < 2:
-            return {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": []}
+            return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
         diff_rr = np.diff(rr_intervals)
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
-        if len(rr_intervals) > 1:
-            mean_rr = np.diff(rr_intervals)
-        else:
-            mean_rr = []
 
-        return {"rmssd": rmssd, "sdnn": sdnn, "mean_rr": mean_rr}
+        return {"rmssd": rmssd, "sdnn": sdnn, "rr_intervals": rr_intervals}
 
     def _normalize_window(self, window):
         min_val = np.min(window)
