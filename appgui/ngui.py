@@ -67,7 +67,7 @@ class LiveCounterApp:
         label_ppg = tk.Label(self.tab2, text="PPG", font=("Arial", 12, "bold"))
         label_ppg.grid(row=0, column=1, padx=5, pady=5)
 
-        hrv_names = ["rmssd", "sdnn", "pnn50"]
+        hrv_names = ["rmssd", "sdnn", "rr"]
         self.hrv_plots = {}
 
         for i, name in enumerate(hrv_names):
@@ -109,7 +109,8 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        # self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -130,13 +131,17 @@ class LiveCounterApp:
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                         self.compareProcessor.add_ecg_peaks(result.peak_unix_times)
-                        # rmssd = result.hrv["rmssd"]
+                        rmssd = result.hrv["rmssd"]
                         sdnn = result.hrv["sdnn"]
-                        pnn50 = result.hrv["pnn50"]
-                        # self.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                        # pnn50 = result.hrv["pnn50"]
+                        rr_intervals = result.hrv["rr_intervals"]
+                        self.hrv_plots["ekg_rmssd"].add_data(rmssd)
                         self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                        self.hrv_plots["ekg_pnn50"].add_data(pnn50)
-                        print("HRV:", sdnn, pnn50)
+                        for i in rr_intervals:
+                          self.hrv_plots["ekg_rr"].add_data(i)
+                        self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                        # self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                        # print("HRV:", sdnn, pnn50,  rr_intervals)
             except queue.Empty:
                 pass
 
@@ -167,8 +172,9 @@ class LiveCounterApp:
                             if hrv:
                                 self.hrv_plots["ppg_rmssd"].add_data(hrv["rmssd"])
                                 self.hrv_plots["ppg_sdnn"].add_data(hrv["sdnn"])
-                                self.hrv_plots["ppg_pnn50"].add_data(hrv["pnn50"])
-                                print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["pnn50"])
+                                for rr in hrv["rr_intervals"]:
+                                    self.hrv_plots["ppg_rr"].add_data(rr / 1000.0)
+                                print("PPG HRV:", hrv["rmssd"], hrv["sdnn"], hrv["rr_intervals"])
             except queue.Empty:
                 pass
 

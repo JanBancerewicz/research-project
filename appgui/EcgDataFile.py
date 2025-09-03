@@ -9,4 +9,5 @@ class EcgDataFile(DataProducerThread):
         self.file = pd.read_csv("data/night_R2.csv")
 
     def signal_func(self, counter):
-        return self.file["ecg"][counter]
+        # return self.file["ecg"][counter]
+        return counter, self.file["ecg"][counter]

@@ -41,5 +41,3 @@ class PpgData(threading.Thread):
         # Uruchom serwer w osobnym wątku tylko raz
         if not hasattr(self, 'ws_thread_started'):
             threading.Thread(target=run_server, daemon=True).start()
-
-
