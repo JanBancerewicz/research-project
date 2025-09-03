@@ -109,7 +109,8 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        # self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
