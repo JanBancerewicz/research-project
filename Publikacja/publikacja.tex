@@ -90,21 +90,22 @@ Uczenie nadzorowane, zastosowane w analizie sygnału EKG pozyskanego z pulsometr
 \section{Opis systemu i danych}
 \subsection{Akwizycja danych}
 \subsubsection{Akwizycja danych EKG}
-Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu sygnału istotną dla oceny aktywności serca oraz analizę zmienności rytmu zatokowego.
+Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
 
-W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane przebiegi były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, mogących wprowadzać zakłócenia w sygnale.
+W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, mogących wprowadzać zakłócenia w sygnale.
 
-Transmisja danych między czujnikiem a komputerem zrealizowano bezprzewodowo z wykorzystaniem technologii Bluetooth Low Energy. Dane przesyłano w czasie rzeczywistym w pakietach zawierających 13 próbek, zgodnych z zastosowaną częstotliwością próbkowania, a następnie zapisywano je w formacie CSV. Każdy odczyt odpowiadał wartości potencjału elektrycznego rejestrowanego z powierzchni klatki piersiowej użytkownika.
+Transmisja danych między czujnikiem a komputerem zrealizowano bezprzewodowo z wykorzystaniem technologii Bluetooth Low Energy. Dane przesyłano w czasie rzeczywistym w pakietach zawierających 13 punktów pomiarowych, zgodnych z zastosowaną częstotliwością próbkowania, a następnie zapisywano je w formacie CSV. Każdy odczyt odpowiadał wartości potencjału elektrycznego rejestrowanego z powierzchni klatki piersiowej użytkownika.
 
 \subsubsection{Akwizycja danych PPG}
-Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu tylnej kamery smartfona z systemem Android. Rejestrację sygnału fotopletyzmograficznego przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle światła LED. Przyjęte ustawienie umożliwiło transmisję światła przez tkanki skórne i zapis zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymana wartość stanowiła pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
+Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu tylnego aparatu smartfona z systemem Android. Rejestrację sygnału fotopletyzmograficznego przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED. Przyjęte ustawienie umożliwiło transmisję światła przez tkanki skórne i zapis zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymana wartość stanowiła pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
 
 W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
 
-Transmisja danych pomiędzy smartfonem a komputerem zrealizowano z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze próbki sygnału wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywane w formacie CSV.
+Transmisja danych pomiędzy smartfonem a komputerem zrealizowano z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
 
+\newpage
 \subsection{Filtracja sygnału – filtr Butterwortha}
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, mający na celu eliminację szumów oraz zakłóceń. Dolna granica pasma redukuje powolne zmiany w sygnale wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{7}. Z kolei górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{8}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
+Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{7}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{8}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
 
 \begin{figure}[htbp]
     \centering
@@ -113,7 +114,7 @@ Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego r
     \label{fig:filtr_ekg}
 \end{figure}
 
-W celu poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{9}. Filtracja została zrealizowana z wykorzystaniem funkcji butter oraz filtfilt z modułu scipy.signal, zapewniając obróbkę sygnału bez przesunięcia fazowego.
+Dla poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{9}. Filtracja została zrealizowana z wykorzystaniem funkcji butter oraz filtfilt z modułu scipy.signal, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
 
 \begin{figure}[htbp]
     \centering
