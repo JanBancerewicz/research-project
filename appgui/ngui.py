@@ -250,7 +250,6 @@ class LiveCounterApp:
         # Find the first pair of indices where timestamps are within 500 ms
         found = False
         for i, t_ecg in enumerate(ecg_times):
-            # Find all PPG indices where |t_ecg - t_ppg| <= 0.5
             close_ppg = np.where(np.abs(ppg_times - t_ecg) <= 0.5)[0]
             if close_ppg.size > 0:
                 idx_ecg = i
@@ -262,24 +261,40 @@ class LiveCounterApp:
             print("No matching timestamps within 500 ms found.")
             return
 
+        # Prepare peak times sets for fast lookup
+        ecg_peak_times = set()
+        if hasattr(self.processorECG, "peak_unix_times"):
+            for t in self.processorECG.peak_unix_times:
+                ecg_peak_times.add(round(t, 3))
+        ppg_peak_times = set()
+        if hasattr(self.processorPPG, "peak_unix_times"):
+            for t in self.processorPPG.peak_unix_times:
+                ppg_peak_times.add(round(t, 3))
+
         # Slice arrays from found indices
         ecg_times_cut = ecg_times[idx_ecg:]
         ecg_data_cut = self.ecg_out_data[idx_ecg:]
         ppg_times_cut = ppg_times[idx_ppg:]
         ppg_data_cut = self.ppg_out_data[idx_ppg:]
 
-        # Save ECG
+        # Create peak arrays (0/1) for each sample
+        ecg_peaks_arr = [1 if round(t, 3) in ecg_peak_times else 0 for t in ecg_times_cut]
+        ppg_peaks_arr = [1 if round(t, 3) in ppg_peak_times else 0 for t in ppg_times_cut]
+
+        # Save ECG with peaks
         df_ecg = pd.DataFrame({
             'time': ecg_times_cut,
             'ecg': ecg_data_cut,
+            'peak': ecg_peaks_arr,
         })
         df_ecg.to_csv('ecg_data_aligned.csv', index=False)
         print("ECG data saved to ecg_data_aligned.csv")
 
-        # Save PPG
+        # Save PPG with peaks
         df_ppg = pd.DataFrame({
             'time': ppg_times_cut,
             'ppg': ppg_data_cut,
+            'peak': ppg_peaks_arr,
         })
         df_ppg.to_csv('ppg_data_aligned.csv', index=False)
         print("PPG data saved to ppg_data_aligned.csv")
