@@ -63,8 +63,15 @@ class CompareProcessor:
         if not self.ecg_peaks or not self.ppg_peaks:
             return
 
+        print(f"[DEBUG] PPG peaks: {self.ppg_peaks}")
+        print(f"[DEBUG] ECG peaks: {self.ecg_peaks}")
+
         s1, s2, diffs = self.align_auto(self.ppg_peaks, self.ecg_peaks)
         self.diff = diffs
+
+        print(f"[DEBUG] Aligned PPG peaks: {s1}")
+        print(f"[DEBUG] Aligned ECG peaks: {s2}")
+        print(f"[DEBUG] Differences: {diffs}")
 
         if diffs:
             print(diffs)
