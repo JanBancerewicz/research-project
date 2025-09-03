@@ -20,6 +20,16 @@ class LiveCounterApp:
         self.root = root
         self.root.title("HR Monitor")
 
+        # --- Top bar for save buttons ---
+        topbar = tk.Frame(root)
+        topbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        btn_save_ecg = tk.Button(topbar, text="Save ECG", command=self.save_ecg)
+        btn_save_ecg.pack(side=tk.LEFT, padx=5)
+        btn_save_ppg = tk.Button(topbar, text="Save PPG", command=self.save_ppg)
+        btn_save_ppg.pack(side=tk.LEFT, padx=5)
+        btn_save_both = tk.Button(topbar, text="Save Both (Aligned)", command=self.save_both)
+        btn_save_both.pack(side=tk.LEFT, padx=5)
+
         self.ppg_start_time = -1
         self.ppg_out_data = []
         self.ppg_out_time = []
@@ -39,6 +49,7 @@ class LiveCounterApp:
             reset_callback=self.reset
         )
         self.controls.pack(pady=10)
+
 
         # Notebook (zakładki)
         self.notebook = ttk.Notebook(root)
@@ -116,6 +127,9 @@ class LiveCounterApp:
         self.thread1.start()
         self.thread2.start()
 
+        self.ecg_out_data = []
+        self.ecg_out_time = []
+
         self.update_loop()
 
     def update_loop(self):
@@ -126,6 +140,10 @@ class LiveCounterApp:
                     # print(f"ECG: Timestamp {round(val1[0])}")
                     self.plotECG.add_data(val1[1])
                     self.counter += 1
+
+                    # Add data to ECG output arrays
+                    self.ecg_out_time.append(val1[0])
+                    self.ecg_out_data.append(val1[1])
 
                     result = self.processorECG.add_sample(val1[1],val1[0], (self.counter * (1.0 / 130.0)))
                     if result is not None:
@@ -203,6 +221,52 @@ class LiveCounterApp:
     def reset(self):
         self.plotPPG.reset()
         self.plotECG.reset()
+
+    def save_ecg(self):
+        df = pd.DataFrame({
+            'time': self.ecg_out_time,
+            'ecg': self.ecg_out_data,
+        })
+        df.to_csv('ecg_data.csv', index=False)
+        print("ECG data saved to ecg_data.csv")
+
+    def save_ppg(self):
+        df = pd.DataFrame({
+            'time': self.ppg_out_time,
+            'ppg': self.ppg_out_data,
+        })
+        df.to_csv('ppg_data.csv', index=False)
+        print("PPG data saved to ppg_data.csv")
+
+    def save_both(self):
+        # Find the earliest timestamp in both ECG and PPG
+        if not self.ecg_out_time or not self.ppg_out_time:
+            print("No ECG or PPG data to save.")
+            return
+
+        ecg_start = self.ecg_out_time[0]
+        ppg_start = self.ppg_out_time[0]
+        common_start = min(ecg_start, ppg_start)
+
+        # Align timestamps to the common start
+        ecg_times_aligned = [t - common_start for t in self.ecg_out_time]
+        ppg_times_aligned = [t - common_start for t in self.ppg_out_time]
+
+        # Save ECG
+        df_ecg = pd.DataFrame({
+            'time': ecg_times_aligned,
+            'ecg': self.ecg_out_data,
+        })
+        df_ecg.to_csv('ecg_data_aligned.csv', index=False)
+        print("ECG data saved to ecg_data_aligned.csv")
+
+        # Save PPG
+        df_ppg = pd.DataFrame({
+            'time': ppg_times_aligned,
+            'ppg': self.ppg_out_data,
+        })
+        df_ppg.to_csv('ppg_data_aligned.csv', index=False)
+        print("PPG data saved to ppg_data_aligned.csv")
 
     def on_closing(self):
         self.stop_event_PPG.set()
