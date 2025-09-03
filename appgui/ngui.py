@@ -263,9 +263,9 @@ class LiveCounterApp:
             return
 
         # Slice arrays from found indices
-        ecg_times_cut = ecg_times[idx_ecg:] - ecg_times[idx_ecg]
+        ecg_times_cut = ecg_times[idx_ecg:]
         ecg_data_cut = self.ecg_out_data[idx_ecg:]
-        ppg_times_cut = ppg_times[idx_ppg:] - ppg_times[idx_ppg]
+        ppg_times_cut = ppg_times[idx_ppg:]
         ppg_data_cut = self.ppg_out_data[idx_ppg:]
 
         # Save ECG
