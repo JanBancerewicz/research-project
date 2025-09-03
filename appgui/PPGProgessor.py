@@ -65,33 +65,23 @@ class PPGProcessor:
         self.time_buffer.append(time)
 
         if len(self.sample_buffer) == self.window_size:
-            # Convert buffers to numpy arrays
             window_data = np.array(self.sample_buffer)
             time_data = np.array(self.time_buffer)
-
-            # Process the signal (filtering and normalization)
             filtered = self.process_func(window_data)
-
-            # Detect peaks
             peak_times, peak_values = self.detect_peaks(filtered, time_data)
 
-            # Save R-peak times and calculate HRV
+            # Save R-peak times and calculate RR intervals
             for peak_time in peak_times:
                 self.r.append(peak_time)
-                if len(self.r) >= 2:
-                    # Calculate HRV (time difference between last two peaks)
-                    hrv = (self.r[-1] - self.r[-2]) * 1000  # Convert to milliseconds
-                    print(f"HRV (ms): {hrv:.2f}")
+                self.r_for_rr.append(peak_time)
 
             # Calculate HRV
             hrv = self.compute_hrv()
-            print(f"HRV Metrics: {hrv}")  # Log HRV metrics
+            print(f"HRV Metrics: {hrv}")
 
-            # Clear buffers after processing
             self.sample_buffer.clear()
             self.time_buffer.clear()
 
-            # Return the result
             return PPGResult(
                 time_array=time_data,
                 filtered_signal=filtered,
@@ -140,16 +130,20 @@ class PPGProcessor:
             return [], []
 
     def compute_hrv(self):
-        if len(self.r) < 3:
+        # Use r_for_rr for RR intervals, like in ECG
+        if len(self.r_for_rr) < 3:
             return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
-        rr_intervals = np.diff(np.array(self.r))  # in seconds
+        rr_intervals = np.diff(np.array(self.r_for_rr))  # in seconds
         if len(rr_intervals) < 2:
             return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
         diff_rr = np.diff(rr_intervals)
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
+
+        # Keep only the last peak for next RR calculation
+        self.r_for_rr = [self.r_for_rr[-1]]
 
         return {"rmssd": rmssd, "sdnn": sdnn, "rr_intervals": rr_intervals}
 
