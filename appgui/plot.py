@@ -87,6 +87,19 @@ class LivePlot:
         self.scatter_x.extend(x)
         self.scatter_y.extend(y_points)
 
+    def set_data(self, x, y):
+        """Set the plot data directly."""
+        self.x_data = list(x)
+        self.y_data = list(y)
+        self.line.set_data(self.x_data, self.y_data)
+        if self.x_data:
+            self.ax.set_xlim(self.x_data[0], self.x_data[-1])
+        if self.y_data:
+            min_y = min(self.y_data) * 1.1
+            max_y = max(self.y_data) * 1.1
+            self.ax.set_ylim(min_y, max_y)
+        self.canvas.draw_idle()
+
     def reset(self):
         """Reset wykresu."""
         self.x_data = list(range(self.window_size))

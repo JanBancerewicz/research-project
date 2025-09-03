@@ -3,9 +3,12 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd
+import numpy as np
 
 from appgui import plot
+from appgui.CompareProcessor import CompareProcessor
 from appgui.EcgDataFile import EcgDataFile
+from appgui.EcgData import EcgDataBluetooth
 from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
@@ -26,6 +29,7 @@ class LiveCounterApp:
         # Procesory
         self.processorECG = ECGProcessor(window_size=256)
         self.processorPPG = PPGProcessor()
+        self.compareProcessor = CompareProcessor()
 
         # Panel kontrolny
         self.controls = ControlPanel(
@@ -42,9 +46,11 @@ class LiveCounterApp:
 
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
+        self.tab3 = ttk.Frame(self.notebook)  # New tab for peaks compare
 
         self.notebook.add(self.tab1, text="PPG + ECG")
         self.notebook.add(self.tab2, text="HRV")
+        self.notebook.add(self.tab3, text="Peaks Compare")  # Add new tab
 
         # --- Zakładka 1: wykresy ECG i PPG ---
         frame1 = tk.Frame(self.tab1)
@@ -85,6 +91,17 @@ class LiveCounterApp:
         for j in range(2):
             self.tab2.columnconfigure(j, weight=1)
 
+        # --- Zakładka 3: Peaks Compare ---
+        frame_peaks = tk.Frame(self.tab3)
+        frame_peaks.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.plotPeaksCompare = plot.LivePlot(
+            frame_peaks, "Peaks Compare", "Time [s]", "Amplitude"
+        )
+        # Add a plot for diffs (below or overlay)
+        frame_diff = tk.Frame(self.tab3)
+        frame_diff.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+
         # Kolejki i wątki
         self.queueECG = queue.Queue()
         self.queuePPG = queue.Queue()
@@ -92,7 +109,7 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -103,22 +120,27 @@ class LiveCounterApp:
     def update_loop(self):
         if self.is_running:
             try:
-                val1 = self.queueECG.get_nowait()
-                self.plotECG.add_data(val1)
-                self.counter += 1
+                while True:
+                    val1 = self.queueECG.get_nowait()
+                    # print(f"ECG: Timestamp {round(val1[0])}")
+                    self.plotECG.add_data(val1[1])
+                    self.counter += 1
 
-                result = self.processorECG.add_sample(val1, (self.counter * (1.0 / 130.0)))
-                if result is not None:
-
-                    self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
-                    rmssd = result.hrv["rmssd"]
-                    sdnn = result.hrv["sdnn"]
-                    rr_intervals = result.hrv["rr_intervals"]
-                    self.hrv_plots["ekg_rmssd"].add_data(rmssd)
-                    self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                    for i in rr_intervals:
-                        self.hrv_plots["ekg_rr"].add_data(i)
-                    print("HRV:", rmssd, sdnn, rr_intervals)
+                    result = self.processorECG.add_sample(val1[1],val1[0], (self.counter * (1.0 / 130.0)))
+                    if result is not None:
+                        self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
+                        self.compareProcessor.add_ecg_peaks(result.peak_unix_times)
+                        # rmssd = result.hrv["rmssd"]
+                        sdnn = result.hrv["sdnn"]
+                        pnn50 = result.hrv["pnn50"]
+                         rr_intervals = result.hrv["rr_intervals"]
+                    s   elf.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                        self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                        for i in rr_intervals:
+                          self.hrv_plots["ekg_rr"].add_data(i)
+                        self.hrv_plots["ekg_sdnn"].add_data(sdnn)
+                        self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                        print("HRV:", sdnn, pnn50,  rr_intervals)
             except queue.Empty:
                 pass
 
@@ -134,18 +156,16 @@ class LiveCounterApp:
                     else:
                         t = val2[0] - self.ppg_start_time
 
-                    # result, hrv = self.processorPPG.add_sample(val2[1], t)
-                    result_tuple = self.processorPPG.add_sample(val2[1], t)
+                    result_tuple = self.processorPPG.add_sample(val2[1], t, val2[0])
                     if result_tuple is not None:
                         result, hrv = result_tuple
                         if result is not None:
-                            # Use the correct attribute name for the filtered signal
-                            d = result.filtered_signal  # Replace with the correct attribute if needed
+                            d = result.filtered_signal
                             for r in range(len(d)):
                                 self.plotPPG.add_data(d[r])
                             x_p = [i / 1000.0 for i in result.peak_times]
                             self.plotPPG.add_scatter_points(x_p, result.peak_values)
-
+                            self.compareProcessor.add_ppg_peaks(result.peak_unix_times)
                             # Calculate HRV for PPG
                             # hrv = self.processorPPG.calculate_hrv()
                             if hrv:
@@ -157,8 +177,17 @@ class LiveCounterApp:
             except queue.Empty:
                 pass
 
+            # Update the diff plot with latest diffs
+            self.update_compare_plot()
+
         self.root.after(10, self.update_loop)
 
+    def update_compare_plot(self):
+        # Plot the diffs as a line or scatter
+        diffs = self.compareProcessor.diff
+        if diffs:
+            x = list(range(len(diffs)))
+            self.plotPeaksCompare.set_data(x, diffs)
     def pause(self):
         self.is_running = False
         df = pd.DataFrame({
@@ -173,8 +202,6 @@ class LiveCounterApp:
     def reset(self):
         self.plotPPG.reset()
         self.plotECG.reset()
-        for plot_obj in self.analysis_plots:
-            plot_obj.reset()
 
     def on_closing(self):
         self.stop_event_PPG.set()

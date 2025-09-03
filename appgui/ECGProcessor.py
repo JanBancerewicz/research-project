@@ -6,11 +6,13 @@ from r_neural import get_model, predict
 
 
 class ECGOutput:
-    def __init__(self, x_peaks, y_peaks, ecg_filtered, hrv=None):
+    def __init__(self, x_peaks, y_peaks, ecg_filtered, peak_unix_times, hrv=None):
         self.x_peaks = x_peaks
         self.y_peaks = y_peaks
         self.ecg_filtered = ecg_filtered
         self.hrv = hrv or {"rmssd": 0.0, "sdnn": 0.0, "mean_rr": 0.0}
+        self.peak_unix_times = peak_unix_times
+
 
 
 class ECGProcessor:
@@ -33,24 +35,31 @@ class ECGProcessor:
 
         self.model = get_model(self.device)
 
-    def add_sample(self, sample, time):
+        self.timestamps = []
+        self.unix_time_buffer = deque(maxlen=window_size)
+
+    def add_sample(self, sample, timestamp, time):
         self.sample_buffer.append(sample)
         self.time_buffer.append(time)
+        self.unix_time_buffer.append(timestamp)
 
         if len(self.sample_buffer) == self.window_size:
             window_data = np.array(self.sample_buffer)
             time_data = np.array(self.time_buffer)
-            result = self.process_func(window_data, time_data)
+            unix_data = np.array(self.unix_time_buffer)
+            result = self.process_func(window_data, time_data, unix_data)
             self.sample_buffer.clear()
             self.time_buffer.clear()
+            self.unix_time_buffer.clear()
             return result
         return None
 
-    def process_func(self, window_data, time_data):
+    def process_func(self, window_data, time_data, unix_data):
         peaks = predict(self.device, self.model, window_data.astype(np.float32))
 
         peaks_x = []
         peaks_y = []
+        peak_unix_times = []
         for i, is_peak in enumerate(peaks):
             if is_peak == 1:
                 peak_time = time_data[i]
@@ -58,6 +67,7 @@ class ECGProcessor:
                 peaks_y.append(window_data[i])
                 self.r_peak_times.append(peak_time)
                 self.r_for_rr.append(peak_time)
+                peak_unix_times.append(unix_data[i])
 
         # --- Przesuwające się okno HRV ---
         self._trim_r_peaks()
@@ -72,7 +82,7 @@ class ECGProcessor:
         )
 
         hrv = self.compute_hrv()
-        return ECGOutput(peaks_x, peaks_y, self._normalize_window(ecg_filtered), hrv)
+        return ECGOutput(peaks_x, peaks_y, self._normalize_window(ecg_filtered), peak_unix_times, hrv)
 
     def _trim_r_peaks(self):
         """Usuwa stare R-peaki spoza okna HRV."""
@@ -118,3 +128,4 @@ class ECGProcessor:
         self.sample_buffer.clear()
         self.time_buffer.clear()
         self.r_peak_times.clear()
+        self.unix_time_buffer.clear()
