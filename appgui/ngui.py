@@ -167,14 +167,14 @@ class LiveCounterApp:
                 while True:
                     val2 = self.queuePPG.get_nowait()
                     self.ppg_out_data.append(val2[1])
-                    self.ppg_out_time.append(val2[0])
+
 
                     t = 0
                     if self.ppg_start_time == -1:
                         self.ppg_start_time = self.ppg_out_time[0]
                     else:
                         t = val2[0] - self.ppg_start_time
-
+                    self.ppg_out_time.append(val2[0])
                     result_tuple = self.processorPPG.add_sample(val2[1], t, val2[0])
                     if result_tuple is not None:
                         result, hrv = result_tuple
@@ -239,31 +239,47 @@ class LiveCounterApp:
         print("PPG data saved to ppg_data.csv")
 
     def save_both(self):
-        # Find the earliest timestamp in both ECG and PPG
+        # Find the earliest matching timestamp (within +/- 500 ms)
         if not self.ecg_out_time or not self.ppg_out_time:
             print("No ECG or PPG data to save.")
             return
 
-        ecg_start = self.ecg_out_time[0]
-        ppg_start = self.ppg_out_time[0]
-        common_start = min(ecg_start, ppg_start)
+        ecg_times = np.array(self.ecg_out_time)
+        ppg_times = np.array(self.ppg_out_time)
 
-        # Align timestamps to the common start
-        ecg_times_aligned = [t - common_start for t in self.ecg_out_time]
-        ppg_times_aligned = [t - common_start for t in self.ppg_out_time]
+        # Find the first pair of indices where timestamps are within 500 ms
+        found = False
+        for i, t_ecg in enumerate(ecg_times):
+            # Find all PPG indices where |t_ecg - t_ppg| <= 0.5
+            close_ppg = np.where(np.abs(ppg_times - t_ecg) <= 0.5)[0]
+            if close_ppg.size > 0:
+                idx_ecg = i
+                idx_ppg = close_ppg[0]
+                found = True
+                break
+
+        if not found:
+            print("No matching timestamps within 500 ms found.")
+            return
+
+        # Slice arrays from found indices
+        ecg_times_cut = ecg_times[idx_ecg:] - ecg_times[idx_ecg]
+        ecg_data_cut = self.ecg_out_data[idx_ecg:]
+        ppg_times_cut = ppg_times[idx_ppg:] - ppg_times[idx_ppg]
+        ppg_data_cut = self.ppg_out_data[idx_ppg:]
 
         # Save ECG
         df_ecg = pd.DataFrame({
-            'time': ecg_times_aligned,
-            'ecg': self.ecg_out_data,
+            'time': ecg_times_cut,
+            'ecg': ecg_data_cut,
         })
         df_ecg.to_csv('ecg_data_aligned.csv', index=False)
         print("ECG data saved to ecg_data_aligned.csv")
 
         # Save PPG
         df_ppg = pd.DataFrame({
-            'time': ppg_times_aligned,
-            'ppg': self.ppg_out_data,
+            'time': ppg_times_cut,
+            'ppg': ppg_data_cut,
         })
         df_ppg.to_csv('ppg_data_aligned.csv', index=False)
         print("PPG data saved to ppg_data_aligned.csv")
