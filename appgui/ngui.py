@@ -109,7 +109,8 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        # self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -130,17 +131,18 @@ class LiveCounterApp:
                     if result is not None:
                         self.plotECG.add_scatter_points(result.x_peaks, result.y_peaks)
                         self.compareProcessor.add_ecg_peaks(result.peak_unix_times)
-                        # rmssd = result.hrv["rmssd"]
+                        rmssd = result.hrv["rmssd"]
                         sdnn = result.hrv["sdnn"]
-                        pnn50 = result.hrv["pnn50"]
-                         rr_intervals = result.hrv["rr_intervals"]
-                    s   elf.hrv_plots["ekg_rmssd"].add_data(rmssd)
+                        # pnn50 = result.hrv["pnn50"]
+                        rr_intervals = result.hrv["rr_intervals"]
+                        self.hrv_plots["ekg_rmssd"].add_data(rmssd)
                         self.hrv_plots["ekg_sdnn"].add_data(sdnn)
                         for i in rr_intervals:
                           self.hrv_plots["ekg_rr"].add_data(i)
                         self.hrv_plots["ekg_sdnn"].add_data(sdnn)
-                        self.hrv_plots["ekg_pnn50"].add_data(pnn50)
-                        print("HRV:", sdnn, pnn50,  rr_intervals)
+                        # self.hrv_plots["ekg_pnn50"].add_data(pnn50)
+                        # print("HRV:", sdnn, pnn50,  rr_intervals)
+                        print("HRV:", sdnn,  rr_intervals)
             except queue.Empty:
                 pass
 
