@@ -120,8 +120,8 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        # self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        # self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
@@ -170,11 +170,11 @@ class LiveCounterApp:
 
 
                     t = 0
+                    self.ppg_out_time.append(val2[0])
                     if self.ppg_start_time == -1:
                         self.ppg_start_time = self.ppg_out_time[0]
                     else:
                         t = val2[0] - self.ppg_start_time
-                    self.ppg_out_time.append(val2[0])
                     result_tuple = self.processorPPG.add_sample(val2[1], t, val2[0])
                     if result_tuple is not None:
                         result, hrv = result_tuple
