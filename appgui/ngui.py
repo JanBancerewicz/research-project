@@ -21,6 +21,16 @@ class LiveCounterApp:
         self.root = root
         self.root.title("HR Monitor")
 
+        # --- Top bar for save buttons ---
+        topbar = tk.Frame(root)
+        topbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        btn_save_ecg = tk.Button(topbar, text="Save ECG", command=self.save_ecg)
+        btn_save_ecg.pack(side=tk.LEFT, padx=5)
+        btn_save_ppg = tk.Button(topbar, text="Save PPG", command=self.save_ppg)
+        btn_save_ppg.pack(side=tk.LEFT, padx=5)
+        btn_save_both = tk.Button(topbar, text="Save Both (Aligned)", command=self.save_both)
+        btn_save_both.pack(side=tk.LEFT, padx=5)
+
         self.ppg_start_time = -1
         self.ppg_out_data = []
         self.ppg_out_time = []
@@ -40,6 +50,7 @@ class LiveCounterApp:
             reset_callback=self.reset
         )
         self.controls.pack(pady=10)
+
 
         # Notebook (zakładki)
         self.notebook = ttk.Notebook(root)
@@ -110,12 +121,15 @@ class LiveCounterApp:
         self.stop_event_PPG = threading.Event()
         self.stop_event_ECG = threading.Event()
 
-        # self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
-        self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
+        self.thread1 = EcgDataBluetooth(self.queueECG, self.stop_event_ECG)
+        # self.thread1 = EcgDataFile(self.queueECG, self.stop_event_ECG)
         self.thread2 = PpgData(self.queuePPG, self.stop_event_PPG)
 
         self.thread1.start()
         self.thread2.start()
+
+        self.ecg_out_data = []
+        self.ecg_out_time = []
 
         self.update_loop()
 
@@ -127,6 +141,10 @@ class LiveCounterApp:
                     # print(f"ECG: Timestamp {round(val1[0])}")
                     self.plotECG.add_data(val1[1])
                     self.counter += 1
+
+                    # Add data to ECG output arrays
+                    self.ecg_out_time.append(val1[0])
+                    self.ecg_out_data.append(val1[1])
 
                     result = self.processorECG.add_sample(val1[1],val1[0], (self.counter * (1.0 / 130.0)))
                     if result is not None:
@@ -150,14 +168,14 @@ class LiveCounterApp:
                 while True:
                     val2 = self.queuePPG.get_nowait()
                     self.ppg_out_data.append(val2[1])
-                    self.ppg_out_time.append(val2[0])
+
 
                     t = 0
+                    self.ppg_out_time.append(val2[0])
                     if self.ppg_start_time == -1:
                         self.ppg_start_time = self.ppg_out_time[0]
                     else:
                         t = val2[0] - self.ppg_start_time
-
                     result_tuple = self.processorPPG.add_sample(val2[1], t, val2[0])
                     if result_tuple is not None:
                         result, hrv = result_tuple
@@ -210,6 +228,83 @@ class LiveCounterApp:
     def reset(self):
         self.plotPPG.reset()
         self.plotECG.reset()
+
+    def save_ecg(self):
+        df = pd.DataFrame({
+            'time': self.ecg_out_time,
+            'ecg': self.ecg_out_data,
+        })
+        df.to_csv('ecg_data.csv', index=False)
+        print("ECG data saved to ecg_data.csv")
+
+    def save_ppg(self):
+        df = pd.DataFrame({
+            'time': self.ppg_out_time,
+            'ppg': self.ppg_out_data,
+        })
+        df.to_csv('ppg_data.csv', index=False)
+        print("PPG data saved to ppg_data.csv")
+
+    def save_both(self):
+        # Find the earliest matching timestamp (within +/- 500 ms)
+        if not self.ecg_out_time or not self.ppg_out_time:
+            print("No ECG or PPG data to save.")
+            return
+
+        ecg_times = np.array(self.ecg_out_time)
+        ppg_times = np.array(self.ppg_out_time)
+
+        # Find the first pair of indices where timestamps are within 500 ms
+        found = False
+        for i, t_ecg in enumerate(ecg_times):
+            close_ppg = np.where(np.abs(ppg_times - t_ecg) <= 0.5)[0]
+            if close_ppg.size > 0:
+                idx_ecg = i
+                idx_ppg = close_ppg[0]
+                found = True
+                break
+
+        if not found:
+            print("No matching timestamps within 500 ms found.")
+            return
+
+        # Prepare peak times sets for fast lookup
+        ecg_peak_times = set()
+        if hasattr(self.processorECG, "peak_unix_times"):
+            for t in self.processorECG.peak_unix_times:
+                ecg_peak_times.add(round(t, 3))
+        ppg_peak_times = set()
+        if hasattr(self.processorPPG, "peak_unix_times"):
+            for t in self.processorPPG.peak_unix_times:
+                ppg_peak_times.add(round(t, 3))
+
+        # Slice arrays from found indices
+        ecg_times_cut = ecg_times[idx_ecg:]
+        ecg_data_cut = self.ecg_out_data[idx_ecg:]
+        ppg_times_cut = ppg_times[idx_ppg:]
+        ppg_data_cut = self.ppg_out_data[idx_ppg:]
+
+        # Create peak arrays (0/1) for each sample
+        ecg_peaks_arr = [1 if round(t, 3) in ecg_peak_times else 0 for t in ecg_times_cut]
+        ppg_peaks_arr = [1 if round(t, 3) in ppg_peak_times else 0 for t in ppg_times_cut]
+
+        # Save ECG with peaks
+        df_ecg = pd.DataFrame({
+            'time': ecg_times_cut,
+            'ecg': ecg_data_cut,
+            'peak': ecg_peaks_arr,
+        })
+        df_ecg.to_csv('ecg_data_aligned.csv', index=False)
+        print("ECG data saved to ecg_data_aligned.csv")
+
+        # Save PPG with peaks
+        df_ppg = pd.DataFrame({
+            'time': ppg_times_cut,
+            'ppg': ppg_data_cut,
+            'peak': ppg_peaks_arr,
+        })
+        df_ppg.to_csv('ppg_data_aligned.csv', index=False)
+        print("PPG data saved to ppg_data_aligned.csv")
 
     def on_closing(self):
         self.stop_event_PPG.set()
