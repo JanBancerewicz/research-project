@@ -13,6 +13,7 @@ from appgui.PPGProgessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
 from appgui.ECGProcessor import ECGProcessor
+from data_processing import save_data
 
 
 class LiveCounterApp:
@@ -189,13 +190,19 @@ class LiveCounterApp:
         if diffs:
             x = list(range(len(diffs)))
             self.plotPeaksCompare.set_data(x, diffs)
+
     def pause(self):
         self.is_running = False
+        # Save PPG data
         df = pd.DataFrame({
             'time': self.ppg_out_time,
             'ppg': self.ppg_out_data,
         })
         df.to_csv('ppg_data.csv', index=False)
+
+        # Save ECG data
+        ecg_data = list(zip(self.processorECG.timestamps, self.processorECG.ecg_values))
+        save_data(ecg_data, 'ecg_data.csv')  # Call save_data function
 
     def resume(self):
         self.is_running = True

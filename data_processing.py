@@ -6,7 +6,7 @@ def save_data(data, filename):
 
     # Save to CSV
     df.to_csv(filename, index=False)
-    print(f"Data saved in {filename}")
+    print(f"ECG Data saved in {filename}")
 
 
 def load_data(filename):
