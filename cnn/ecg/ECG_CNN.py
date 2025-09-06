@@ -1,8 +1,11 @@
 import numpy as np
+import os.path
 from torch import nn
 import torch.nn.functional as F
 
-MODEL_PATH = "cnn/ecgcnn.pth"
+# MODEL_PATH = "cnn/ecgcnn.pth"
+MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ecgcnn.pth")
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
