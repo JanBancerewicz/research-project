@@ -34,7 +34,7 @@ class PPGProcessor:
         self.time_buffer = deque(maxlen=window_size)
 
         DATA_DIR = "cnn/ppg/train_data"
-        MODEL_PATH = "ppg_peak_model.pth"
+        MODEL_PATH = "ppg_peak_model.pth" # TODO fix to absolute
         SEGMENT_LENGTH = window_size
         MAX_SEGMENTS = 10000
         EPOCHS = 200
