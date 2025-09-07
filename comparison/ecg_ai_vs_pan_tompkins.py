@@ -42,12 +42,12 @@ def run_ai_model(ecg_signal, fs):
 
 
 
-def run_pan_tompkins_raw(ecg_signal, fs):
+def run_pan_tompkins_raw(ecg_signal, fs, czy_refine=False):
     """
     Uruchamia algorytm Pan-Tompkinsa i zwraca indeksy R-peaków (int).
     """
     time = np.arange(len(ecg_signal)) / fs
-    result = run_pan_tompkins_pipeline(time, ecg_signal, fs)
+    result = run_pan_tompkins_pipeline(time, ecg_signal, fs, czy_refine=czy_refine)
 
     # Wyciągamy rpeaks i upewniamy się, że to są indeksy
     rpeaks = result["rpeaks"]
@@ -73,7 +73,7 @@ def main():
     ai_peaks = run_ai_model(ecg_signal, FS)
 
     # --- 3. Pan–Tompkins ---
-    pt_peaks = run_pan_tompkins_raw(ecg_signal, FS)
+    pt_peaks = run_pan_tompkins_raw(ecg_signal, FS, czy_refine=True)
 
     # --- 4. Rysowanie ---
     t = np.arange(len(ecg_signal)) / FS

@@ -99,13 +99,18 @@ def refine_peaks_to_r(original_signal, approx_peaks, fs, search_window_ms=75):
 def run_pan_tompkins_pipeline(time, ecg, fs,
                               bp_low=5.0, bp_high=15.0,
                               maw_ms=150, detect_distance_ms=200,
-                              search_window_ms=75):
+                              search_window_ms=75, czy_refine=False):
     ecg_bp = bandpass(ecg, fs, lowcut=bp_low, highcut=bp_high, order=3)
     derivative, squared, integrated, win_samples = pan_tompkins_transform(ecg_bp, fs, maw_len_ms=maw_ms)
     approx_peaks, props = detect_qrs_from_integrated(integrated, fs, distance_ms=detect_distance_ms)
     ## opcjonalny refinement, ktorego nie chcemy, bo liczy sie oryginalny algorytm
-    #rpeaks = refine_peaks_to_r(ecg_bp, approx_peaks, fs, search_window_ms=search_window_ms)
-    rpeaks = approx_peaks
+    if czy_refine:
+        rpeaks = refine_peaks_to_r(ecg_bp, approx_peaks, fs, search_window_ms=search_window_ms)
+        print("refinement applied")
+    else:
+        rpeaks = approx_peaks  # TODO tutaj mamy refinement control
+        print("refinement skipped")
+
     return {
         "ecg_bp": ecg_bp,
         "derivative": derivative,
