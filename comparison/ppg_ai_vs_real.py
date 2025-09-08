@@ -11,7 +11,7 @@ import torch
 # domyślny CSV (zmień ścieżkę jeśli trzeba)
 # CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cnn", "ppg", "train_data","ppg_data.csv")
 # CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cnn", "ppg", "train_data","ppg_data_1.csv")
-CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cnn", "ppg", "train_data","ppg_data_johnny_10min.csv") # jedyny niezcorruptowany plik xd
+CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "comparison", "ppg_data_aligned.csv") # jedyny niezcorruptowany plik xd
 # CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cnn", "ppg", "train_data","ppg_data_johnny_10min.csv")
 
 
@@ -39,11 +39,12 @@ def load_ppg(csv_path):
     dt = np.median(np.diff(time))
     if dt <= 0:
         raise ValueError("Nieprawidłowy krok czasowy po konwersji (dt <= 0)")
+
     fs = 1.0 / dt
     return time, signal, fs
 
 
-def run_pan_tompkins_ppg(time, ppg, fs):
+def run_detect_ppg(time, ppg, fs):
     """
     Pan-Tompkins zmodyfikowany pod PPG:
       - filtr 0.5-5 Hz
@@ -122,7 +123,7 @@ def run_ai_ppg(signal, fs, model_path=None, segment_length=100):
             if len(segment) < segment_length:
                 break
 
-            # Normalizacja i przekształcenie do tensora
+            # Normalizacja każdego okna (segmentu)
             normalized_segment = _normalize_window(segment).astype(np.float32)
             tensor_segment = torch.from_numpy(normalized_segment).unsqueeze(0).unsqueeze(0).to(device)
 
@@ -187,43 +188,49 @@ def main():
     print(f"Loaded PPG: {len(ppg)} samples, fs = {fs:.2f} Hz")
 
     # Pan-Tompkins (PPG-adapted)
-    pt_res = run_pan_tompkins_ppg(time, ppg, fs)
+    pt_res = run_detect_ppg(time, ppg, fs)
     peaks_pt = pt_res["peaks"]
 
-    # AI (model lub fallback)
-    # peaks_ai = run_ai_ppg(ppg, fs, segment_length=100)
-
+    # AI (model or fallback)
     MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)),"ppg_peak_model.pth")
     if not os.path.exists(MODEL_PATH):
-        print(f"Uwaga: Plik modelu AI nie znaleziony w: {MODEL_PATH}")
-        print("Model AI nie zostanie użyty.")
+        print(f"Warning: AI model file not found at: {MODEL_PATH}")
+        print("AI model will not be used.")
         peaks_ai = np.array([])
     else:
         peaks_ai = run_ai_ppg(ppg, fs, model_path=MODEL_PATH, segment_length=100)
 
-    # Metryki porównawcze
+    # Metrics
     metrics = compute_metrics(peaks_ai, peaks_pt, fs, tolerance_ms=150)
-    print("\n--- Porównanie AI vs Pan-Tompkins (PPG) ---")
-    print(f"Pan-Tompkins peaks: {len(peaks_pt)}")
-    print(f"AI peaks: {len(peaks_ai)}")
-    print(f"TP: {metrics['tp']}, FP: {metrics['fp']}, FN: {metrics['fn']}")
-    print(f"Precision: {metrics['precision']:.3f}, Recall: {metrics['recall']:.3f}, F1: {metrics['f1']:.3f}")
+    print("Number of peaks (AI):", len(peaks_ai))
+    print("Number of peaks (Validated/Reference):", len(peaks_pt))
+    print("\n--- Accuracy: AI vs Real ---")
+    print(f"True Positives: {metrics['tp']}")
+    print(f"False Positives: {metrics['fp']}")
+    print(f"False Negatives: {metrics['fn']}")
+    print(f"Precision: {metrics['precision']:.3f}")
+    print(f"Recall:    {metrics['recall']:.3f}")
+    print(f"F1-score:  {metrics['f1']:.3f}")
     print(f"(tolerance = {metrics['tolerance_samples']} samples = {metrics['tolerance_samples'] / fs * 1000:.0f} ms)")
 
-    # Wykres
+    # Normalize PPG in segments
+    segment_length = 100
+    normalized_ppg = np.zeros_like(ppg)
+    for i in range(0, len(ppg), segment_length):
+        segment = ppg[i:i+segment_length]
+        norm_segment = _normalize_window(segment)
+        normalized_ppg[i:i+len(norm_segment)] = norm_segment
+
+    # Plot normalized PPG with peaks
     plt.figure(figsize=(12, 5))
-    plt.plot(time, ppg, label="PPG (raw)", alpha=0.6)
-    # plt.plot(time, pt_res["ppg_bp"], label="PPG bandpass", alpha=0.6)
-
+    plt.plot(time, normalized_ppg, label="PPG (normalized, segment-wise)", alpha=0.7)
     if peaks_pt.size > 0:
-        # plt.scatter(time[peaks_pt], ppg[peaks_pt], color="green", marker="x", s=60, label="Pan-Tompkins")
-        plt.scatter(time[peaks_pt], ppg[peaks_pt], color="green", marker="x", s=60, label="Reference Peaks for PPG")
+        plt.scatter(time[peaks_pt], normalized_ppg[peaks_pt], color="green", marker="x", s=60, label="Reference Peaks for PPG")
     if peaks_ai.size > 0:
-        plt.scatter(time[peaks_ai], ppg[peaks_ai], color="red", marker="o", s=40, label="AI Detected Peaks (PPG)")
-
-    plt.title("PPG: AI-detected vs Validated Peaks")
+        plt.scatter(time[peaks_ai], normalized_ppg[peaks_ai], color="red", marker="o", s=40, label="AI Detected Peaks (PPG)")
+    plt.title("PPG (normalized, segment-wise): CNN-detected vs Validated Peaks")
     plt.xlabel("Time [s] (relative)")
-    plt.ylabel("Amplitude")
+    plt.ylabel("Normalized Amplitude")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()

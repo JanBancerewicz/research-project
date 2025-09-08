@@ -1,5 +1,7 @@
 import os
 import glob
+import time
+
 import numpy as np
 import pandas as pd
 import torch
@@ -140,26 +142,14 @@ def test_model(model, dataset, num_windows=100):
         print(f"Accuracy: {p:.2f}%")
         print(f"Additional: {p2:.2f}%")
         print(f"Missed: {p3:.2f}%")
-    all_ppg = np.array(all_ppg)
     all_true = np.array(all_true)
     all_pred = np.array(all_pred)
-    true_peak_indices = np.where(all_true == 1)[0]
-    pred_peak_indices = np.where(all_pred == 1)[0]
     cm = confusion_matrix(all_true, all_pred)
     print("\nConfusion matrix:")
     print(cm)
     f1 = f1_score(all_true, all_pred)
     print(f"\nF1-score: {f1:.4f}")
-    plt.figure(figsize=(14, 4))
-    plt.plot(all_ppg, color='black', label='PPG Signal')
-    plt.scatter(true_peak_indices, all_ppg[true_peak_indices], color='green', label='True Peaks', zorder=5)
-    plt.scatter(pred_peak_indices, all_ppg[pred_peak_indices], color='red', marker='x', label='Predicted Peaks', zorder=5)
-    plt.title(f"PPG Peak Detection over {num_windows} Windows")
-    plt.xlabel("Sample Index")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+
 
 def get_or_train_model(
     model_path,
@@ -168,7 +158,7 @@ def get_or_train_model(
     max_segments=10000,
     epochs=10,
     batch_size=32,
-    lr=0.001,
+    lr=0.0001,
     max_files=None
 ):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -182,9 +172,12 @@ def get_or_train_model(
     dataset = PPGDirectoryDataset(data_dir, segment_length=segment_length, max_segments=max_segments, max_files=max_files)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     model = PPGPeakDetector()
-    train_model(model, dataloader, epochs=epochs, lr=lr)
+    start = time.time()
+    train_model(model, dataloader, epochs=200, lr=0.0001)
     test_model(model, dataset)
     torch.save(model.state_dict(), model_path)
+    end = time.time()
+    print(f"Execution time: {end - start:.6f} seconds")
     print(f"💾 Model saved to {model_path}")
     return model
 
