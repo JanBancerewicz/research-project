@@ -24,7 +24,7 @@
 
 \begin{document}
 
-\title{Ocena zmienności rytmu serca w oparciu o uczenie maszynowe}
+\title{Analiza zmienności rytmu serca z wykorzystaniem urządzeń mobilnych}
 \author{
     J. Bancerewicz, J. Kotłowski, O. Lozovyy, J. Morawska, M. Rzęsa\\
     \textit{Politechnika Gdańska}\\
@@ -38,13 +38,6 @@
 \maketitle
 
 
-% Note that keywords are not normally used for peerreview papers.
-%\begin{IEEEkeywords}
-%IEEE, IEEEtran, journal, \LaTeX, paper, template.
-%\end{IEEEkeywords}
-
-\IEEEpeerreviewmaketitle
-
 
 
 \section{Wstęp}
@@ -54,7 +47,7 @@
 %IEEEtran.cls version 1.8b and later.
 
 \newpage
-\section{Przegląd metod z użyciem uczenia maszynowego}
+\section{Techniki filtracji i modelowania sygnałów biomedycznych}
 
 Metody uczenia maszynowego znajdują szerokie zastosowanie w przetwarzaniu sygnałów biomedycznych, w tym w elektrokardiografii oraz fotopletyzmografii. Techniki te umożliwiają automatyczną detekcję istotnych cech, ocenę długotrwałych zależności czasowych oraz szacowanie parametrów fizjologicznych. W literaturze wyróżnia się dwa główne podejścia: metody oparte na filtracji sygnałów i analizie w dziedzinie czasu oraz modele uczące się, zdolne do samodzielnego wyodrębniania wzorców z danych pomiarowych.
 
@@ -92,20 +85,44 @@ Uczenie nadzorowane, zastosowane w analizie sygnału EKG pozyskanego z pulsometr
 \subsubsection{Akwizycja danych EKG}
 Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
 
-W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, mogących wprowadzać zakłócenia w sygnale.
+Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{7}.
 
-Transmisja danych między czujnikiem a komputerem zrealizowano bezprzewodowo z wykorzystaniem technologii Bluetooth Low Energy. Dane przesyłano w czasie rzeczywistym w pakietach zawierających 13 punktów pomiarowych, zgodnych z zastosowaną częstotliwością próbkowania, a następnie zapisywano je w formacie CSV. Każdy odczyt odpowiadał wartości potencjału elektrycznego rejestrowanego z powierzchni klatki piersiowej użytkownika.
+W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, prowadzących do zakłóceń przebiegu. Sygnał przesyłano w czasie rzeczywistym w pakietach po 13 punktów zgodnych z przyjętą częstotliwością próbkowania i zapisywano w formacie CSV. 
+
 
 \subsubsection{Akwizycja danych PPG}
-Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu tylnego aparatu smartfona z systemem Android. Rejestrację sygnału fotopletyzmograficznego przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED. Przyjęte ustawienie umożliwiło transmisję światła przez tkanki skórne i zapis zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymana wartość stanowiła pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
+\paragraph{Aplikacja mobilna}
+Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych.
+
+Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego wykresu zmian rytmu serca. Zarejestrowane znaczniki czasowe odpowiadające momentom wdechu i wydechu umożliwiają korelację z sygnałem w celu analizy zależności między cyklem oddechowym a jego parametrami.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.17]{aplikacja.png}
+    \caption{Interfejs aplikacji mobilnej}
+    \label{fig:aplikacja_mobilna}
+\end{figure}
+
+Zarejestrowany zapis ulega filtracji dolnoprzepustowej. Detekcja lokalnych maksimów realizowana jest poprzez analizę trzech kolejnych próbek sygnału, środkowy punkt klasyfikowany jest jako szczyt, jeśli jego wartość przewyższa oba sąsiednie. Akceptacja następnego piku wymagana upływu co najmniej 600 ms od poprzedniego wykrycia, ograniczając błędne rozpoznania wynikające z zakłóceń ruchowych. Zidentyfikowane ekstremum jest rejestrowane wraz ze znacznikiem czasu i wykorzystywane do dynamicznego wyznaczania częstości uderzeń serca BPM, zgodnie z równaniem (1) :
+
+\begin{equation}
+\text{BPM} = \frac{60}{\Delta t}
+\label{eq:bpm}
+\end{equation}
+gdzie $\Delta t$  - średni odstęp czasowy między kolejnymi pikami sygnału PPG
+
+\paragraph{Proces rejestracji sygnału}
+Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu zaprojektowanej aplikacji. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymany odczyt stanowił pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
 
 W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
 
-Transmisja danych pomiędzy smartfonem a komputerem zrealizowano z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
+Transmisję danych pomiędzy smartfonem a komputerem przeprowadzono z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
 
 \newpage
 \subsection{Filtracja sygnału – filtr Butterwortha}
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{7}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{8}. Filtracja danych została przeprowadzona przy użyciu funkcji nk.signal\_filter z biblioteki NeuroKit2.
+Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{8}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{9}.
+
+Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{10}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{11}. Filtracja danych została przeprowadzona w oparciu o bibliotekę NeuroKit2.
 
 \begin{figure}[htbp]
     \centering
@@ -114,7 +131,8 @@ Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr Butterwortha piątego r
     \label{fig:filtr_ekg}
 \end{figure}
 
-Dla poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{9}. Filtracja została zrealizowana z wykorzystaniem funkcji butter oraz filtfilt z modułu scipy.signal, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
+\newpage
+Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{12}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
 
 \begin{figure}[htbp]
     \centering
@@ -123,16 +141,16 @@ Dla poprawy jakości sygnału PPG wykorzystano cyfrowy filtr Butterwortha czwart
     \label{fig:filtr_ppg}
 \end{figure}
 
-\newpage
+
 \subsection{Modele detekcji}
 \subsubsection{Model do wykrywania załamków R}
-Sieć neuronowa została zaimplementowana z wykorzystaniem biblioteki PyTorch. Architektura składa się z czterech warstw splotowych typu 1D, jednokierunkowej warstwy LSTM oraz bloków dwóch warstw liniowych. Sygnał wejściowy ma postać jednowymiarowej sekwencji o wymiarach [1 × 256], zawierającą 256 próbek w pojedynczym kanale.
+Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przeznaczoną do detekcji szczytów R w zapisie EKG. Stanowi ona pierwszy etap w wyznaczaniu interwałów RR i obliczaniu parametrów zmienności rytmu serca. Model przetwarza jednowymiarowe sygnały napięcia elektrycznego podzielone na fragmenty po 256 próbek, stanowiących podstawową jednostkę analizowanego przebiegu.
 
-Pierwszy etap obejmuje ekstrakcję cech przy użyciu czterech warstw konwolucyjnych 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Warstwy te rozszerzają reprezentację sygnału, zwiększając liczbę kanałów od 16 do 128, wykorzystując filtry o rozmiarach 5 lub 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Maksymalne próbkowanie MaxPooling1D z jądrem o rozmiarze 2 redukuje długość sekwencji z 256 do 16 wzdłuż osi czasowej, zwiększając efektywność przetwarzania.
+Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego.
 
-Macierz danych o wymiarach [128 × 16] jest przekształcana przez jednokierunkową LSTM z 128 jednostkami ukrytymi, działającą w trybie batch\_first=True. Otrzymany wektor został spłaszczony i przekazany do warstwy z 128 neuronami, a następnie do końcowego bloku zawierającego 256 elementów, odwzorowującego kolejne próbki sygnału wejściowego. Każdy logit w wektorze reprezentuje miarę pewności modelu dotyczącą obecności piku R w danej próbce.
+\newpage
+Dane wyjściowe z warstwy LSTM są przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu.
 
-Trening modelu przeprowadzono w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCEWithLogitsLoss, umożliwiającej binarną klasyfikację sygnału. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,0001.
 
 \begin{table}[h!]
 \centering
@@ -149,6 +167,8 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 \hline
 \end{tabular}
 \end{table}
+
+Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Do oznaczenia rzeczywistych załamków R w przefiltrowanym zapisie EKG wykorzystano algorytm Pan–Tompkins. Każdej próbce przypisano etykietę binarną wskazującą obecność lub brak lokalnego maksimum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym szczytom R. Proces uczenia przeprowadzono w partiach po 32 elementy z wykorzystaniem funkcji straty BCEWithLogitsLoss. Do optymalizacji zastosowano algorytm Adam przy stałej wartości learning rate wynoszącej 0,0001.
 
 Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, wykorzystując wytrenowane parametry modelu. Rezultaty klasyfikacji przedstawiono w postaci macierzy konfuzji w Tabeli~\ref{tab:conf_matrix}.
 
@@ -167,7 +187,6 @@ Szczyt  & 83 & 2678 \\
 \end{tabular}
 \end{table}
 
-\newpage
 Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 2678 z jego rzeczywistą obecnością. Liczba fałszywie pozytywnych predykcji wyniosła 53, natomiast fałszywie negatywnych -- 83. Wartość miary F1 równa 0,9753 świadczy o wysokiej równowadze pomiędzy precyzją a czułością modelu, co jest kluczowe w automatycznej analizie sygnałów elektrokardiograficznych. Podstawowe metryki oceny jakości modelu przedstawiono w Tabeli~\ref{tab:metrics}.
 
 \begin{table}[ht]
@@ -187,12 +206,12 @@ Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \end{tabular}
 \end{table}
 
+\newpage
 \subsubsection{Model do wykrywania szczytów fali}
-Analogicznie do podejścia zastosowanego w detekcji załamków R w sygnale EKG, opracowano model do identyfikacji szczytów w przebiegu fotopletyzmograficznym, wykorzystujący bibliotekę PyTorch. Sieć opiera się na strukturze trzech warstw konwolucyjnych 1D, przetwarzającej dane w postaci wektora o wymiarach [1 × 50], zawierającego 50 próbek w pojedynczym kanale.
+Analogicznie do podejścia zastosowanego w analizie sygnału EKG, opracowano model konwolucyjny identyfikujący lokalne szczyty w przebiegu fotopletyzmograficznym. Stanowi on podstawę do wyznaczania interwałów międzyuderzeniowych IBI, wykorzystywanych przy estymacji wskaźników rytmu serca. Sieć przetwarza dane w postaci wektora zawierającego 50 próbek w pojedynczym kanale, reprezentujących zmiany objętości krwi w naczyniach obwodowych.
 
-Do ekstrakcji lokalnych cech zastosowano dwie warstwy konwolucyjne 1D z filtrami o szerokości 5 oraz rosnącą liczbą kanałów od 1 do 32. Każde z przekształceń obejmuje normalizację BatchNorm1d oraz nieliniową funkcję aktywacji ReLU. Końcowy blok z filtrem o rozmiarze 1 generuje jednowymiarowy wektor, którego wartości wyznaczane przez funkcję sigmoidalną odpowiadają prawdopodobieństwom wystąpienia szczytu w danej próbce sygnału. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ppg_layers}.
+Architektura składa się z trzech kolejnych warstw splotowych 1D, odpowiedzialnych za detekcję lokalnych wzorców w przebiegu. W pierwszych dwóch zastosowano filtry o szerokości 5 próbek oraz rosnącą liczbę kanałów od 1 do 32, a każde przekształcenie uzupełniono o normalizację BatchNorm1d i nieliniową funkcję aktywacji ReLU. Końcowy blok z filtrem o rozmiarze 1 generuje jednowymiarowy wektor, którego wartości wyznaczane przez funkcję sigmoidalną są interpretowane jako prawdopodobieństwa wystąpienia piku w poszczególnych punktach przebiegu. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ppg_layers}.
 
-Model trenowano w trybie nadzorowanym, w partiach po 32 próbki, z wykorzystaniem funkcji straty BCELoss, odpowiedniej do binarnej klasyfikacji sygnałów. Do optymalizacji zastosowano algorytm Adam przy stałej wartości współczynnika uczenia wynoszącej 0,001.
 
 \begin{table}[ht]
 \centering
@@ -209,8 +228,9 @@ Conv1D-3 & 32 & 1 & 1 & 0 & Sigmoid \\
 \end{tabular}
 \end{table}
 
-\newpage
-Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy użyciu wcześniej wytrenowanych parametrów. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
+Proces uczenia nadzorowanego, wykorzystany w analizie zapisu EKG rejestrowanego za pomocą pulsometru, został w analogiczny sposób zastosowany do danych PPG pozyskanych z urządzenia mobilnego. Etykietowanie punktów oparto na identyfikacji szczytów lokalnych w przefiltrowanym przebiegu, wykorzystując procedurę wyszukiwania punktów, których wartość przewyższa sąsiednie próbki. Każdemu elementowi sygnału przypisano oznaczenie binarne wskazujące obecność lub brak piku, umożliwiając klasyfikację odpowiadających wzorców. Sieć trenowano w partiach po 32 próbki, stosując funkcję straty BCELoss oraz algorytm optymalizacji Adam ze stałym współczynnikiem uczenia równym 0,001.
+
+Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy zastosowaniu parametrów wyznaczonych podczas treningu. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
 
 \begin{table}[ht]
 \centering
@@ -227,7 +247,8 @@ Szczyt  & 12 & 370 \\
 \end{tabular}
 \end{table}
 
-Dla sygnałów fotopletyzmograficznych model poprawnie rozpoznał 9610 próbek bez obecności fali oraz 370 z jej wystąpieniem. Niepoprawne predykcje odnotowano w 8 przypadkach fałszywie dodatnich oraz 12  fałszywie ujemnych. Otrzymana wartość miary F1, wynosząca 0,9737, jest zbliżona do wyników uzyskanych dla modelu EKG, potwierdzając wiarygodność zastosowanego rozwiązania w analizie obu typów sygnałów.
+\newpage
+Dla sygnałów fotopletyzmograficznych sieć poprawnie rozpoznała 9610 próbek bez obecności fali oraz 370 z jej wystąpieniem. Niepoprawne predykcje odnotowano w 8 przypadkach fałszywie dodatnich oraz 12  fałszywie ujemnych. Otrzymana wartość miary F1, wynosząca 0,9737, jest zbliżona do wyników uzyskanych dla modelu EKG, potwierdzając wiarygodność zastosowanego rozwiązania w analizie obu typów sygnałów.
 Podstawowe metryki oceny jakości architektury przedstawiono w Tabeli~\ref{tab:metrics_ppg}.
 
 \begin{table}[ht]
@@ -252,14 +273,13 @@ Pominięte załamki & 2,88\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \subsection{Synchronizacja czasowa sygnałów}
 Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te przekształcane są do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
-Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (1):
+Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (2):
 \begin{equation}
 t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
 \end{equation}
 gdzie $t_{\mathrm{UNIX}}$ - czas w formacie UNIX, $t_{\mathrm{rel}}$ – czas względny, a $t_{0}$ – początek akwizycji.
 
-\newpage
-Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Różnice między odpowiadającymi pikami wyznaczono zgodnie z równaniem (2):
+Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Różnice między odpowiadającymi pikami wyznaczono zgodnie z równaniem (3):
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
@@ -267,25 +287,26 @@ gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w sygn
 
 %Wskaźnik PTT wykorzystywany jest do oceny poprawności synchronizacji sygnałów.%
 
+\newpage
 \subsection{Wskaźniki HRV}
 Ujednolicenie osi czasowych umożliwia równoległą analizę odstępów kolejnych uderzeń serca w obu przebiegach. Dla sygnału EKG określa się interwały RR, odpowiadające odległościom między załamkami R, natomiast w PPG interwały międzyuderzenowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla odstępów IBI.
 
 \noindent\textit{1) Średnia długość interwału:} 
-Średnia arytmetyczna odstępów RR, wyrażona wzorem (3):
+Średnia arytmetyczna odstępów RR, wyrażona wzorem (4):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
 \end{equation}
 gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
 
 \noindent\textit{2) Odchylenie standardowe odstępów NN:} 
-Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (4):
+Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
 gdzie $Mean$ – średnia długość interwału, $RR_i$ – $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów. \textbf{}
 
 \noindent\textit{3) Pierwiastek kwadratowy z uśrednionych kwadratów różnic kolejnych odstępów NN:} 
-Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem (5):
+Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem (6):
 \begin{equation}
     RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
 \end{equation}
@@ -308,11 +329,17 @@ Chen, W., et al., "Deep learning and remote photoplethysmography: A comprehensiv
 \bibitem{6}
 Zanelli, S., et al., "Transfer learning of CNN-based signal quality assessment for photoplethysmography"
 \bibitem{7} 
- G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, and O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
+Polar Electro, "Polar H10 heart rate sensor," 2025
 \bibitem{8} 
- R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
+W. M. Laghari, M. Baloch, M. Mengal i S. Shah, "Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter"
 \bibitem{9} 
- Pimentel, M.A.F., et al. (2016), "Toward a robust estimation of heart rate from wrist-type PPG signals"
+S. Chakraborty, K. K. Jha i A. Patra, "Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique"
+\bibitem{10} 
+G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, and O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
+\bibitem{11} 
+R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
+\bibitem{12} 
+Pimentel, M.A.F., et al. (2016), "Toward a robust estimation of heart rate from wrist-type PPG signals"
 
 \end{thebibliography}
 \end{document}
