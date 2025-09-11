@@ -48,36 +48,36 @@
 
 \newpage
 \section{Techniki filtracji i modelowania sygnałów biomedycznych}
+Elektrokardiografia i fotopletyzmografia należą do podstawowych źródeł sygnałów biomedycznych wykorzystywanych w nowoczesnych systemach diagnostycznych i monitorujących. Proces przetwarzania zapisów jest ukierunkowany na uzyskanie wiarygodnych informacji fizjologicznych przy obecności zakłóceń wynikających z ruchu pacjenta, interferencji środowiskowych i ograniczeń sprzętowych. Dominują dwa podejścia: filtrację danych oraz modelowanie wspierane sztuczną inteligencją, które są łączone  dla poprawy dokładności i zwiększenia odporności analizy w warunkach medycznych.
 
-Metody uczenia maszynowego znajdują szerokie zastosowanie w przetwarzaniu sygnałów biomedycznych, w tym w elektrokardiografii oraz fotopletyzmografii. Techniki te umożliwiają automatyczną detekcję istotnych cech, ocenę długotrwałych zależności czasowych oraz szacowanie parametrów fizjologicznych. W literaturze wyróżnia się dwa główne podejścia: metody oparte na filtracji sygnałów i analizie w dziedzinie czasu oraz modele uczące się, zdolne do samodzielnego wyodrębniania wzorców z danych pomiarowych.
+\subsection{Filtracja danych}
+Wstępne przetwarzanie przebiegów fizjologicznych opiera się na eliminacji zakłóceń, umożliwiając poprawę stosunku sygnału do szumu. W elektrokardiografii oraz fotopletyzmografii istotną rolę odgrywają niedokładności pomiarowe związane z ruchem, składowe sieciowe o częstotliwości 50/60 Hz oraz dryft linii izoelektrycznej \cite{1}. Filtracja podnosi jakość zapisu, poprawiając dokładność detekcji cech oraz efektywność klasyfikacji.
 
-Analiza sygnałów elektrokardiograficznych coraz częściej wykorzystuje metody uczenia maszynowego, jak sieci splotowe czy rekurencyjne, ze względu na możliwość detekcji złożonych zależności czasowych. W związku z wysoką odpornością na szumy i zakłócenia modele ML implementowane są do automatycznej detekcji załamków R. W opracowaniach opisywane są również klasyczne metody, takie jak filtry progowe czy transformacje sygnału. Ich zastosowanie w warunkach rzeczywistych jest utrudnione spadkiem efektywności w obecności zniekształceń ruchowych. W odpowiedzi na ograniczenia, modele głębokiego uczenia stanowią alternatywę dla standardowych metod analizy danych \cite{1}.
+Do podstawowych metod analizy sygnału należą filtry pasmowoprzepustowe, ograniczające pasmo częstotliwości do wartości charakterystycznych dla badanego przebiegu. Zakres przetwarzania zapisu EKG wynosi 0,5–40 Hz, natomiast PPG ogranicza się do 0,3–8 Hz, odpowiadającego rytmowi serca. W implementacjach cyfrowych wykorzystuje się filtry Butterwortha, Chebysheva, eliptyczne w postaci IIR oraz FIR projektowane metodą okienkową, zapewniające stabilność i liniową charakterystykę fazową \cite{2}. 
 
-Algorytm Pan-Tompkins, szeroko stosowany w przetwarzaniu EKG, wykazuje ograniczoną skuteczność przy niskiej jakości danych. Zaawansowane metody wykorzystują architektury splotowe do ekstrakcji lokalnych cech sygnału oraz sieci rekurencyjne do detekcji zależności czasowych, opisujących relacje między kolejnymi interwałami RR, istotnych dla analizy zmienności rytmu serca \cite{2}. Natomiast modele Transformer umożliwiają jednoczesną identyfikację dynamiki zapisu, zwiększając jego odporność na zakłócenia.  Architektury hybrydowe łączące sieci CNN i RNN osiągają wyższą skuteczność w klasyfikacji nieregularnych przebiegów EKG oraz poprawiają dokładność analizy HRV, jednocześnie minimalizując wady pojedynczych rozwiązań \cite{3}.
-
-\newpage
-Analogicznie do sygnałów elektrokardiograficznych, w fotopletyzmografii obserwuje się wykorzystanie algorytmów uczenia maszynowego w monitorowaniu i analizie częstości pracy serca. Wysoka podatność zapisu PPG na zakłócenia ruchowe oraz zmiany oświetlenia ogranicza skuteczność metod filtracji i detekcji. Zastosowanie uczenia głębokiego umożliwia precyzyjne wykrywanie szczytów fali, poprawiając wiarygodność klasyfikacji \cite{4}.
-
-W przetwarzaniu sygnałów PPG wykorzystuje się filtrację pasmową oraz algorytmy detekcji lokalnych maksimów i progów, uwzględniające adaptację do zmian amplitudy. Pomimo wysokiej skuteczności w warunkach kontrolowanych, metody te charakteryzują się obniżoną efektywnością w obecności nasilonych zakłóceń. W nowoczesnej analizie stosuje się architektury głębokiego uczenia, w których warstwy konwolucyjne łączone są z rekurencyjnymi LSTM umożliwiając modelowanie zarówno krótkookresowych, jak i długoterminowych zmian przebiegu fali \cite{5}. W procesie klasyfikacji wyodrębnionych cech implementuje się również wielowarstwowe perceptrony MLP oraz sieci GRU, które przy mniejszej liczbie parametrów wykrywają zależności czasowe z dokładnością zbliżoną do architektury LSTM.
-Z sygnału PPG wyznacza się interwały międzyuderzeniowe IBI, odpowiadające interwałom RR w EKG, pozwalając na analizę zmienności rytmu serca niezależnie od zapisów elektrokardiograficznych. W wybranych rozwiązaniach wykorzystuje się uczenie transferowe, umożliwiające dostosowanie modeli wytrenowanych na odmiennych zbiorach danych, zapewniając wyższą precyzję detekcji oraz odporność na zakłócenia \cite{6}.
-
-
-\subsection{Elektrokardiografia}
-Jednym z elementów zaprojektowanych w ramach niniejszej pracy jest sieć łącząca warstwy splotowe oraz rekurencyjne, przeznaczoną do rozpoznawania szczytów R w sygnale EKG. Stanowi ona pierwszy etap w procesie wyznaczania interwałów RR oraz parametrów zmienności rytmu serca.
-
-Model przetwarza jednowymiarowe sygnały napięcia elektrycznego, podzielone na fragmenty o długości 256 próbek. Moduły splotowe odpowiadają za ekstrakcję cech z danych wejściowych przez zastosowanie kolejnych warstw konwolucyjnych wraz z nieliniowymi funkcjami aktywacji. Realizacja procesu redukcji wymiarowości przez wybór największych wartości pozwala na zwiększenie odporności na szum oraz zakłócenia. Po przekształceniu sygnału przez część konwolucyjną, dane przekazywane są do jednokierunkowej warstwy LSTM, umożliwiającej analizę zależności czasowych między kolejnymi próbkami sygnału. W końcowej części modelu wykorzystano połączone moduły liniowe, których celem jest konwersja wewnętrznych cech w przestrzeń logitów. Każdy element wektora reprezentuje prawdopodobieństwo wystąpienia załamka R w odpowiadającej mu próbce sygnału wejściowego. Zaprojektowane rozwiązanie umożliwia binarną klasyfikację dla każdego punktu czasowego.
+Dla sygnałów z zakłóceniami o zmiennych parametrach stosuje się filtry adaptacyjne. Algorytmy LMS i RLS umożliwiają dynamiczną adaptację współczynników układu do charakterystyki zapisu, zwiększając skuteczność tłumienia niestabilności ruchowych oraz interferencji sieciowych. W zastosowaniach medycznych mechanizmy notch zapewniają eliminację składowej 50/60 Hz \cite{3}.
 
 \newpage
-Model został wytrenowany w trybie nadzorowanym na podstawie sygnałów pochodzących z czujnika tętna Polar H10. Dla danych treningowych wykorzystano funkcję ecg\_peaks z biblioteki NeuroKit2, implementującą algorytm Pan–Tompkins, umożliwiający detekcję załamków R w przefiltrowanym zapisie EKG. Dla każdej próbki przygotowano etykiety binarne wskazujące obecność lub brak lokalnego maksimum. W konsekwencji sieć neuronowa uczyła się klasyfikacji poprzez identyfikację wzorców odpowiadającym rzeczywistym szczytom R.
+Eliminacja artefaktów impulsowych i krótkotrwałych jest realizowana w oparciu o filtry medianowe oraz metody morfologiczne, umożliwiające zachowanie cech diagnostycznych, takich jak załamki QRS \cite{4}. Analiza falkowa oraz techniki Empirical Mode Decomposition i Wavelet Packet Transform zapewniają dekompozycję sygnału na składowe częstotliwościowe oraz selektywne tłumienie szumów przy utrzymaniu struktury pików przebiegu \cite{5}.
+
+W zaawansowanych zastosowaniach biomedycznych wykorzystuje się algorytmy oparte na modelach probabilistycznych. Jedną z metod jest filtr Kalmana, służący do estymacji rzeczywistego przebiegu na podstawie obserwacji obarczonych zakłóceniami \cite{6}, oraz Independent Component Analysis, stosowaną do separacji źródeł zapisu i eliminacji zniekształceń ruchowych w fotopletyzmografii \cite{7}. Współczesne techniki wyodrębniania danych integrują tradycyjne przetwarzanie z uczeniem maszynowym. Proces oczyszczania sygnału jest etapem poprzedzającym ekstrakcję cech z użyciem sieci neuronowych, zwiększając odporność analizy w warunkach naturalnych \cite{8}.
+
+\subsection{Uczenie maszynowe}
+Techniki oparte na sztucznej inteligencji należą do kluczowych metod analizy sygnałów biomedycznych. Zastosowanie algorytmów umożliwia automatyczne wyodrębnianie informacji, ogranicza wpływ wstępnego przetwarzania i zwiększa skuteczność klasyfikacji w obecności zniekształceń. W literaturze wyróżnia się trzy główne rozwiązania.
+
+Nadzorowane podejścia, obejmujące Support Vector Machines, k-Nearest Neighbors oraz Random Forest, są wykorzystywane do oceny rytmu serca oraz detekcji arytmii. Regresja logistyczna i liniowe modele dyskryminacyjne zapewniają prostą i efektywną identyfikację wzorców sygnałów.
+Niska złożoność obliczeniowa tych rozwiązań sprzyja implementacji w przenośnych systemach diagnostycznych i urządzeniach monitorujących, wspierając przetwarzanie danych w czasie rzeczywistym \cite{9}.
+
+Drugi obszar koncentruje się na modelach sekwencyjnych, umożliwiających odwzorowanie zależności czasowych w zapisach elektrokardiograficznych oraz fotopletyzmograficznych.
+Rekurencyjne sieci neuronowe i ich rozszerzone formy, w tym długa krótkoterminowa pamięć LSTM oraz jednostki z bramkowaniem pamięci GRU, rejestrują zarówno krótkotrwałe, jak i długookresowe zmiany sygnału \cite{10}. Alternatywnie są stosowane techniki probabilistyczne, w szczególności ukryte modele Markowa HMM, wspierające identyfikację anomalii oraz poprawiające skuteczność analizy dynamiki rytmu serca i detekcji nieprawidłowości kardiologicznych \cite{11}.
+
+\newpage
+Do najczęściej wykorzystywanych rozwiązań zalicza się architektury głębokiego uczenia, w tym konwolucyjne sieci neuronowe, przeznaczone do ekstrakcji cech lokalnych, takich jak detekcja szczytów w przebiegu PPG oraz zespołów QRS w sygnale EKG \cite{12}. Transformer, oparty na mechanizmie uwagi, zapewnia równoległe odwzorowanie zależności czasowych w wielu skalach, zwiększając odporność systemów na zakłócenia ruchowe i zmienność amplitudy \cite{13}. Rosnące znaczenie zyskują rozwiązania hybrydowe, w których warstwy splotowe są łączone z rekurencyjnymi, integrujące analizę lokalną i globalną w jednym układzie.
 
 
-\subsection{Fotopletyzmografia}
-Drugim opracowanym rozwiązaniem jest sieć wykorzystująca warstwy splotowe, przeznaczona do analizy sygnału fotopletyzmograficznego. Model ten odpowiada za detekcję lokalnych szczytów, na podstawie których wyznaczane są interwały międzyuderzeniowe, służące do szacowania wskaźników rytmu serca.
-
-System przetwarza jednowymiarowe sygnały reprezentujące zmiany objętości krwi w naczyniach obwodowych, podzielone na segmenty o długości 50 próbek. Kolejne moduły splotowe, wykorzystujące nieliniowe funkcje aktywacji, odpowiadają za identyfikację lokalnych wzorców w danych wejściowych. Selekcja wartości o największej amplitudzie zwiększa odporność na niepożądane zakłócenia. Na wyjściu modelu generowany jest wektor prawdopodobieństw, otrzymany przez zastosowanie funkcji sigmoidalnej do surowych sygnałów warstwy konwolucyjnej. Uzyskane wartości odzwierciedlają lokalizacje szczytów fali, umożliwiając klasyfikację binarną próbek w reprezentacji czasowej.
+Uczenie maszynowe charakteryzuje się wysoką odpornością na zniekształcenia oraz adaptację do nowych zbiorów danych. Stosowanie podejścia transferowego realizuje przekształcenie modeli wytrenowanych na dużych bazach referencyjnych, do rzeczywistych warunków klinicznych, poprawiając generalizację oraz precyzję klasyfikacji \cite{14}.
 
 
-Uczenie nadzorowane, zastosowane w analizie sygnału EKG pozyskanego z pulsometru, zostało analogicznie zaimplementowane dla danych PPG rejestrowanych za pomocą urządzenia mobilnego. Proces etykietowania oparto na identyfikacji szczytów lokalnych, wykorzystując funkcję find\_peaks z modułu scipy.signal, w przefiltrowanym przebiegu. Każdej próbce przypisano wartość binarną, odzwierciedlającą obecność bądź brak piku fali. Na podstawie zdefiniowanych etykiet sieć neuronowa została wytrenowana do rozpoznawania wzorców odpowiadających detekcji szczytów.
 
 \newpage
 \section{Opis systemu i danych}
@@ -85,14 +85,14 @@ Uczenie nadzorowane, zastosowane w analizie sygnału EKG pozyskanego z pulsometr
 \subsubsection{Akwizycja danych EKG}
 Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
 
-Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{7}.
+Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{15}.
 
 W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, prowadzących do zakłóceń przebiegu. Sygnał przesyłano w czasie rzeczywistym w pakietach po 13 punktów zgodnych z przyjętą częstotliwością próbkowania i zapisywano w formacie CSV. 
 
 
 \subsubsection{Akwizycja danych PPG}
 \paragraph{Aplikacja mobilna}
-Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych.
+Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
 
 Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego wykresu zmian rytmu serca. Zarejestrowane znaczniki czasowe odpowiadające momentom wdechu i wydechu umożliwiają korelację z sygnałem w celu analizy zależności między cyklem oddechowym a jego parametrami.
 
@@ -103,6 +103,7 @@ Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego w
     \label{fig:aplikacja_mobilna}
 \end{figure}
 
+\newpage
 Zarejestrowany zapis ulega filtracji dolnoprzepustowej. Detekcja lokalnych maksimów realizowana jest poprzez analizę trzech kolejnych próbek sygnału, środkowy punkt klasyfikowany jest jako szczyt, jeśli jego wartość przewyższa oba sąsiednie. Akceptacja następnego piku wymagana upływu co najmniej 600 ms od poprzedniego wykrycia, ograniczając błędne rozpoznania wynikające z zakłóceń ruchowych. Zidentyfikowane ekstremum jest rejestrowane wraz ze znacznikiem czasu i wykorzystywane do dynamicznego wyznaczania częstości uderzeń serca BPM, zgodnie z równaniem (1) :
 
 \begin{equation}
@@ -116,13 +117,13 @@ Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zosta
 
 W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
 
+\newpage
 Transmisję danych pomiędzy smartfonem a komputerem przeprowadzono z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
 
-\newpage
 \subsection{Filtracja sygnału – filtr Butterwortha}
-Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{8}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{9}.
+Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{16}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{17}.
 
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{10}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{11}. Filtracja danych została przeprowadzona w oparciu o bibliotekę NeuroKit2.
+Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{18}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{19}. Filtracja danych została przeprowadzona w oparciu o bibliotekę NeuroKit2.
 
 \begin{figure}[htbp]
     \centering
@@ -132,7 +133,7 @@ Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o chara
 \end{figure}
 
 \newpage
-Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{12}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
+Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{20}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
 
 \begin{figure}[htbp]
     \centering
@@ -317,28 +318,44 @@ gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
 \newpage
 \begin{thebibliography}{1}
 \bibitem{1}
- O. Faust, U. R. Acharya, H. Adeli, and A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
+R. R, Sharma, R. B. Pachori,  “Baseline Wander and Power Line Interference Removal from ECG Signals”, 2018
 \bibitem{2}
- Rajpurkar, P., Hannun, A. Y., Haghpanahi, M., Bourn, C., \& Ng, A. Y. (2017), "Cardiologist-level arrhythmia detection with convolutional neural networks"
+Podder, P., Hasan, M. M., Islam, M. R., & Sayeed, M. (2020), “Design and Implementation of Butterworth, Chebyshev-I and Elliptic Filter for Speech Signal Analysis”
 \bibitem{3}
- Yildirim, O. (2018), "A novel wavelet sequence based on deep bidirectional LSTM network model for ECG signal classification. Computers in Biology and Medicine"
+Keshtkaran, M. R., & Yang, Z. (2014),  “A fast, robust algorithm for power line interference cancellation in neural recording”
 \bibitem{4}
- Elgendi, M. (2012), "On the Analysis of Fingertip Photoplethysmogram Signals. Current Cardiology Reviews"
+S. K. Mitra, “Digital Signal Processing: A Computer-Based Approach”
 \bibitem{5}
-Chen, W., et al., "Deep learning and remote photoplethysmography: A comprehensive review" 
+Y. Yue, "An effective electrocardiogram segments denoising method based on EEMD, EMD, and wavelet packet," IET Signal Processing” 
 \bibitem{6}
-Zanelli, S., et al., "Transfer learning of CNN-based signal quality assessment for photoplethysmography"
-\bibitem{7} 
-Polar Electro, "Polar H10 heart rate sensor," 2025
-\bibitem{8} 
+S. Haykin, “Adaptive Filter Theory” 5th ed. Pearson, 2013
+\bibitem{7}
+A. Hyvärinen, E. Oja, “Independent component analysis: algorithms and applications”
+\bibitem{8}
+O. Faust, U. R. Acharya, H. Adeli, and A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
+\bibitem{9}
+Boulif, A. (2023) “A literature review: ECG-based models for arrhythmia detection using AI techniques”
+\bibitem{10}
+Z. Ebrahimi, "A review on deep learning methods for ECG arrhythmia detection”
+\bibitem{11}
+D. A. Coast, R. M. Stern, G. G. Cano, and S. A. Briller, "An approach to cardiac arrhythmia analysis using hidden Markov models"
+\bibitem{12}
+K. Kazemi, “Robust PPG Peak Detection Using Dilated Convolutional Neural Networks”
+\bibitem{13}
+S. Ikram et al., “Transformer-based ECG classification for early detection of cardiac arrhythmias”
+\bibitem{14}
+C. V. Nguyen i C. D. Do, "Transfer learning in ECG diagnosis: Is it effective?"
+\bibitem{15} 
+Polar Electro, "Polar H10 heart rate sensor,"  2025
+\bibitem{16} 
 W. M. Laghari, M. Baloch, M. Mengal i S. Shah, "Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter"
-\bibitem{9} 
+\bibitem{17} 
 S. Chakraborty, K. K. Jha i A. Patra, "Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique"
-\bibitem{10} 
+\bibitem{18} 
 G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, and O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
-\bibitem{11} 
+\bibitem{19} 
 R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
-\bibitem{12} 
+\bibitem{20} 
 Pimentel, M.A.F., et al. (2016), "Toward a robust estimation of heart rate from wrist-type PPG signals"
 
 \end{thebibliography}
