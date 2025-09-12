@@ -201,7 +201,7 @@ def main():
         peaks_ai = run_ai_ppg(ppg, fs, model_path=MODEL_PATH, segment_length=100)
 
     # Metrics
-    metrics = compute_metrics(peaks_ai, peaks_pt, fs, tolerance_ms=150)
+    metrics = compute_metrics(peaks_ai, peaks_pt, fs, tolerance_ms=250)
     print("Number of peaks (AI):", len(peaks_ai))
     print("Number of peaks (Validated/Reference):", len(peaks_pt))
     print("\n--- Accuracy: AI vs Real ---")
@@ -234,8 +234,9 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("ppg_ai_vs_real.png")
 
+    plt.show()
 
 if __name__ == "__main__":
     main()

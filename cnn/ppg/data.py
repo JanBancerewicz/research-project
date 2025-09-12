@@ -33,20 +33,22 @@ def normalize_signal(signal):
 def load_ppg_segments_from_csv(filepath, segment_length=50):
     df = pd.read_csv(filepath)
     ppg = df['ppg'].values[20:]
-    filtered_ppg = butter_bandpass_filter(ppg, 0.5, 5.0, fs=30)
-    # Only process if enough samples for at least one segment
-    if len(filtered_ppg) < segment_length:
+    fs = 30  # Sampling frequency (Hz)
+    ppg_bp = butter_bandpass_filter(ppg, 0.5, 5.0, fs=fs, order=3)
+    if len(ppg_bp) < segment_length:
         return np.empty((0, segment_length)), np.empty((0, segment_length))
-    peak_indices, _ = find_peaks(filtered_ppg, distance=30 // 2, prominence=0.01)
-    peaks = np.zeros_like(filtered_ppg)
-    peaks[peak_indices] = 1
     segments, labels = [], []
-    for i in range(len(filtered_ppg) - segment_length + 1):
-        segment = filtered_ppg[i:i+segment_length]
+    for i in range(len(ppg_bp) - segment_length + 1):
+        segment = ppg_bp[i:i+segment_length]
         # Normalize each segment (window) individually
-        segment = normalize_signal(segment)
-        label = peaks[i:i+segment_length]
-        segments.append(segment)
+        segment_norm = normalize_signal(segment)
+        # Find peaks inside this segment
+        distance_samples = int(round(0.35 * fs))
+        prominence = np.std(segment) * 0.5
+        peak_indices, _ = find_peaks(segment, distance=distance_samples, prominence=prominence)
+        label = np.zeros(segment_length)
+        label[peak_indices] = 1
+        segments.append(segment_norm)
         labels.append(label)
     return np.array(segments), np.array(labels)
 
@@ -170,10 +172,11 @@ def get_or_train_model(
         return model
     print("🚀 Training new model...")
     dataset = PPGDirectoryDataset(data_dir, segment_length=segment_length, max_segments=max_segments, max_files=max_files)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
     model = PPGPeakDetector()
     start = time.time()
-    train_model(model, dataloader, epochs=200, lr=0.0001)
+    train_model(model, dataloader, epochs=200, lr=0.001)
     test_model(model, dataset)
     torch.save(model.state_dict(), model_path)
     end = time.time()
