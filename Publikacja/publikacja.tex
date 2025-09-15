@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[polish]{babel}
 \usepackage{graphicx}
+\usepackage{subcaption}
 \pagestyle{plain}
 \setlength{\parskip}{0.7em}  
 \setlength{\parindent}{15pt}
@@ -150,16 +151,15 @@ Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przezna
 Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego.
 
 \newpage
-Dane wyjściowe z warstwy LSTM są przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu.
-
+Dane wyjściowe z warstwy LSTM są przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ecg_layers}.
 
 \begin{table}[h!]
 \centering
-\caption{Parametry warstw konwolucyjnych sieci}
-\label{tab:conv_layers}
+\caption{Parametry bloków konwolucyjnych sieci}
+\label{tab:ecg_layers}
 \begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Warstwa} & \textbf{Wejście} & \textbf{Wyjście} & \textbf{Filtr} & \textbf{Padding} & \textbf{Aktywacja} \\
+\textbf{Blok} & \textbf{Wej.} & \textbf{Wyj.} & \textbf{Filtr} & \textbf{Padding} & \textbf{Akt./Norm.} \\
 \hline
 Conv1D-1 & 1   & 16  & 5 & 2 & LReLU+BN \\
 Conv1D-2 & 16  & 32  & 5 & 2 & LReLU+BN \\
@@ -182,7 +182,6 @@ Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uz
 \textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu } & \textbf{Szczyt } \\
 \hline
 Brak szczytu  & 231170 & 53 \\
-\hline
 Szczyt  & 83 & 2678 \\
 \hline
 \end{tabular}
@@ -199,9 +198,7 @@ Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 267
 \textbf{Metryka} & \textbf{Wartość} & \textbf{Opis} \\
 \hline
 Skuteczność & 96,99\% & Odsetek poprawnych klasyfikacji obecności lub braku piku R. \\
-\hline
 Błędne detekcje & 0,00\% & Odsetek próbek fałszywie zaklasyfikowanych jako zawierające pik R. \\
-\hline
 Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem R. \\
 \hline
 \end{tabular}
@@ -211,26 +208,34 @@ Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \subsubsection{Model do wykrywania szczytów fali}
 Analogicznie do podejścia zastosowanego w analizie sygnału EKG, opracowano model konwolucyjny identyfikujący lokalne szczyty w przebiegu fotopletyzmograficznym. Stanowi on podstawę do wyznaczania interwałów międzyuderzeniowych IBI, wykorzystywanych przy estymacji wskaźników rytmu serca. Sieć przetwarza dane w postaci wektora zawierającego 50 próbek w pojedynczym kanale, reprezentujących zmiany objętości krwi w naczyniach obwodowych.
 
-Architektura składa się z trzech kolejnych warstw splotowych 1D, odpowiedzialnych za detekcję lokalnych wzorców w przebiegu. W pierwszych dwóch zastosowano filtry o szerokości 5 próbek oraz rosnącą liczbę kanałów od 1 do 32, a każde przekształcenie uzupełniono o normalizację BatchNorm1d i nieliniową funkcję aktywacji ReLU. Końcowy blok z filtrem o rozmiarze 1 generuje jednowymiarowy wektor, którego wartości wyznaczane przez funkcję sigmoidalną są interpretowane jako prawdopodobieństwa wystąpienia piku w poszczególnych punktach przebiegu. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ppg_layers}.
-
+Pierwszy element architektury stanowi jednowymiarowa warstwa splotowa z 32 filtrami o szerokości 7 próbek, uzupełniona normalizacją BatchNorm1d oraz funkcją aktywacji GELU, odpowiedzialną za łagodną nieliniowość i poprawę stabilność procesu uczenia. Cztery kolejne bloki resztkowe przetwarzają lokalne wzorce sygnału. Pierwszy moduł zwiększa kanały z 32 do 64, wykorzystując jądro o rozmiarze 9.  Rozszerzenie liczby wymiarów z 64 do 128 realizuje segment przy zastosowaniu okna o długości 5 próbek, natomiast dwa pozostałe utrzymują tę samą głębokość, operując filtrami o wielkości 3 i 7. Transformacje zdefiniowane w początkowym etapie zostały rozszerzone o warstwę Dropout, umożliwiającą redukcję nadmiernego dopasowania. Moduł SE podnosi selektywność modelu, poprawiając precyzję wykrywania lokalnych maksimów przebiegu. Kompresję kanałów z 128 do 64 zapewnia blok konwolucyjny z jądrem o rozmiarze 1, a dwie w pełni połączone operacje liniowe zmniejszają wymiary do 64 i 32, z funkcją aktywacji GELU. Jednowymiarowy wektor wyjściowy podlega transformacji Sigmoid, umożliwiając interpretację wartości jako prawdopodobieństwo lokalnych szczytów w zapisie PPG. Szczegółowe parametry bloków uwzględniono w Tabeli~\ref{tab:ppg_layers}.
 
 \begin{table}[ht]
 \centering
-\caption{Parametry warstw konwolucyjnych sieci}
+\caption{Parametry bloków konwolucyjnych sieci}
 \label{tab:ppg_layers}
 \begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Warstwa} & \textbf{Wejście} & \textbf{Wyjście} & \textbf{Filtr} & \textbf{Padding} & \textbf{Aktywacja} \\
+\textbf{Blok} & \textbf{Wej.} & \textbf{Wyj.} & \textbf{Filtr} & \textbf{Padding} & \textbf{Akt./Norm.} \\
 \hline
-Conv1D-1 & 1 & 16 & 5 & 2 & ReLU+BN \\
-Conv1D-2 & 16 & 32 & 5 & 2 & ReLU+BN \\
-Conv1D-3 & 32 & 1 & 1 & 0 & Sigmoid \\
+Conv1D & 1 & 32 & 7 & 3 & GELU+BN \\
+ResidualBlock 1 & 32 & 64 & 9 & 4 & GELU+BN+DO \\
+ResidualBlock 2 & 64 & 128 & 5 & 2 & GELU+BN+DO \\
+ResidualBlock 3 & 128 & 128 & 3 & 1 & GELU+BN+DO\\
+ResidualBlock 4 & 128 & 128 & 7 & 3 & GELU+BN+DO \\
+SEBlock & 128 & 128 & – & – & SE scaling \\
+Conv1D  & 128 & 64 & 1 & 0 & GELU+BN \\
+FC & 128 & 64 & – & – & GELU \\
+FC & 64 & 32 & – & – & GELU \\
+Output & 32 & 1 & – & – & Sigmoid \\
 \hline
 \end{tabular}
 \end{table}
 
+
 Proces uczenia nadzorowanego, wykorzystany w analizie zapisu EKG rejestrowanego za pomocą pulsometru, został w analogiczny sposób zastosowany do danych PPG pozyskanych z urządzenia mobilnego. Etykietowanie punktów oparto na identyfikacji szczytów lokalnych w przefiltrowanym przebiegu, wykorzystując procedurę wyszukiwania punktów, których wartość przewyższa sąsiednie próbki. Każdemu elementowi sygnału przypisano oznaczenie binarne wskazujące obecność lub brak piku, umożliwiając klasyfikację odpowiadających wzorców. Sieć trenowano w partiach po 32 próbki, stosując funkcję straty BCELoss oraz algorytm optymalizacji Adam ze stałym współczynnikiem uczenia równym 0,001.
 
+\newpage
 Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy zastosowaniu parametrów wyznaczonych podczas treningu. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
 
 \begin{table}[ht]
@@ -241,15 +246,14 @@ Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych 
 \hline
 \textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu } & \textbf{Szczyt} \\
 \hline
-Brak szczytu  & 9610 & 8 \\
-\hline
-Szczyt  & 12 & 370 \\
+Brak szczytu  & 9609 & 9 \\
+
+Szczyt  & 7 & 375 \\
 \hline
 \end{tabular}
 \end{table}
 
-\newpage
-Dla sygnałów fotopletyzmograficznych sieć poprawnie rozpoznała 9610 próbek bez obecności fali oraz 370 z jej wystąpieniem. Niepoprawne predykcje odnotowano w 8 przypadkach fałszywie dodatnich oraz 12  fałszywie ujemnych. Otrzymana wartość miary F1, wynosząca 0,9737, jest zbliżona do wyników uzyskanych dla modelu EKG, potwierdzając wiarygodność zastosowanego rozwiązania w analizie obu typów sygnałów.
+Dla sygnałów fotopletyzmograficznych sieć poprawnie rozpoznała 9609 próbek bez obecności fali oraz 375 z jej wystąpieniem. Niepoprawne predykcje odnotowano w 9 przypadkach fałszywie dodatnich oraz 7  fałszywie ujemnych. Otrzymana wartość miary F1, wynosząca 0,9774, jest zbliżona do wyników uzyskanych dla modelu EKG, potwierdzając wiarygodność zastosowanego rozwiązania w analizie obu typów sygnałów.
 Podstawowe metryki oceny jakości architektury przedstawiono w Tabeli~\ref{tab:metrics_ppg}.
 
 \begin{table}[ht]
@@ -260,19 +264,52 @@ Podstawowe metryki oceny jakości architektury przedstawiono w Tabeli~\ref{tab:m
 \hline
 \textbf{Metryka} & \textbf{Wartość} & \textbf{Opis} \\
 \hline
-Skuteczność & 97,12\% & Odsetek poprawnych klasyfikacji obecności lub braku piku fali. \\
-\hline
-Błędne detekcje & 0,00\% & Odsetek próbek fałszywie zaklasyfikowanych jako zawierające pik fali. \\
-\hline
-Pominięte załamki & 2,88\% & Odsetek próbek z niewykrytym rzeczywistym pikiem fali. \\
+Skuteczność & 98,17\% & Odsetek poprawnych klasyfikacji obecności lub braku piku fali. \\
+Błędne detekcje & 0,52\% & Odsetek próbek fałszywie zaklasyfikowanych jako zawierające pik fali. \\
+Pominięte załamki & 1,83\% & Odsetek próbek z niewykrytym rzeczywistym pikiem fali. \\
 \hline
 \end{tabular}
 \end{table}
 
 \section{Synchronizacja czasowa i analiza porównawcza parametrów HRV}
+\subsection{Weryfikacja skuteczności detekcji pików R}
+Skuteczność architektury opartej na sieci splotowej w wykrywaniu pików R w zapisie elektrokardiograficznym oceniono względem klasycznego algorytmu Pan–Tompkinsa oraz szczytów referencyjnych uzyskanych w ramach biblioteki NeuroKit, pełniącej rolę złotego standardu. Sygnał próbkowano z częstotliwością 130 Hz i przetwarzano w niepokrywających się segmentach obejmujących 256 próbek. Łączna wartość wykrytych maksimów wyniosła 54 dla modelu, 56 metodą Pan-Tompkinsa oraz 56 w danych wzorcowych. Wyniki przedstawiono w Tabeli~\ref{tab:peak_comparison}, zawierającej liczbę prawdziwych trafień TP, fałszywych alarmów FP, pominiętych szczytów FN, wraz z obliczonymi wskaźnikami precyzji, czułości i F1, przy tolerancji odpowiadającej 1–2 punktom przebiegu.
 
-\subsection{Synchronizacja czasowa sygnałów}
-Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te przekształcane są do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.2]{ai_pan-tompkins.png}
+    \caption{Porównanie detekcji pików R przez sieć splotową z algorytmem Pan-Tompkinsa}
+    \label{fig:ai_pan-tompkins}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.2]{ai_real_peaks.png}
+    \caption{Porównanie detekcji pików R przez sieć splotową z szczytami referencyjnymi NeuroKit}
+    \label{fig:ai_real_peaks}
+\end{figure}
+
+\begin{table}[ht]
+\caption{Ocena technik wyznaczania ekstremów}
+\label{tab:peak_comparison}
+\centering
+\begin{tabular}{|p{3.08cm}|c|c|c|c|c|c|}
+\hline
+\textbf{Metoda} & \textbf{TP} & \textbf{FP} & \textbf{FN} & \textbf{Prec.} & \textbf{Czuł.} & \textbf{F1} \\
+\hline
+AI vs Pan-Tompkins & 54 & 0 & 2 & 1.000 & 0.964 & 0.982 \\
+AI vs NeuroKit & 53 & 1 & 3 & 0.981 & 0.946 & 0.964 \\
+Pan-Tompkins vs NeuroKit & 55 & 1 & 1 & 0.982 & 0.982 & 0.982 \\
+\hline
+\end{tabular}
+\end{table}
+
+\newpage
+Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznej detekcji lokalnych szczytów zapisu elektrokardiograficznego.
+
+\newpage
+\subsection{Estymacja PTT ze zsynchronizowanych sygnałów}
+Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te są przekształcane do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
 Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (2):
 \begin{equation}
@@ -280,17 +317,23 @@ t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
 \end{equation}
 gdzie $t_{\mathrm{UNIX}}$ - czas w formacie UNIX, $t_{\mathrm{rel}}$ – czas względny, a $t_{0}$ – początek akwizycji.
 
-Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Różnice między odpowiadającymi pikami wyznaczono zgodnie z równaniem (3):
+Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Dopasowanie par szczytów realizowano poprzez przypisanie do każdego załamka R w zapisie elektrokardiograficznym najbliższego w kolejności wystąpień ekstremum w sygnale fotopletyzmograficznym. Nie każdy zarejestrowany pik w EKG posiada odpowiadający punkt w PPG, wynikający z zakłóceń ruchowych lub utraty próbek. Różnice czasowe między dopasowanymi maksimami definiowane są jako interwał propagacji tętna PTT, wyznaczany zgodnie z równaniem (3):
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
-gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w sygnale PPG i EKG. 
+gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w przebiegu PPG i EKG. 
 
-%Wskaźnik PTT wykorzystywany jest do oceny poprawności synchronizacji sygnałów.%
+Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
 
-\newpage
+%\begin{figure}[htbp]
+%    \centering
+%    \includegraphics[scale=0.3]{Peaks_compare.png}
+%    \caption{Chwilowe różnice czasowe między szczytami EKG i PPG}
+%    \label{fig:filtr_ekg}
+%\end{figure}
+
 \subsection{Wskaźniki HRV}
-Ujednolicenie osi czasowych umożliwia równoległą analizę odstępów kolejnych uderzeń serca w obu przebiegach. Dla sygnału EKG określa się interwały RR, odpowiadające odległościom między załamkami R, natomiast w PPG interwały międzyuderzenowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla odstępów IBI.
+Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
 
 \noindent\textit{1) Średnia długość interwału:} 
 Średnia arytmetyczna odstępów RR, wyrażona wzorem (4):
@@ -313,52 +356,76 @@ Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem
 \end{equation}
 gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
 
+Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 s. Oznaczenia pików oraz odpowiadające im odstępy są aktualizowane w trybie online, natomiast próbki spoza okna są usuwane. Parametry SDNN, RMSSD oraz średnie interwały między uderzeniami serca przedstawiono w postaci wykresów.
 
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Mean.png}
+        \caption{Średnia długość interwału}
+    \end{subfigure}
+    
+   \vspace{0.5cm} 
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{SDNN.png}
+        \caption{Odchylenie standardowe odstępów NN}
+    \end{subfigure}
+    
+    \vspace{0.5cm}  
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{RMSSD.png}
+        \caption{Pierwiastek kwadratowy średniej z kwadratów różnic  odstępów NN}
+    \end{subfigure}  
+    \caption{Przykładowe przebiegi wskaźników HRV wyznaczone dla PPG}
+\end{figure}
  
 \newpage
 \begin{thebibliography}{1}
 \bibitem{1}
-R. R, Sharma, R. B. Pachori,  “Baseline Wander and Power Line Interference Removal from ECG Signals”, 2018
+R. R. Sharma, R. B. Pachori, “Baseline Wander and Power Line Interference Removal from ECG Signals”, 2018
 \bibitem{2}
-Podder, P., Hasan, M. M., Islam, M. R., & Sayeed, M. (2020), “Design and Implementation of Butterworth, Chebyshev-I and Elliptic Filter for Speech Signal Analysis”
+P. Podder, M. M. Hasan, M. R. Islam, M. Sayeed, “Design and Implementation of Butterworth, Chebyshev-I and Elliptic Filter for Speech Signal Analysis”, 2020
 \bibitem{3}
-Keshtkaran, M. R., & Yang, Z. (2014),  “A fast, robust algorithm for power line interference cancellation in neural recording”
+M. R. Keshtkaran, Z. Yang, “A fast, robust algorithm for power line interference cancellation in neural recording”, 2014
 \bibitem{4}
 S. K. Mitra, “Digital Signal Processing: A Computer-Based Approach”
 \bibitem{5}
-Y. Yue, "An effective electrocardiogram segments denoising method based on EEMD, EMD, and wavelet packet," IET Signal Processing” 
+Y. Yue, "An effective electrocardiogram segments denoising method based on EEMD, EMD, and wavelet packet," IET Signal Processing
 \bibitem{6}
-S. Haykin, “Adaptive Filter Theory” 5th ed. Pearson, 2013
+S. Haykin, “Adaptive Filter Theory”, 5th ed., Pearson, 2013
 \bibitem{7}
 A. Hyvärinen, E. Oja, “Independent component analysis: algorithms and applications”
 \bibitem{8}
-O. Faust, U. R. Acharya, H. Adeli, and A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
+O. Faust, U. R. Acharya, H. Adeli, A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
 \bibitem{9}
-Boulif, A. (2023) “A literature review: ECG-based models for arrhythmia detection using AI techniques”
+A. Boulif et al., “A literature review: ECG-based models for arrhythmia detection using AI techniques”, 2023
 \bibitem{10}
 Z. Ebrahimi, "A review on deep learning methods for ECG arrhythmia detection”
 \bibitem{11}
-D. A. Coast, R. M. Stern, G. G. Cano, and S. A. Briller, "An approach to cardiac arrhythmia analysis using hidden Markov models"
+D. A. Coast, R. M. Stern, G. G. Cano, S. A. Briller, "An approach to cardiac arrhythmia analysis using hidden Markov models"
 \bibitem{12}
 K. Kazemi, “Robust PPG Peak Detection Using Dilated Convolutional Neural Networks”
 \bibitem{13}
 S. Ikram et al., “Transformer-based ECG classification for early detection of cardiac arrhythmias”
 \bibitem{14}
-C. V. Nguyen i C. D. Do, "Transfer learning in ECG diagnosis: Is it effective?"
+C. V. Nguyen, C. D. Do, "Transfer learning in ECG diagnosis: Is it effective?"
 \bibitem{15} 
-Polar Electro, "Polar H10 heart rate sensor,"  2025
+Polar Electro, "Polar H10 heart rate sensor," 2025
 \bibitem{16} 
-W. M. Laghari, M. Baloch, M. Mengal i S. Shah, "Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter"
+W. M. Laghari, M. Baloch, M. Mengal, S. Shah, "Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter"
 \bibitem{17} 
-S. Chakraborty, K. K. Jha i A. Patra, "Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique"
+S. Chakraborty, K. K. Jha, A. Patra, "Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique"
 \bibitem{18} 
-G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, and O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
+G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
 \bibitem{19} 
 R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
 \bibitem{20} 
-Pimentel, M.A.F., et al. (2016), "Toward a robust estimation of heart rate from wrist-type PPG signals"
-
+M. A. F. Pimentel et al., "Toward a robust estimation of heart rate from wrist-type PPG signals", 2016
 \end{thebibliography}
 \end{document}
+
 
 
