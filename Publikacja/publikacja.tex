@@ -38,14 +38,19 @@
 {Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for IEEE Journals}
 \maketitle
 
+\begin{abstract}
+W niniejszej pracy przedstawiono metody analizy zmienności rytmu serca na podstawie sygnałów elektrokardiograficznych i fotopletyzmograficznych pozyskiwanych za pomocą urządzeń przenośnych. Opracowano proces przetwarzania zapisów obejmujący tłumienie zakłóceń, wykrywanie pików oraz wyznaczanie interwałów między impulsami w przebiegu fizjologicznym. Detekcję szczytów R w EKG oraz maksimów fali w PPG zrealizowano z wykorzystaniem splotowych i rekurencyjnych sieci neuronowych. Skuteczność modeli oceniono w odniesieniu do klasycznych algorytmów jak i danych referencyjnych. Wyniki wykazały wysoką dokładność identyfikacji pików oraz umożliwiają zastosowanie mobilnych systemów do monitorowania parametrów kardiologicznych w warunkach domowych i podczas aktywności fizycznej.
 
+\textbf{Słowa kluczowe---}zmienność rytmu serca; sygnały biomedyczne; elektrokardiografia; fotopletyzmografia; filtracja sygnałów; splotowe sieci neuronowe; detekcja szczytów; interwał propagacji tętna; algorytm Pan-Tompkins; analiza czasowa.
+\end{abstract}
 
 
 \section{Wstęp}
+Zmienność rytmu serca stanowi istotny parametr oceny funkcjonowania układu sercowo-naczyniowego, odzwierciedlający równowagę pomiędzy aktywnością układu współczulnego i przywspółczulnego. Tradycyjne pomiary HRV prowadzone w warunkach klinicznych charakteryzują się wysokim kosztem oraz ograniczonym czasem rejestracji. W ostatnich latach postęp technologiczny w obszarze urządzeń przenośnych oraz sensorów optycznych umożliwił monitorowanie aktywności kardiologicznej w trakcie życia codziennego.
 
-%\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
-%for IEEE journal papers produced under \LaTeX\ using
-%IEEEtran.cls version 1.8b and later.
+Mobilna akwizycja zapisów elektrokardiograficznych i fotopletyzmograficznych wymaga wysokiej odporności na zakłócenia ruchowe i środowiskowe. Metodologia łącząca cyfrową filtrację sygnałów z sieciami typu CNN i RNN pozwala na automatyczne wykrywanie szczytów R oraz maksimów PPG. Zastosowane podejście wspiera wyznaczanie interwałów RR i IBI, obliczanie wskaźników HRV oraz estymację propagacji tętna w oparciu o zsynchronizowane przebiegi.
+
+Upowszechnienie metod głębokiego uczenia w połączeniu z dostępnością wysokiej jakości danych biomedycznych sprzyjają automatycznej interpretacji sygnałów w warunkach ambulatoryjnych. Istotnymi czynnikami pozostają precyzja detekcji oraz analiza długoterminowa reakcji organizmu na stres, wysiłek i regenerację. Integracja sztucznej inteligencji z systemami przenośnymi wspiera rozwój zdalnej diagnostyki i szczegółowe monitorowanie stanu zdrowia.
 
 \newpage
 \section{Techniki filtracji i modelowania sygnałów biomedycznych}
@@ -149,7 +154,6 @@ Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działaj
 Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przeznaczoną do detekcji szczytów R w zapisie EKG. Stanowi ona pierwszy etap w wyznaczaniu interwałów RR i obliczaniu parametrów zmienności rytmu serca. Model przetwarza jednowymiarowe sygnały napięcia elektrycznego podzielone na fragmenty po 256 próbek, stanowiących podstawową jednostkę analizowanego przebiegu.
 
 Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:conv_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego.
-
 \newpage
 Dane wyjściowe z warstwy LSTM są przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu. Szczegółowe parametry warstw splotowych uwzględniono w Tabeli~\ref{tab:ecg_layers}.
 
@@ -169,9 +173,8 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 \end{tabular}
 \end{table}
 
-Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Do oznaczenia rzeczywistych załamków R w przefiltrowanym zapisie EKG wykorzystano algorytm Pan–Tompkins. Każdej próbce przypisano etykietę binarną wskazującą obecność lub brak lokalnego maksimum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym szczytom R. Proces uczenia przeprowadzono w partiach po 32 elementy z wykorzystaniem funkcji straty BCEWithLogitsLoss. Do optymalizacji zastosowano algorytm Adam przy stałej wartości learning rate wynoszącej 0,0001.
-
-Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, wykorzystując wytrenowane parametry modelu. Rezultaty klasyfikacji przedstawiono w postaci macierzy konfuzji w Tabeli~\ref{tab:conf_matrix}.
+Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Rzeczywiste załamki R w przefiltrowanym zapisie EKG wyznaczono algorytmem Pan–Tompkinsa opartym na wieloetapowym przetwarzaniu. Początkową fazą jest pasmowo-przepustowe tłumienie składowych zakłócających o niskiej oraz wysokiej częstotliwości. Różniczkowanie przebiegu uwydatnia strome zbocza zespołu QRS, następnie obliczana jest średnia wartość próbek podniesionych do kwadratu w ruchomym oknie całkującym. Ostateczna detekcja szczytów jest realizowana poprzez progowanie zintegrowanej krzywej oraz analizę lokalnych maksimów \cite{21}.
+Każdemu punktowi przypisano etykietę binarną wskazującą obecność lub brak ekstremum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym pikom R. Proces uczenia przeprowadzono w partiach po 32 elementy z wykorzystaniem funkcji straty BCEWithLogitsLoss. Do optymalizacji zastosowano algorytm Adam przy stałej wartości learning rate wynoszącej 0,0001. Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, wykorzystując wytrenowane parametry modelu. Rezultaty klasyfikacji przedstawiono w postaci macierzy konfuzji w Tabeli~\ref{tab:conf_matrix}.
 
 \begin{table}[ht]
 \centering
@@ -189,6 +192,7 @@ Szczyt  & 83 & 2678 \\
 
 Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 2678 z jego rzeczywistą obecnością. Liczba fałszywie pozytywnych predykcji wyniosła 53, natomiast fałszywie negatywnych -- 83. Wartość miary F1 równa 0,9753 świadczy o wysokiej równowadze pomiędzy precyzją a czułością modelu, co jest kluczowe w automatycznej analizie sygnałów elektrokardiograficznych. Podstawowe metryki oceny jakości modelu przedstawiono w Tabeli~\ref{tab:metrics}.
 
+\newpage
 \begin{table}[ht]
 \centering
 \caption{Parametry detekcji szczytów R}
@@ -204,7 +208,6 @@ Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \end{tabular}
 \end{table}
 
-\newpage
 \subsubsection{Model do wykrywania szczytów fali}
 Analogicznie do podejścia zastosowanego w analizie sygnału EKG, opracowano model konwolucyjny identyfikujący lokalne szczyty w przebiegu fotopletyzmograficznym. Stanowi on podstawę do wyznaczania interwałów międzyuderzeniowych IBI, wykorzystywanych przy estymacji wskaźników rytmu serca. Sieć przetwarza dane w postaci wektora zawierającego 50 próbek w pojedynczym kanale, reprezentujących zmiany objętości krwi w naczyniach obwodowych.
 
@@ -232,11 +235,8 @@ Output & 32 & 1 & – & – & Sigmoid \\
 \end{tabular}
 \end{table}
 
-
-Proces uczenia nadzorowanego, wykorzystany w analizie zapisu EKG rejestrowanego za pomocą pulsometru, został w analogiczny sposób zastosowany do danych PPG pozyskanych z urządzenia mobilnego. Etykietowanie punktów oparto na identyfikacji szczytów lokalnych w przefiltrowanym przebiegu, wykorzystując procedurę wyszukiwania punktów, których wartość przewyższa sąsiednie próbki. Każdemu elementowi sygnału przypisano oznaczenie binarne wskazujące obecność lub brak piku, umożliwiając klasyfikację odpowiadających wzorców. Sieć trenowano w partiach po 32 próbki, stosując funkcję straty BCELoss oraz algorytm optymalizacji Adam ze stałym współczynnikiem uczenia równym 0,001.
-
 \newpage
-Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy zastosowaniu parametrów wyznaczonych podczas treningu. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
+Proces uczenia nadzorowanego dla danych PPG przeprowadzono na segmentach sygnału pochodzących z urządzenia mobilnego, poddanych wstępnej filtracji i normalizacji do zakresu [-1, 1]. W każdym wycinku przypisano wektor etykiet binarnych określający obecność lub brak piku, oparty na identyfikacji lokalnych szczytów przewyższających sąsiednie wartości, umożliwiając klasyfikację wzorców w obrębie okna. Sieć trenowano na 50-punktowych fragmentach przebiegu, w partiach po 32 segmenty, wykorzystując funkcję straty BCELoss oraz optymalizator Adam ze stałym współczynnikiem uczenia równym 0,001. Skuteczność zaprojektowanego modelu oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, przy zastosowaniu parametrów wyznaczonych podczas dopasowania. Wyniki klasyfikacji przedstawiono w formie macierzy konfuzji w Tabeli~\ref{tab:conf_matrix_ppg}.
 
 \begin{table}[ht]
 \centering
@@ -271,23 +271,12 @@ Pominięte załamki & 1,83\% & Odsetek próbek z niewykrytym rzeczywistym pikiem
 \end{tabular}
 \end{table}
 
-\section{Synchronizacja czasowa i analiza porównawcza parametrów HRV}
+\newpage
+\section{Ewaluacja maksimów i analiza czasowa sygnałów biomedycznych}
 \subsection{Weryfikacja skuteczności detekcji pików R}
-Skuteczność architektury opartej na sieci splotowej w wykrywaniu pików R w zapisie elektrokardiograficznym oceniono względem klasycznego algorytmu Pan–Tompkinsa oraz szczytów referencyjnych uzyskanych w ramach biblioteki NeuroKit, pełniącej rolę złotego standardu. Sygnał próbkowano z częstotliwością 130 Hz i przetwarzano w niepokrywających się segmentach obejmujących 256 próbek. Łączna wartość wykrytych maksimów wyniosła 54 dla modelu, 56 metodą Pan-Tompkinsa oraz 56 w danych wzorcowych. Wyniki przedstawiono w Tabeli~\ref{tab:peak_comparison}, zawierającej liczbę prawdziwych trafień TP, fałszywych alarmów FP, pominiętych szczytów FN, wraz z obliczonymi wskaźnikami precyzji, czułości i F1, przy tolerancji odpowiadającej 1–2 punktom przebiegu.
+Skuteczność architektury opartej na sieci splotowej w wykrywaniu pików R w zapisie elektrokardiograficznym oceniono względem klasycznego algorytmu Pan–Tompkinsa oraz szczytów referencyjnych uzyskanych w ramach biblioteki NeuroKit, pełniącej rolę złotego standardu. Sygnał próbkowano z częstotliwością 130 Hz i przetwarzano w niepokrywających się segmentach obejmujących 256 próbek. 
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[scale=0.2]{ai_pan-tompkins.png}
-    \caption{Porównanie detekcji pików R przez sieć splotową z algorytmem Pan-Tompkinsa}
-    \label{fig:ai_pan-tompkins}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[scale=0.2]{ai_real_peaks.png}
-    \caption{Porównanie detekcji pików R przez sieć splotową z szczytami referencyjnymi NeuroKit}
-    \label{fig:ai_real_peaks}
-\end{figure}
+Łączna wartość wykrytych maksimów wyniosła 54 dla modelu, 56 metodą Pan-Tompkinsa oraz 56 w danych wzorcowych. Wyniki przedstawiono w Tabeli~\ref{tab:peak_comparison}, zawierającej liczbę prawdziwych trafień TP, fałszywych alarmów FP, pominiętych szczytów FN, wraz z obliczonymi wskaźnikami precyzji, czułości i F1, przy tolerancji odpowiadającej 1–2 punktom przebiegu.
 
 \begin{table}[ht]
 \caption{Ocena technik wyznaczania ekstremów}
@@ -304,10 +293,40 @@ Pan-Tompkins vs NeuroKit & 55 & 1 & 1 & 0.982 & 0.982 & 0.982 \\
 \end{tabular}
 \end{table}
 
-\newpage
-Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznej detekcji lokalnych szczytów zapisu elektrokardiograficznego.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.2]{ai_pan-tompkins.png}
+    \caption{Porównanie detekcji pików R przez sieć splotową z algorytmem Pan-Tompkinsa}
+    \label{fig:ai_pan-tompkins}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.2]{ai_real_peaks.png}
+    \caption{Porównanie detekcji pików R przez sieć splotową z szczytami referencyjnymi}
+    \label{fig:ai_real_peaks}
+\end{figure}
+
 
 \newpage
+Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznym wykrywaniu lokalnych szczytów zapisu elektrokardiograficznego.
+
+\subsection{Weryfikacja skuteczności detekcji pików fali}
+Identyfikacje szczytów przebiegu fotopletyzmograficznego przeprowadzono na podstawie wyników sieci konwolucyjnej oraz sygnału referencyjnego uzyskanego metodą filtracji pasmowo-przepustowej i lokalnego wyszukiwania maksimów. Dane podzielono na segmenty o długości 100 próbek i znormalizowano do zakresu [−1,1]. W trybie okienkowym predykcje modelu przekształcono w indeksy punktów odpowiadających potencjalnym pikom fali.
+
+Algorytm uczenia maszynowego wykrył 76 szczytów, natomiast zestaw wzorcowy obejmował 72. Skuteczność detekcji przebiegła w przedziale tolerancji 264 ms, odpowiadającym 8 jednostkom czasowym przy częstotliwości próbkowania 30 Hz, z zastosowaniem parametrów prawdziwych trafień TP, fałszywych alarmów FP oraz pominiętych pików FN. Model uzyskał 61 TP, 15 FP oraz 11 FN, przekładając się na precyzję 0,803, czułość 0,847 oraz miarę F1 równą 0,824.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.28]{ppg_ai_vs_real.png}
+    \caption{Porównanie detekcji pików fali przez sieć splotową z szczytami referencyjnymi}
+    \label{fig:ppg_ai_real_peaks}
+\end{figure}
+
+\newpage
+Wyniki wskazują na wysoką zgodność architektury z referencyjnymi maksimami przebiegu fotopletyzmograficznego, przy niewielkiej liczbie fałszywego wykrywania spowodowanego zakłóceniami i ograniczeniami analizy krótkich segmentów. Uzyskane rezultaty sugerują praktyczną użyteczność sieci w cyfrowym przetwarzaniu sygnałów biomedycznych.
+
+
 \subsection{Estymacja PTT ze zsynchronizowanych sygnałów}
 Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te są przekształcane do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
@@ -323,14 +342,15 @@ PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
 gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w przebiegu PPG i EKG. 
 
-Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
+\newpage
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\linewidth]{Peaks_compare.png}
+   \caption{Chwilowe różnice czasowe między szczytami EKG i PPG}
+    \label{fig:PTT}
+\end{figure}
 
-%\begin{figure}[htbp]
-%    \centering
-%    \includegraphics[scale=0.3]{Peaks_compare.png}
-%    \caption{Chwilowe różnice czasowe między szczytami EKG i PPG}
-%    \label{fig:filtr_ekg}
-%\end{figure}
+Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
 
 \subsection{Wskaźniki HRV}
 Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
@@ -360,29 +380,35 @@ Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{Mean.png}
         \caption{Średnia długość interwału}
     \end{subfigure}
     
-   \vspace{0.5cm} 
-    \begin{subfigure}{0.5\textwidth}
+   \vspace{0.3cm} 
+    \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{SDNN.png}
         \caption{Odchylenie standardowe odstępów NN}
     \end{subfigure}
     
-    \vspace{0.5cm}  
-    \begin{subfigure}{0.5\textwidth}
+    \vspace{0.3cm}  
+    \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{RMSSD.png}
         \caption{Pierwiastek kwadratowy średniej z kwadratów różnic  odstępów NN}
     \end{subfigure}  
     \caption{Przykładowe przebiegi wskaźników HRV wyznaczone dla PPG}
 \end{figure}
- 
+
 \newpage
+\section{Zakończenie}
+Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
+
+Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
+ 
+
 \begin{thebibliography}{1}
 \bibitem{1}
 R. R. Sharma, R. B. Pachori, “Baseline Wander and Power Line Interference Removal from ECG Signals”, 2018
@@ -424,8 +450,9 @@ G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, O. Dössel, "Comparison of Basel
 R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
 \bibitem{20} 
 M. A. F. Pimentel et al., "Toward a robust estimation of heart rate from wrist-type PPG signals", 2016
+\bibitem{21} 
+J. Pan and W. J. Tompkins, “A real-time QRS detection algorithm”
 \end{thebibliography}
 \end{document}
-
 
 
