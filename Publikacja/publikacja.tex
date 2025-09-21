@@ -417,14 +417,57 @@ gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
 
 \newpage
 Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 s. Oznaczenia pików oraz odpowiadające im odstępy są aktualizowane w trybie online, natomiast próbki spoza okna są usuwane. Parametry SDNN, RMSSD oraz średnie interwały między uderzeniami serca przedstawiono w postaci wykresów.
+%Added na dole:::
+
+Dla porównania przedstawiono również przebiegi wskaźników HRV wyznaczonych z sygnału EKG:
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{MEAN_EKG.png}
+        \caption{Średnia długość interwału}
+    \end{subfigure}
+    
+   \vspace{0.2cm} 
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{SDNN_EKG.png}
+        \caption{Odchylenie standardowe odstępów NN}
+    \end{subfigure}
+    
+    \vspace{0.2cm}  
+    \begin{subfigure}{0.47\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{RMSSD_EKG.png}
+        \caption{Pierwiastek kwadratowy średniej z kwadratów różnic  odstępów NN}
+    \end{subfigure}  
+    \caption{Przykładowe przebiegi wskaźników HRV wyznaczone dla EKG}
+\end{figure}
+
+Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
+
+Pomimo większej zmienności w przebiegach PPG, średnie wartości wskaźników (SDNN i RMSSD) były zbliżone do uzyskanych dla EKG. Potwierdza to, że przy odpowiednich warunkach rejestracji PPG może stanowić wiarygodną alternatywę dla EKG w analizie zmienności rytmu serca, choć jego zastosowanie wymaga dodatkowych metod filtracji i kompensacji artefaktów.
+
 
 \section{Podsumowanie}
-Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
+Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. %Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
+% fix number2:
+%Zaproponowane metody osiągnęły wysoką skuteczność detekcji charakterystycznych punktów sygnału, uzyskując miarę F1 w detekcji załamków R równą 0,9753 dla elektrokardiografii, natomiast dla sygnału fotopletyzmograficznego przy wykrywaniu lokalnych szczytów uzyskano F1 równą 0,9774. %added2
+%Średni interwał RR wyznaczony z EKG oraz interwał międzyuderzeniowy IBI z PPG różniły się średnio o około 5 ms. Różnica ta mieści się w granicach błędu pomiarowego i wskazuje na dużą zgodność między sygnałem pozyskiwanym za pomocą czujnika EKG a akwizycją PPG realizowaną smartfonem. %added3
+%Wartości podstawowych parametrów HRV (SDNN, RMSSD) obliczone z PPG były bardzo zbliżone do tych z EKG, różnice mieściły się w granicach błędu pomiarowego.
+Zaproponowane modele osiągnęły wysoką precyzję w detekcji kluczowych punktów sygnału, uzyskując miarę F1 na poziomie 0,9753 dla załamków R w sygnale EKG oraz 0,9774 dla szczytów fali w przebiegu PPG.
+Wysoka dokładność detekcji pików w sygnale fotopletyzmograficznym świadczy o dużym potencjale tej metody do wiarygodnego szacowania interwałów międzyuderzeniowych IBI, które są odpowiednikiem interwałów RR z EKG.
 
 Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
 
-Opracowany system wraz z kodem źródłowym  został udostępniony publicznie pod adresem:
-%\href{https://github.com/JanBancerewicz/PPGbetter}{}.
+Warto jednak podkreślić, że choć modele trenowano na danych uwzględniających zakłócenia, takie jak nagłe ruchy ciała czy drobne poruszenia palca, ich walidacja odbyła się w warunkach kontrolowanych. Kluczowym ograniczeniem jest zatem niepewność co do zachowania systemu w warunkach rzeczywistych, zwłaszcza podczas intensywnej aktywności fizycznej, gdzie ruch staje się dominującym źródłem zniekształceń. Problem ten jest szczególnie widoczny w sygnale PPG, gdzie niestabilny kontakt czujnika ze skórą może prowadzić do znacznych błędów pomiarowych. Możliwe usprawnienia, które pozwolą zniwelować wpływ zakłóceń na rezultaty badań to: zastosowanie filtrów adaptacyjnych, które dynamicznie dostosowują swoje działanie do charakterystyki szumu w sygnale, lub wykorzystanie bardziej złożonych modeli uczenia głębokiego do przetwarzania zróżnicowanych danych.
+
+Opracowany system wraz z kodem źródłowym został udostępniony publicznie w repozytoriach na GitHub pod adresami:
+
+\noindent
+\href{https://github.com/JanBancerewicz/PPGbetter}{https://github.com/JanBancerewicz/PPGbetter}
+\href{https://github.com/JanBancerewicz/research-project}{https://github.com/JanBancerewicz/research-project}.
 
  
 
