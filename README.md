@@ -1,2 +1,2 @@
 # research-project
-Powiązanie zależności między tętnem a cyklem oddechowym przy użyciu sztucznej inteligencji
+Analiza zmienności rytmu serca z wykorzystaniem urządzeń mobilnych i uczenia maszynowego
