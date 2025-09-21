@@ -463,6 +463,8 @@ Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszyno
 
 Warto jednak podkreślić, że choć modele trenowano na danych uwzględniających zakłócenia, takie jak nagłe ruchy ciała czy drobne poruszenia palca, ich walidacja odbyła się w warunkach kontrolowanych. Kluczowym ograniczeniem jest zatem niepewność co do zachowania systemu w warunkach rzeczywistych, zwłaszcza podczas intensywnej aktywności fizycznej, gdzie ruch staje się dominującym źródłem zniekształceń. Problem ten jest szczególnie widoczny w sygnale PPG, gdzie niestabilny kontakt czujnika ze skórą może prowadzić do znacznych błędów pomiarowych. Możliwe usprawnienia, które pozwolą zniwelować wpływ zakłóceń na rezultaty badań to: zastosowanie filtrów adaptacyjnych, które dynamicznie dostosowują swoje działanie do charakterystyki szumu w sygnale, lub wykorzystanie bardziej złożonych modeli uczenia głębokiego do przetwarzania zróżnicowanych danych.
 
+\newpage
+
 Opracowany system wraz z kodem źródłowym został udostępniony publicznie w repozytoriach na GitHub pod adresami:
 
 \noindent
@@ -473,7 +475,7 @@ Opracowany system wraz z kodem źródłowym został udostępniony publicznie w r
 
 \begin{thebibliography}{1}
 \bibitem{1}
-C. Bronzino, J. D. Bronzino, "The Biomedical Engineering Handbook: Biomedical Signal Analysis"
+C. Bronzino, J. D. Bronzino, “The Biomedical Engineering Handbook: Biomedical Signal Analysis”
 \bibitem{2}
 R. R. Sharma, R. B. Pachori, “Baseline Wander and Power Line Interference Removal from ECG Signals”, 2018
 \bibitem{3}
@@ -485,45 +487,45 @@ M. R. Keshtkaran, Z. Yang, “A fast, robust algorithm for power line interferen
 \bibitem{6}
 S. K. Mitra, “Digital Signal Processing: A Computer-Based Approach”
 \bibitem{7}
-Y. Yue, "An effective electrocardiogram segments denoising method based on EEMD, EMD, and wavelet packet," IET Signal Processing
+Y. Yue, “An effective electrocardiogram segments denoising method based on EEMD, EMD, and wavelet packet”, IET Signal Processing
 \bibitem{8}
 S. Haykin, “Adaptive Filter Theory”, 5th ed., Pearson, 2013
 \bibitem{9}
 A. Hyvärinen, E. Oja, “Independent component analysis: algorithms and applications”
 \bibitem{10}
-O. Faust, U. R. Acharya, H. Adeli, A. Adeli, "Deep learning for healthcare applications based on physiological signals: A review"
+O. Faust, U. R. Acharya, H. Adeli, A. Adeli, “Deep learning for healthcare applications based on physiological signals: A review”
 \bibitem{11}
 A. Boulif et al., “A literature review: ECG-based models for arrhythmia detection using AI techniques”, 2023
 \bibitem{12}
-Z. Ebrahimi, "A review on deep learning methods for ECG arrhythmia detection”
+Z. Ebrahimi, “A review on deep learning methods for ECG arrhythmia detection”
 \bibitem{13}
-D. A. Coast, R. M. Stern, G. G. Cano, S. A. Briller, "An approach to cardiac arrhythmia analysis using hidden Markov models"
+D. A. Coast, R. M. Stern, G. G. Cano, S. A. Briller, “An approach to cardiac arrhythmia analysis using hidden Markov models”
 \bibitem{14}
 K. Kazemi, “Robust PPG Peak Detection Using Dilated Convolutional Neural Networks”
 \bibitem{15}
 S. Ikram et al., “Transformer-based ECG classification for early detection of cardiac arrhythmias”
 \bibitem{16}
-C. V. Nguyen, C. D. Do, "Transfer learning in ECG diagnosis: Is it effective?"
+C. V. Nguyen, C. D. Do, “Transfer learning in ECG diagnosis: Is it effective?”
 \bibitem{17}
-W. Wang, L. Najafizadeh, „Ultra-Short Term Heart Rate Variability Estimation Using PPG and End-to-End Deep Learning”, 2024
+W. Wang, L. Najafizadeh, “Ultra-Short Term Heart Rate Variability Estimation Using PPG and End-to-End Deep Learning”, 2024
 \bibitem{18}
-J. Xu, Y. Zhang, W. Wang, M. Xie, D. Zhu, „A Comprehensive PPG-based Dataset for HR/HRV Studies”, 2025
+J. Xu, Y. Zhang, W. Wang, M. Xie, D. Zhu, “A Comprehensive PPG-based Dataset for HR/HRV Studies”, 2025
 \bibitem{19}
-B. De Ridder et al., „Smartphone Apps Using Photoplethysmography for Heart Rate Measurement: Systematic Review”
+B. De Ridder et al., “Smartphone Apps Using Photoplethysmography for Heart Rate Measurement: Systematic Review”
 \bibitem{20}
-J. D. Mather et al., „Validity of Resting Heart Rate Derived from Contact-Based Smartphone PPG”, 2024
+J. D. Mather et al., “Validity of Resting Heart Rate Derived from Contact-Based Smartphone PPG”, 2024
 \bibitem{21} 
-Polar Electro, "Polar H10 heart rate sensor," 2025
+Polar Electro, “Polar H10 heart rate sensor,” 2025
 \bibitem{22} 
-W. M. Laghari, M. Baloch, M. Mengal, S. Shah, "Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter"
+W. M. Laghari, M. Baloch, M. Mengal, S. Shah, “Performance Analysis of Analog Butterworth Low Pass Filter as Compared to Chebyshev Type-I Filter, Chebyshev Type-II Filter and Elliptical Filter”
 \bibitem{23} 
-S. Chakraborty, K. K. Jha, A. Patra, "Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique"
+S. Chakraborty, K. K. Jha, A. Patra, “Design of IIR Digital Highpass Butterworth Filter using Analog to Digital Mapping Technique”
 \bibitem{24} 
-G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, O. Dössel, "Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study"
+G. Lenis, N. Pilia, A. Loewe, W. H. W. Schulze, O. Dössel, “Comparison of Baseline Wander Removal Techniques considering the Preservation of ST Changes in the Ischemic ECG: A Simulation Study”
 \bibitem{25} 
-R. J. Martis, U. R. Acharya, H. Adeli, "Current methods in electrocardiogram characterization"
+R. J. Martis, U. R. Acharya, H. Adeli, “Current methods in electrocardiogram characterization”
 \bibitem{26} 
-M. A. F. Pimentel et al., "Toward a robust estimation of heart rate from wrist-type PPG signals", 2016
+M. A. F. Pimentel et al., “Toward a robust estimation of heart rate from wrist-type PPG signals”, 2016
 \bibitem{27} 
 J. Pan and W. J. Tompkins, “A real-time QRS detection algorithm”
 \end{thebibliography}
