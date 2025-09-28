@@ -197,34 +197,44 @@ The source code of the developed mobile application has been hosted at the addre
 \href{https://github.com/JanBancerewicz/PPGbetter}{GitHub – Aplikacja PPG}
 
 \newpage
-\paragraph{Proces rejestracji sygnału}
-Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu zaprojektowanej aplikacji. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymany odczyt stanowił pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
+%Proces rejestracji sygnału
+\paragraph{Signal recording method}
+Data used to train and validate wave peak detection model has been acquired using the developed application. Images were captured in real time in YUV 4:2:0 format at 640×480 resolution. An average brightness pixel value was being computed based on a lumination component isolated isolated from every frame. The reulst of the computation represents a single sample of raw photoplethysmographic signal.
+%Dane wykorzystane do trenowania i walidacji modelu detekcji szczytów fali zostały pozyskane przy użyciu zaprojektowanej aplikacji. Obrazy przechwytywano w czasie rzeczywistym w formacie YUV 4:2:0 o rozdzielczości 640×480. Z każdej klatki wyodrębniano składową luminancji, na podstawie której obliczano średnią wartość jasności pikseli. Otrzymany odczyt stanowił pojedynczą próbkę surowego sygnału fotopletyzmograficznego.
 
-W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
+A series of measurements with the participation of six people has been performed in order to gather the necessery amount of data. Every session lasted 10 minutes and involved registration of the signal in varied condidions taking small finger movement into account.
+%W celu zgromadzenia odpowiedniego zbioru danych zrealizowano serię pomiarów z udziałem sześciu osób. Każda sesja trwała 10 minut i obejmowała rejestrację sygnału w zróżnicowanych warunkach, uwzględniających drobne ruchy palca wpływające na zmienność przepływu krwi.
 
-Transmisję danych pomiędzy smartfonem a komputerem przeprowadzono z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
+Transmission of data between the smartphone and the server has been performed using the WebSocket protocol. Data was sent in packets containing single measurement points along with their corresponding timestamps. Sampling frequency was consistent with the number of frames per second which totaled about 30 Hz. Received data was buffered on the server and saved in CSV format.
+% Transmisję danych pomiędzy smartfonem a komputerem przeprowadzono z wykorzystaniem protokołu WebSocket. Informacje przesyłano w pakietach zawierających pojedyncze punkty pomiarowe wraz z odpowiadającymi im znacznikami czasu. Częstotliwość próbkowania była zgodna z liczbą klatek wideo, wynoszącą około 30 Hz. Odebrane dane buforowano na komputerze i zapisywano w formacie CSV.
 
-\subsection{Filtracja sygnału – filtr Butterwortha}
-Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{22}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{23}.
+%Filtracja sygnału – filtr Butterwortha
+% TODO:(mati): first sentence - double check
+% TODO:(mati): monotoniczne tłumienie, zbocze przejściowe
+\subsection{Signal filtration - Butterworth filter}
+Butterworth has been developed as an analogue solution with a maximally flat amplitude characteristic in the band-pass, minimizing the oscillations and signal distortions. It is characterised by monotonic suppression in the stopband and a milder transitional slope then in higher selectivity structures like Czebyszev and eliptic \cite{22}. In the digital implementation it takes the form of a system with an Infinite Impulse Response where the given output sample depends on the both input values as well as previous output values. This approach enables deployment of higher order filters given a limited coefficient count used in real time applications \cite{23}.
+%Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{22}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{23}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.76\linewidth]{Filtr_EKG.png} 
-    \caption{Porównanie surowego i przefiltrowanego sygnału EKG}
+    \caption{A comparison between raw and filtered ECG signals}
     \label{fig:filtr_ekg}
 \end{figure}
 
-Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{24}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{25}. Filtracja danych została przeprowadzona w oparciu o bibliotekę NeuroKit2.
+A fifth order digital filter is used to process ECG signal. The filter has a passband characteristic with a frequency range of 0.5 Hz to 45 Hz. The filter eliminates both noise as well as interferences. The lower band limit reduces the slow changes in the record caused by body movement or instable electrodes position \cite{24}. The upper limit on the other hand suppresses network, electromagnetic and muscle interferences \cite{25}. Data filtration as been performed based on the NeuroKit2 library.
+%Do przetwarzania sygnału EKG wykorzystano cyfrowy filtr piątego rzędu o charakterystyce pasmowo-przepustowej, obejmującej zakres częstotliwości od 0,5 Hz do 45 Hz, eliminujący szumy oraz zakłócenia. Dolna granica pasma redukuje powolne zmiany w zapisie wywołane ruchem ciała lub niestabliną pozycją elektrod  \cite{24}. Natomiast górna tłumi zakłócenia sieciowe, elektromagnetyczne oraz mięśniowe  \cite{25}. Filtracja danych została przeprowadzona w oparciu o bibliotekę NeuroKit2.
 
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.76\linewidth]{Filtr_PPG.png} 
-    \caption{Porównanie surowego i przefiltrowanego sygnału PPG}
+    \caption{A comparison between raw and filtered PPG signal}
     \label{fig:filtr_ppg}
 \end{figure}
 
-Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{26}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
+To improve the PPG signal quality a fourth order filter with the working range of 0.5-5 Hz has been employed. The lower band limit reduces the interferences caused by body movements or instable position of the detector. The upper limit suppresses the measuring device noise and optical interferences \cite{26}. Filtration has been implemented by using the SciPy module to prevent phase shifts of the measurement.
+%Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{26}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
 
 \newpage
 \subsection{Modele detekcji}
