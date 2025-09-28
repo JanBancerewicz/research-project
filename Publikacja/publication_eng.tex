@@ -60,7 +60,7 @@ Heart rate variability is an important parameter of assesing the health of the c
 \subsection{The goal of the paper}
 % TODO:(mati): zapisy -> records?
 % TODO:(mati): wzorców referencyjnych -> referencial patterns?
-Beat detection techniques in electrocardiographical and photoplethysmographical records are implemented and rated by their usefullness in the heart rate variability analysis. Classical algorithms are juxtaposed with soulutions based on deep neural networks including their accuracy, resistance to noise and usage in real-world conditions. An andriod mobile app registers the PPG. ECG data is acquired through a Polar H10 hear monitor. Both employ filtration, characteristic points identification as well as computing the HRV indicator. The quality of the signals obtained through the mobile devices is verified based on referential patterns. Heart rate parameters are compared with the electrocardiograph and precision of peak detection is computed.
+Beat detection techniques in electrocardiographical and photoplethysmographical records are implemented and rated by their usefullness in the heart rate variability analysis. Classical algorithms are juxtaposed with soulutions based on deep neural networks including their accuracy, resistance to noise and usage in real-world conditions. An andriod mobile app registers the PPG. ECG data is acquired through a Polar H10 heart monitor. Both employ filtration, characteristic points identification as well as computing the HRV indicator. The quality of the signals obtained through the mobile devices is verified based on referential patterns. Heart rate parameters are compared with the electrocardiograph and precision of peak detection is computed.
 % Techniki detekcji uderzeń w zapisach elektrokardiograficznych i fotopletyzmograficznych są implementowane i oceniane względem użyteczności w analizie zmienności rytmu serca. Klasyczne algorytmy zestawia się z rozwiązaniami opartymi na głębokich sieciach neuronowych, uwzględniając skuteczność, odporność na zakłócenia oraz zastosowanie w warunkach rzeczywistych. Aplikacja mobilna rejestruje przebiegi PPG na platformie Android, dane EKG odczytuje się z pulsometru Polar H10, wykorzystując filtrację, identyfikację punktów charakterystycznych oraz wyznaczanie wskaźników HRV. Jakość sygnałów pozyskiwanych urządzeniami mobilnymi jest weryfikowana na podstawie wzorców referencyjnych, porównując parametry rytmu serca z elektrokardiogramu i określając precyzję wykrywania szczytów.
 
 \newpage
@@ -137,47 +137,63 @@ End-to-end approach to evaluating heart rate variability parameters from 10-seco
 UTSA-PPG dataset \cite{18} has been published in year 2025. It involves hours-long registration of photoplethysmographic records with parallel electrocardiographic measurements supplied with accelerometer data. HR analysis has recorded an average deviation value below 2 beats per minute. Correlation level with ECG for basic HRV indicators amounted to 0.85-0.95 depending on the assumed metric. Mashine learning, decision trees and multilayer perceptrons were all employed in the signal processing, which allowed for precise profile recreation. Integration of these models in the hybrid method has contributed to improvement in the accuracy of the results and lower error. Sample variety is favourable to development of an architecture capable of high generalisation.
 % Zbiór UTSA-PPG \cite{18} został opublikowany w 2025 roku, obejmujący wielogodzinne rejestracje zapisów fotopletyzmograficznych oraz równoczesny przebieg elektrokardiograficzny, uzupełniony o dane z akcelerometru. Analiza HR odnotowała średnią wartość odchylenia poniżej 2 uderzeń na minutę, a dla podstawowych wskaźników HRV stopień powiązania z EKG wynosił 0,85-0,95 w zależności od przyjętej metryki. Do przetwarzania sygnałów wprowadzono techniki uczenia maszynowego, jak drzewa decyzyjne i wielowarstwowe perceptrony, umożliwiające dokładne odwzorowanie charakterystyk. Integracja tych modeli w metodzie hybrydowej przyczyniła się obniżenia błędu oraz poprawy precyzji uzyskanych wyników. Zróżnicowanie próbek sprzyja opracowaniu architektury o wysokiej zdolności do generalizacji.
 
+% TODO:(mati): obrazowanie w trybie kontaktowym?
+% TODO:(mati): poziom zgodności?
 \newpage
-De Ridder i in. \cite{19} przeprowadzili przegląd systematyczny aplikacji mobilnych bazujących na optycznej procedurze pomiaru pulsu, pozyskując przebieg poprzez obrazowanie w trybie kontaktowym, z częstotliwością próbkowania zależną od liczby klatek na sekundę. Badania walidacyjne w warunkach kontrolowanych potwierdziły zbieżność wartości tętna z sygnałem sercowym o poziomie zgodności w zakresie 0,95–0,99 oraz błędzie absolutnym poniżej 2 uderzeń na minutę \cite{20}. Dla prostych odchyleń interwałów zaobserwowano niższe dopasowanie, z korelacją rzędu 0,75–0,85. W środowisku codziennego użytkowania wyniki ulegają pogorszeniu wskutek zakłóceń ruchowych, wymagając zastosowania filtracji oraz procedur eliminacji zniekształconych danych.
+De Ridder and others \cite{19} have performed a systematic overview of mobile applications based on optical pulse measurements which get their records by charting in contact mode with a sampling frequency dependant on the number of frames per second. Validation research in controlled enviornments has confirmed a confluence between the heart rate value and the heart signal with a consistency level in the range of 0.95-0.99 as well as the absolute error under 2 bears per minute \cite{20}. A lower fit has been observed for for simple deviation intervals with the correlation of 0.75-0.85. Results worsen further in everyday enviornment due to movement interference which requires employing filtration and elimination procedures of deformed data.
+%De Ridder i in. \cite{19} przeprowadzili przegląd systematyczny aplikacji mobilnych bazujących na optycznej procedurze pomiaru pulsu, pozyskując przebieg poprzez obrazowanie w trybie kontaktowym, z częstotliwością próbkowania zależną od liczby klatek na sekundę. Badania walidacyjne w warunkach kontrolowanych potwierdziły zbieżność wartości tętna z sygnałem sercowym o poziomie zgodności w zakresie 0,95–0,99 oraz błędzie absolutnym poniżej 2 uderzeń na minutę \cite{20}. Dla prostych odchyleń interwałów zaobserwowano niższe dopasowanie, z korelacją rzędu 0,75–0,85. W środowisku codziennego użytkowania wyniki ulegają pogorszeniu wskutek zakłóceń ruchowych, wymagając zastosowania filtracji oraz procedur eliminacji zniekształconych danych.
 
 
-\section{Opis systemu i danych}
-\subsection{Akwizycja danych}
-\subsubsection{Akwizycja danych EKG}
-Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
+%Opis systemu i danych
+%Akwizycja danych
+%Akwizycja danych EKG
+\section{System and data characterization}
+\subsection{Data aquisition}
+\subsubsection{ECG data aquisition}
+Data used for R peak detection model training and validation has been acquired by using Polar H10 heart monitor capable of registering electrocardiographical signal with the sampling frequency of 130 Hz. This value allows for a creation of an profile important to HRV analysis.
+% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
 
-Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
+Polar H10 sensor is a heart rate detector used in sport and diagnostics. The device is based on chest electrodes registering electric potentials related to heart activity, ensuring a higher precision of the measurement compared to optical methods. Measurement transmission is realised through the Bluetooth Low Energy standard. Internal device memory allows for storing the record in offline mode. The accuracy of Polar H10 is approximate to single-channel ECG systems used in clinical diagnostics making mobile signal registering possible \cite{21}.
+%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
 
-W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, prowadzących do zakłóceń przebiegu. Sygnał przesyłano w czasie rzeczywistym w pakietach po 13 punktów zgodnych z przyjętą częstotliwością próbkowania i zapisywano w formacie CSV. 
+Two hour long measurement experiments with five people participating were performed to collect the neccessery amount of data. Registered records where diffrentieted by their physical activity level, heart rate variability and the presence of sudden body movements leading to measurement interference. The signal was being sent in real time in 13-point packets consistent with the established sampling rate. It was then stored in the CSV format.
+%W celu zgromadzenia odpowiedniego zbioru danych przeprowadzono dwugodzinne eksperymenty pomiarowe z udziałem pięciu osób. Rejestrowane zapisy były zróżnicowane pod względem poziomu aktywności fizycznej, zmienności rytmu serca, a także obecnością nagłych ruchów ciała, prowadzących do zakłóceń przebiegu. Sygnał przesyłano w czasie rzeczywistym w pakietach po 13 punktów zgodnych z przyjętą częstotliwością próbkowania i zapisywano w formacie CSV. 
 
 
-\subsubsection{Akwizycja danych PPG}
-\paragraph{Aplikacja mobilna}
-Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. 
+% Akwizycja danych PPG
+% Aplikacja mobilna
+\subsubsection{PPG data acquistion}
+\paragraph{Mobile application}
+An Anrdoid-based software using photoplethysmographical method to measure heart rate has been developed. Signal recording has been conducted by holding a patient's fingertip directly aat the camera lens and an integreted LED source allowing for optical changes detection caused by the cyclical variance of blood volume in skin vessels.
+%Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. 
 \newpage
-Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
+Heart rate monitors are used in clinical enviornments to acquire the PPG measurements. These devices are characterised by their high precision and stability. In the mobile enviornment record quality is high enough for homme enviornment purposes while preserving the measurement universality, low cost and hardware accessibility.
+% Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
 
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[scale=0.17]{aplikacja.png}
-    \caption{Interfejs aplikacji mobilnej}
+    \caption{Mobile app interface}
     \label{fig:aplikacja_mobilna}
 \end{figure}
 
 
-Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego wykresu zmian rytmu serca. Zarejestrowane znaczniki czasowe odpowiadające momentom wdechu i wydechu umożliwiają korelację z sygnałem w celu analizy zależności między cyklem oddechowym a jego parametrami.
+The application presents the PPG measurements in real time in the form of a dynamicly changing heart rate chart. Registered timestamps corresponding to points of inhales and exhales allow for a correlation with a signal in order to perform an analysis of the relation between the breath cycle and its parameters.
+%Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego wykresu zmian rytmu serca. Zarejestrowane znaczniki czasowe odpowiadające momentom wdechu i wydechu umożliwiają korelację z sygnałem w celu analizy zależności między cyklem oddechowym a jego parametrami.
 
 
-Zarejestrowany zapis ulega filtracji dolnoprzepustowej. Detekcja lokalnych maksimów realizowana jest poprzez analizę trzech kolejnych próbek sygnału, środkowy punkt klasyfikowany jest jako szczyt, jeśli jego wartość przewyższa oba sąsiednie. Akceptacja następnego piku wymagana upływu co najmniej 600 ms od poprzedniego wykrycia, ograniczając błędne rozpoznania wynikające z zakłóceń ruchowych. Zidentyfikowane ekstremum jest rejestrowane wraz ze znacznikiem czasu i wykorzystywane do dynamicznego wyznaczania częstości uderzeń serca BPM, zgodnie z równaniem (1) :
+Registered record is subject to a low-pass filter. Lokal maximums detection is realised by analysing three consecutive signal samples. The middle point is classified as a peak if its vvalue exceeds the value of the neighbouring points. Acknowleding a new peak requires for a timespan of at least 600 ms from the previous peak which reduces erroneous identifications resulting from movement interferences. Extremum identification is registered in conjunction with the timestamp and used to dynamicaly compute the Beats Per Minute as per the equation (1) :
+%Zarejestrowany zapis ulega filtracji dolnoprzepustowej. Detekcja lokalnych maksimów realizowana jest poprzez analizę trzech kolejnych próbek sygnału, środkowy punkt klasyfikowany jest jako szczyt, jeśli jego wartość przewyższa oba sąsiednie. Akceptacja następnego piku wymagana upływu co najmniej 600 ms od poprzedniego wykrycia, ograniczając błędne rozpoznania wynikające z zakłóceń ruchowych. Zidentyfikowane ekstremum jest rejestrowane wraz ze znacznikiem czasu i wykorzystywane do dynamicznego wyznaczania częstości uderzeń serca BPM, zgodnie z równaniem (1) :
 
 \begin{equation}
 \text{BPM} = \frac{60}{\Delta t}
 \label{eq:bpm}
 \end{equation}
-gdzie $\Delta t$  - średni odstęp czasowy między kolejnymi pikami sygnału 
+where $\Delta t$  - average timespan between consecutive signal peaks
 
-Opracowana aplikacja mobilna została udostępniona publicznie pod adresem:
+%Opracowana aplikacja mobilna została udostępniona publicznie pod adresem:
+The source code of the developed mobile application has been hosted at the address:
 \href{https://github.com/JanBancerewicz/PPGbetter}{GitHub – Aplikacja PPG}
 
 \newpage
