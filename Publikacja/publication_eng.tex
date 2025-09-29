@@ -1,7 +1,7 @@
 \documentclass[journal]{IEEEtran}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[polish]{babel} % TODO:(mati): delete this line for proper autogeneration of english headers
+% \usepackage[polish]{babel} % TODO:(mati): delete this line for proper autogeneration of english headers
 \usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{hyperref}
@@ -530,56 +530,65 @@ where $RR_i$ -- $i$-th RR interval, a $N$ – analysed interval count.
 \end{figure}
 
 \newpage
-Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 s. Oznaczenia pików oraz odpowiadające im odstępy są aktualizowane w trybie online, natomiast próbki spoza okna są usuwane. Parametry SDNN, RMSSD oraz średnie interwały między uderzeniami serca przedstawiono w postaci wykresów.
+A 60 second long dynamic window has been utilized in real-time processing. R peak marks and their corresponding intervals are updated in online mode while samples from beyond the window are removed. SDNN, RMSSD and average intervals between heart beats have all been presented as figures.
+%Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 s. Oznaczenia pików oraz odpowiadające im odstępy są aktualizowane w trybie online, natomiast próbki spoza okna są usuwane. Parametry SDNN, RMSSD oraz średnie interwały między uderzeniami serca przedstawiono w postaci wykresów.
 %Added na dole:::
 
-Dla porównania przedstawiono również przebiegi wskaźników HRV wyznaczonych z sygnału EKG:
+For the sake of the comparison HRV indicators measurements computed from ECG signals have also been presented:
+%Dla porównania przedstawiono również przebiegi wskaźników HRV wyznaczonych z sygnału EKG:
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{MEAN_EKG.png}
-        \caption{Interwały RR dla EKG}
+        \caption{RR intervals for ECG}
     \end{subfigure}
     
    \vspace{0.2cm} 
     \begin{subfigure}{0.49\textwidth}
         \centering
         \includegraphics[width=\linewidth]{SDNN_EKG.png}
-        \caption{Odchylenie standardowe odstępów NN}
+        \caption{Standard deviation of NN intervals}
     \end{subfigure}
     
     \vspace{0.2cm}  
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{RMSSD_EKG.png}
-        \caption{Pierwiastek kwadratowy średniej z kwadratów różnic  odstępów NN}
+        % NOTE:(mati): dumbest sentence ever
+        \caption{Square root of an average of squares of differences of NN intervals}
     \end{subfigure}  
-    \caption{Przykładowe przebiegi wskaźników HRV wyznaczone dla EKG}
+    \caption{Exemplary waveform of HRV indicators calculated for ECG}
 \end{figure}
 
-Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
+HRV indicators comparison for PPG and ECG methods has shown that RMSSD and SDNN values calculated from ECG are characterized by greater stability and lower vulnerability to value jumps. In the case of PPG greater fluctuations and presence of individual misfit values has been observed. A possible explanation is the method's susceptibility to interferences such as movements of variable pressure of the finger against the camera.
+%Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
 
-Pomimo większej zmienności w przebiegach PPG, średnie wartości wskaźników (SDNN i RMSSD) były zbliżone do uzyskanych dla EKG. Potwierdza to, że przy odpowiednich warunkach rejestracji PPG może stanowić wiarygodną alternatywę dla EKG w analizie zmienności rytmu serca, choć jego zastosowanie wymaga dodatkowych metod filtracji i kompensacji artefaktów.
+Regardless of the greater variability in PPG waveforms average indicator values (SDNN and RMSSD) are approximate to the ones obtained from ECG. This fact confirms that in the right recording conditions PPG can be a credible alternative to ECG in heart rate variability analysis althrough it requires additional filtration methods and artifacts compensation.
+%Pomimo większej zmienności w przebiegach PPG, średnie wartości wskaźników (SDNN i RMSSD) były zbliżone do uzyskanych dla EKG. Potwierdza to, że przy odpowiednich warunkach rejestracji PPG może stanowić wiarygodną alternatywę dla EKG w analizie zmienności rytmu serca, choć jego zastosowanie wymaga dodatkowych metod filtracji i kompensacji artefaktów.
 
 
-\section{Podsumowanie}
-Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. %Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
+\section{Summary}
+Evalutaion has shown that convulutional and recursive architectures provide a high level of compliance with the classical methods and referencial data while limiting the number of false detections. Proposed models have achieved a high precision in detection of key points in the signal, with the F1 benchmark reaching 0.9753 for R peaks in ECG signal and 0.9774 for wave peaks in PPG waveform. The high accuracy of peak detection in photoplethysomographic signal attests to a huge potential of this method for credible gauging the IBI which are ECG signal's RR intervals counterpart.
+% Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. %Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
 % fix number2:
 %Zaproponowane metody osiągnęły wysoką skuteczność detekcji charakterystycznych punktów sygnału, uzyskując miarę F1 w detekcji załamków R równą 0,9753 dla elektrokardiografii, natomiast dla sygnału fotopletyzmograficznego przy wykrywaniu lokalnych szczytów uzyskano F1 równą 0,9774. %added2
 %Średni interwał RR wyznaczony z EKG oraz interwał międzyuderzeniowy IBI z PPG różniły się średnio o około 5 ms. Różnica ta mieści się w granicach błędu pomiarowego i wskazuje na dużą zgodność między sygnałem pozyskiwanym za pomocą czujnika EKG a akwizycją PPG realizowaną smartfonem. %added3
 %Wartości podstawowych parametrów HRV (SDNN, RMSSD) obliczone z PPG były bardzo zbliżone do tych z EKG, różnice mieściły się w granicach błędu pomiarowego.
-Zaproponowane modele osiągnęły wysoką precyzję w detekcji kluczowych punktów sygnału, uzyskując miarę F1 na poziomie 0,9753 dla załamków R w sygnale EKG oraz 0,9774 dla szczytów fali w przebiegu PPG.
-Wysoka dokładność detekcji pików w sygnale fotopletyzmograficznym świadczy o dużym potencjale tej metody do wiarygodnego szacowania interwałów międzyuderzeniowych IBI, które są odpowiednikiem interwałów RR z EKG.
+%Zaproponowane modele osiągnęły wysoką precyzję w detekcji kluczowych punktów sygnału, uzyskując miarę F1 na poziomie 0,9753 dla załamków R w sygnale EKG oraz 0,9774 dla szczytów fali w przebiegu PPG.
+%Wysoka dokładność detekcji pików w sygnale fotopletyzmograficznym świadczy o dużym potencjale tej metody do wiarygodnego szacowania interwałów międzyuderzeniowych IBI, które są odpowiednikiem interwałów RR z EKG.
 
-Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
+Biomedical signals recording system powered by mashine learning methods show high potential in monitoring health state in real time. Next steps should concentrate on increasing the resistance of the algorithms to enviornmental interferences including movement artifact, noise and variable physiological conditions. It is also imperative to develop mechanisms to interface with advanced telemedical systems allowing for uploading and analysis of data continuously. Applying these solutions may make early heart disorders identification easier and support clinical decision making process.
+%Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
 
-Warto jednak podkreślić, że choć modele trenowano na danych uwzględniających zakłócenia, takie jak nagłe ruchy ciała czy drobne poruszenia palca, ich walidacja odbyła się w warunkach kontrolowanych. Kluczowym ograniczeniem jest zatem niepewność co do zachowania systemu w warunkach rzeczywistych, zwłaszcza podczas intensywnej aktywności fizycznej, gdzie ruch staje się dominującym źródłem zniekształceń. Problem ten jest szczególnie widoczny w sygnale PPG, gdzie niestabilny kontakt czujnika ze skórą może prowadzić do znacznych błędów pomiarowych. Możliwe usprawnienia, które pozwolą zniwelować wpływ zakłóceń na rezultaty badań to: zastosowanie filtrów adaptacyjnych, które dynamicznie dostosowują swoje działanie do charakterystyki szumu w sygnale, lub wykorzystanie bardziej złożonych modeli uczenia głębokiego do przetwarzania zróżnicowanych danych.
+It is worth noting however that althrough the models have been trained on data that included interferences like sudden bodily movements or small finger shifting their validation happened in a controlled enviornment. From that an important limitation arises - there exists an uncertainty about system's behaviour in real conditions, especially during intensive physical activity where movement becomes a dominating source of interferences. This problem is particularly clear in the PPG signal where instable contact of the detector with the skin may lead to significant measurement errors. There may exist improvements which would reduce the impact of the interferences on the results such as: applying adaptation filters which would dynamically correct their effect to account for the noise characteristic in the signal or usage of more complex deep learning models to process a variety of data.
+%Warto jednak podkreślić, że choć modele trenowano na danych uwzględniających zakłócenia, takie jak nagłe ruchy ciała czy drobne poruszenia palca, ich walidacja odbyła się w warunkach kontrolowanych. Kluczowym ograniczeniem jest zatem niepewność co do zachowania systemu w warunkach rzeczywistych, zwłaszcza podczas intensywnej aktywności fizycznej, gdzie ruch staje się dominującym źródłem zniekształceń. Problem ten jest szczególnie widoczny w sygnale PPG, gdzie niestabilny kontakt czujnika ze skórą może prowadzić do znacznych błędów pomiarowych. Możliwe usprawnienia, które pozwolą zniwelować wpływ zakłóceń na rezultaty badań to: zastosowanie filtrów adaptacyjnych, które dynamicznie dostosowują swoje działanie do charakterystyki szumu w sygnale, lub wykorzystanie bardziej złożonych modeli uczenia głębokiego do przetwarzania zróżnicowanych danych.
 
 \newpage
 
-Opracowany system wraz z kodem źródłowym został udostępniony publicznie w repozytoriach na GitHub pod adresami:
+The developped system including the source code has been made public at GitHub repositories under the following addresses.
+%Opracowany system wraz z kodem źródłowym został udostępniony publicznie w repozytoriach na GitHub pod adresami:
 
 \noindent
 \href{https://github.com/JanBancerewicz/PPGbetter}{https://github.com/JanBancerewicz/PPGbetter}
