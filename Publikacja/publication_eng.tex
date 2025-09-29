@@ -425,38 +425,48 @@ Pan-Tompkins vs NeuroKit & 55 & 1 & 1 & 0.982 & 0.982 & 0.982 \\
 
 
 \newpage
-Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznym wykrywaniu lokalnych szczytów zapisu elektrokardiograficznego.
+The network's efficiency in detecting R peaks is comparable to a classic Pan-Tompkins algorithm and is characterised by a high consistency with the referencial values. The discrepancies resulting from skipped or shifted extremums can be reduced through signal preprocessing optimization of further training of the model. Current mashine learning systems display an ability to reach high efficiency class in automated detection of electrocardiographical record's local peaks.
+%Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznym wykrywaniu lokalnych szczytów zapisu elektrokardiograficznego.
 
-\subsection{Weryfikacja skuteczności detekcji pików fali}
-Identyfikacje szczytów przebiegu fotopletyzmograficznego przeprowadzono na podstawie wyników sieci konwolucyjnej oraz sygnału referencyjnego uzyskanego metodą filtracji pasmowo-przepustowej i lokalnego wyszukiwania maksimów. Dane podzielono na segmenty o długości 100 próbek i znormalizowano do zakresu [−1,1]. W trybie okienkowym predykcje modelu przekształcono w indeksy punktów odpowiadających potencjalnym pikom fali.
+%Weryfikacja skuteczności detekcji pików fali
+\subsection{Wave peak detection efficiency verification}
+Peak identification of the photoplethysmographic measurements has been conducted based on the results from the convolutional network and referencial signal obtained using the band-pass filtration and local maximum searching method. The data has been divided into segments each containing 100 samples and normalized to [-1, 1] range. In the windowed mode model prediction has been transformed into point indexes corresponding to potential wave peaks.
+%Identyfikacje szczytów przebiegu fotopletyzmograficznego przeprowadzono na podstawie wyników sieci konwolucyjnej oraz sygnału referencyjnego uzyskanego metodą filtracji pasmowo-przepustowej i lokalnego wyszukiwania maksimów. Dane podzielono na segmenty o długości 100 próbek i znormalizowano do zakresu [−1,1]. W trybie okienkowym predykcje modelu przekształcono w indeksy punktów odpowiadających potencjalnym pikom fali.
 
-Algorytm uczenia maszynowego wykrył 76 szczytów, natomiast zestaw wzorcowy obejmował 72. Skuteczność detekcji przebiegła w przedziale tolerancji 264 ms, odpowiadającym 8 jednostkom czasowym przy częstotliwości próbkowania 30 Hz, z zastosowaniem parametrów prawdziwych trafień TP, fałszywych alarmów FP oraz pominiętych pików FN. Model uzyskał 61 TP, 15 FP oraz 11 FN, przekładając się na precyzję 0,803, czułość 0,847 oraz miarę F1 równą 0,824.
+Mashine learning algorithm as detected 76 peaks while the referencial set contained 72. The detection efficiency has performed in the tolerance range of 264 ms which correspond to 8 time units assuming a sampling rate of 30 Hz while appling True Positive, False Positive and False Negative parameters. The model has produced 61 TP, 15 FP and 11 FN resulting in a precision of 0.803, sensitivity of 0.847 and F1 benchmark of 0.824.
+% Algorytm uczenia maszynowego wykrył 76 szczytów, natomiast zestaw wzorcowy obejmował 72. Skuteczność detekcji przebiegła w przedziale tolerancji 264 ms, odpowiadającym 8 jednostkom czasowym przy częstotliwości próbkowania 30 Hz, z zastosowaniem parametrów prawdziwych trafień TP, fałszywych alarmów FP oraz pominiętych pików FN. Model uzyskał 61 TP, 15 FP oraz 11 FN, przekładając się na precyzję 0,803, czułość 0,847 oraz miarę F1 równą 0,824.
 
+%Porównanie detekcji pików fali przez sieć splotową z szczytami referencyjnymi
 \begin{figure}[htbp]
     \centering
     \includegraphics[scale=0.28]{ppg_ai_vs_real.png}
-    \caption{Porównanie detekcji pików fali przez sieć splotową z szczytami referencyjnymi}
+    \caption{Peak detection comparison between the convolutional network and referntial peaks}
     \label{fig:ppg_ai_real_peaks}
 \end{figure}
 
 \newpage
-Wyniki wskazują na wysoką zgodność architektury z referencyjnymi maksimami przebiegu fotopletyzmograficznego, przy niewielkiej liczbie fałszywego wykrywania spowodowanego zakłóceniami i ograniczeniami analizy krótkich segmentów. Uzyskane rezultaty sugerują praktyczną użyteczność sieci w cyfrowym przetwarzaniu sygnałów biomedycznych.
+The results indicate a high consistency of the architecture with the referencial photoplethysomographic measurement maximums. The low false detection count is caused by interferences and limitations of a short segments analysis. The acquied results suggest a practical usefullness of the network in digital biomedical signal processing.
+%Wyniki wskazują na wysoką zgodność architektury z referencyjnymi maksimami przebiegu fotopletyzmograficznego, przy niewielkiej liczbie fałszywego wykrywania spowodowanego zakłóceniami i ograniczeniami analizy krótkich segmentów. Uzyskane rezultaty sugerują praktyczną użyteczność sieci w cyfrowym przetwarzaniu sygnałów biomedycznych.
 
 
-\subsection{Estymacja PTT ze zsynchronizowanych sygnałów}
-Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te są przekształcane do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
+%Estymacja PTT ze zsynchronizowanych sygnałów
+\subsection{PTT estimation from the synchronized signals}
+Different schemes of timestamp notations are used during ECG and PPG recording. In electrocardiograph R peak occurence points are defined relative to the moment of the beginning of the aqcuisition and saved in seconds as relative time. During the processing of the data these values are converted to the absolute UNIX format allowing a comparison with the PPG measurement. In photoplethysomography wave peak detection is recorded directly in the system time.
+%Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te są przekształcane do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
-Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (2):
+%Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (2):
+To unify the time systems ECG date are converted from relative time to UNIX timestamps in accord with the equation (2):
 \begin{equation}
 t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
 \end{equation}
-gdzie $t_{\mathrm{UNIX}}$ - czas w formacie UNIX, $t_{\mathrm{rel}}$ – czas względny, a $t_{0}$ – początek akwizycji.
+gdzie $t_{\mathrm{UNIX}}$ - time in UNIX format, $t_{\mathrm{rel}}$ – relative time, a $t_{0}$ – begining of the acquisition.
 
-Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Dopasowanie par szczytów realizowano poprzez przypisanie do każdego załamka R w zapisie elektrokardiograficznym najbliższego w kolejności wystąpień ekstremum w sygnale fotopletyzmograficznym. Nie każdy zarejestrowany pik w EKG posiada odpowiadający punkt w PPG, wynikający z zakłóceń ruchowych lub utraty próbek. Różnice czasowe między dopasowanymi maksimami definiowane są jako interwał propagacji tętna PTT, wyznaczany zgodnie z równaniem (3):
+%Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Dopasowanie par szczytów realizowano poprzez przypisanie do każdego załamka R w zapisie elektrokardiograficznym najbliższego w kolejności wystąpień ekstremum w sygnale fotopletyzmograficznym. Nie każdy zarejestrowany pik w EKG posiada odpowiadający punkt w PPG, wynikający z zakłóceń ruchowych lub utraty próbek. Różnice czasowe między dopasowanymi maksimami definiowane są jako interwał propagacji tętna PTT, wyznaczany zgodnie z równaniem (3):
+Measurements have been presented on a single time axis allowing for their automatic synchronization. Peak pairs matching has been accomplished by assigning each R peak in electrocardiographical record to the closest extremum in order of occurence from photoplethysomographic signal. Not every recorded ECG peak has a corresponding point in PPG which can be explained with movement interferences or sample loss. Time differences between matched maximums are defined as PPT heart rate propagation interval, computed in accord with the equation (3):
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
-gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - momenty detekcji szczytów w przebiegu PPG i EKG. 
+gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - PPG and ECG peak detection moments. 
 
 \newpage
 \begin{figure}[htbp]
