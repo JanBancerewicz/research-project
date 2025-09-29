@@ -466,64 +466,67 @@ Measurements have been presented on a single time axis allowing for their automa
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
-gdzie $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - PPG and ECG peak detection moments. 
+where $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - PPG and ECG peak detection moments. 
 
 \newpage
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\linewidth]{Peaks_compare.png}
-   \caption{Chwilowe różnice czasowe między szczytami EKG i PPG}
+   \caption{Time differences between ECG and PPG peaks}%Chwilowe różnice czasowe między szczytami EKG i PPG
     \label{fig:PTT}
 \end{figure}
 
-Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
+%Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
+Descriptive satistics are constructed from the value vector which include the mean defining the average time of the heart rate's phase shift and the standard deviation which expresses its variability.
 
-\subsection{Wskaźniki HRV}
-Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
+%Wskaźniki HRV
+\subsection{HRV indicators}
+Gaps between subsequent heart beats have been analized indepedently in both signals. Relative time was used in electrocardiography which resulted from a window processing of the samples while ine photoplethysomogray system timetamps have been used ensuring consistency with the recorded measurement and allowing for synchronization with different data sources. RR intervals have been determined for ECG record which correspond to distances between R peaks. For PPG IBI distances have been computed. Based on these values standard HRV parameters have been presented in RR form. Analogous calculations have been carried out for IBI.
+%Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
 
-\noindent\textit{1) Średnia długość interwału:} 
-Średnia arytmetyczna odstępów RR, wyrażona wzorem (4):
+\noindent\textit{1) Average interval length:} 
+Arithmetic mean of RR intervals expressed with the formula (4):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
 \end{equation}
-gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
+where $RR_i$ -- $i$-th RR interval, and $N$ – analysed interval count.
 
-\noindent\textit{2) Odchylenie standardowe odstępów NN:} 
-Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
+\noindent\textit{2) NN intervals standard deviation:} 
+Total heart rate variability value, calculated based on all RR intervals expressed with the formula (5):%Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
-gdzie $Mean$ – średnia długość interwału, $RR_i$ – $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów. 
+where $Mean$ – average interval length, $RR_i$ – $i$-th RR interval, a $N$ – analysed interval count. 
 \newpage
-\noindent\textit{3) Pierwiastek kwadratowy z uśrednionych kwadratów różnic kolejnych odstępów NN:} 
-Miara stosowana w ocenie krótkoterminowych wahań rytmu serca, wyrażona wzorem (6):
+\noindent\textit{3) Square root of averaged squares of differences between subsequent NN intervals:} 
+Benchamrk used in shor-term heart rate fluctuations assesment expressed with the formula (6):
 \begin{equation}
     RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
 \end{equation}
-gdzie $RR_i$ -- $i$-ty odstęp RR, a $N$ – liczba analizowanych odstępów.
+where $RR_i$ -- $i$-th RR interval, a $N$ – analysed interval count.
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{Mean.png}
-        \caption{Średnia długość interwału}
+        \caption{Average interval length}
     \end{subfigure}
     
    \vspace{0.2cm} 
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{SDNN.png}
-        \caption{Odchylenie standardowe odstępów NN}
+        \caption{Standard deviation of NN intervals}
     \end{subfigure}
     
     \vspace{0.2cm}  
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{RMSSD.png}
-        \caption{Pierwiastek kwadratowy średniej z kwadratów różnic  odstępów NN}
+        \caption{Square root of average of squares of differences}
     \end{subfigure}  
-    \caption{Przykładowe przebiegi wskaźników HRV wyznaczone dla PPG}
+    \caption{Exemplary measurements of HRV indicators computed for PPG}
 \end{figure}
 
 \newpage
