@@ -236,20 +236,25 @@ A fifth order digital filter is used to process ECG signal. The filter has a pas
 To improve the PPG signal quality a fourth order filter with the working range of 0.5-5 Hz has been employed. The lower band limit reduces the interferences caused by body movements or instable position of the detector. The upper limit suppresses the measuring device noise and optical interferences \cite{26}. Filtration has been implemented by using the SciPy module to prevent phase shifts of the measurement.
 %Dla poprawy jakości sygnału PPG wykorzystano filtr  czwartego rzędu, działający w zakresie 0,5–5 Hz. Dolna granica pasma ogranicza zakłócenia spowodowane ruchem ciała czy niestabilnym kontaktem czujnika ze skórą, natomiast górna tłumi szumy urządzenia pomiarowego i interferencje optyczne  \cite{26}. Filtracja została zrealizowana z wykorzystaniem  modułu SciPy, zapewniając obróbkę przebiegu bez przesunięcia fazowego.
 
+%Modele detekcji
+% Model do wykrywania załamków R
 \newpage
-\subsection{Modele detekcji}
-\subsubsection{Model do wykrywania załamków R}
-Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przeznaczoną do detekcji szczytów R w zapisie EKG. Stanowi ona pierwszy etap w wyznaczaniu interwałów RR i obliczaniu parametrów zmienności rytmu serca. Model przetwarza jednowymiarowe sygnały napięcia elektrycznego podzielone na fragmenty po 256 próbek, stanowiących podstawową jednostkę analizowanego przebiegu.
+\subsection{Detection models}
+\subsubsection{R peak detection model}
+A neural network combining convolutional and recursive layer has been developed. Its purpose is R peak detection in ECG record. The network constitutes the first step in computing the RR intervals and computing the heart rate variability parameters. The model processes one-dimensional electric-voltage signals divided into fragment. Each fragment contains 256 samples and is a basic unit of measurement analysis.
+% Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przeznaczoną do detekcji szczytów R w zapisie EKG. Stanowi ona pierwszy etap w wyznaczaniu interwałów RR i obliczaniu parametrów zmienności rytmu serca. Model przetwarza jednowymiarowe sygnały napięcia elektrycznego podzielone na fragmenty po 256 próbek, stanowiących podstawową jednostkę analizowanego przebiegu.
 
-Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:ecg_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego. Dane wyjściowe z warstwy LSTM są  przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu. 
+Convolutional portion of the network is comprised of four 1D convolutional layers, parameters of which have been presented in a Chart~\ref{tab:ecg_layers}. Those layers are responsible for extracting the features from the input signal and extending its representation by increasing the number of channels from 16 to 256 using 3 and 5 order filters. For each transformation BatchNorm1d normalisation and nonlinear activation function LeakyReLU have been applied. Dimension count reduction is realized using a MaxPooling1D operation with a core size of 2 which shortens the sequence from 256 to 16 samples along the time axis and increasing the model's resistance to noise and interference. The output [128 × 16] matrix is the input for a one-way LSTM. The resulting vector is flattened and given to a layer with 128 neurons. In the next step the result is fit into a final block with 256 elements each representing subsequent input signal samples. Output data from LSTM layer are processed by linear modules propagating extracted features into logit space. Every element of the vector corresponds to a probability of a R peak in the given sample allowing for a binary classification in every point in the measurement.
+% Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:ecg_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego. Dane wyjściowe z warstwy LSTM są  przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu. 
 
+%Parametry bloków konwolucyjnych sieci
 \begin{table}[h!]
 \centering
-\caption{Parametry bloków konwolucyjnych sieci}
+\caption{Block parameters of convolutional networks}
 \label{tab:ecg_layers}
 \begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Blok} & \textbf{Wej.} & \textbf{Wyj.} & \textbf{Filtr} & \textbf{Padding} & \textbf{Akt./Norm.} \\
+\textbf{Block} & \textbf{In.} & \textbf{Out.} & \textbf{Filter} & \textbf{Padding} & \textbf{Act./Norm.} \\
 \hline
 Conv1D-1 & 1   & 16  & 5 & 2 & LReLU+BN \\
 Conv1D-2 & 16  & 32  & 5 & 2 & LReLU+BN \\
@@ -259,47 +264,57 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 \end{tabular}
 \end{table}
 
-Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Rzeczywiste załamki R w przefiltrowanym zapisie EKG wyznaczono algorytmem Pan–Tompkinsa opartym na wieloetapowym przetwarzaniu. Początkową fazą jest pasmowo-przepustowe tłumienie składowych zakłócających o niskiej oraz wysokiej częstotliwości. Różniczkowanie przebiegu uwydatnia strome zbocza zespołu QRS, następnie obliczana jest średnia wartość próbek podniesionych do kwadratu w ruchomym oknie całkującym. Ostateczna detekcja szczytów jest realizowana poprzez progowanie zintegrowanej krzywej oraz analizę lokalnych maksimów \cite{27}.
-Każdemu punktowi przypisano etykietę binarną wskazującą obecność lub brak ekstremum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym pikom R. 
+Model has been trained in a supervised mode based on the signals acquired from Polar H10 detector. Actual R peaks in a filtered ECG record have been computed using the Pan-Tompkins algorithm based on multistep processing. The first phase is band-pass suppression of low and high frequency distortionary components. Measurement differentiation enhances steep curves of QRS complex. Afterwords a square of an average value of all samples in a moving integrating window is being computed. The final peak detection is realized through propagating the integrated curve and local maximums analysis \cite{27}.
+Every point is assigned a binary label identifying the presence or lack thereof of an extremum. This allows for a pattern classification corresponding to acrtual R peaks.
 \newpage
-Proces uczenia przeprowadzono w partiach po 32 elementy z wykorzystaniem funkcji straty BCEWithLogitsLoss. Do optymalizacji zastosowano algorytm Adam przy stałej wartości learning rate wynoszącej 0,0001. Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, wykorzystując wytrenowane parametry modelu. Rezultaty klasyfikacji przedstawiono w postaci macierzy konfuzji w Tabeli~\ref{tab:conf_matrix}.
+Learning process has been performed in series of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used to optimize with a constant learning rate of 0.0001. The efficiency of the developed neural network has been assessed based on the results obtained from an independant dataset using the model's trained parameters. Classification results have been presented in the form of a confusion matriz in Chart~\ref{tab:conf_matrix}.
+%Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Rzeczywiste załamki R w przefiltrowanym zapisie EKG wyznaczono algorytmem Pan–Tompkinsa opartym na wieloetapowym przetwarzaniu. Początkową fazą jest pasmowo-przepustowe tłumienie składowych zakłócających o niskiej oraz wysokiej częstotliwości. Różniczkowanie przebiegu uwydatnia strome zbocza zespołu QRS, następnie obliczana jest średnia wartość próbek podniesionych do kwadratu w ruchomym oknie całkującym. Ostateczna detekcja szczytów jest realizowana poprzez progowanie zintegrowanej krzywej oraz analizę lokalnych maksimów \cite{27}.
+%Każdemu punktowi przypisano etykietę binarną wskazującą obecność lub brak ekstremum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym pikom R. 
+%\newpage
+%Proces uczenia przeprowadzono w partiach po 32 elementy z wykorzystaniem funkcji straty BCEWithLogitsLoss. Do optymalizacji zastosowano algorytm Adam przy stałej wartości learning rate wynoszącej 0,0001. Efektywność zaprojektowanej sieci neuronowej oceniono na podstawie wyników uzyskanych na niezależnym zbiorze danych, wykorzystując wytrenowane parametry modelu. Rezultaty klasyfikacji przedstawiono w postaci macierzy konfuzji w Tabeli~\ref{tab:conf_matrix}.
+
 
 \begin{table}[ht]
 \centering
-\caption{Macierz konfuzji dla detekcji załamków R}
+\caption{Confusion matrix for R peak detection}
 \label{tab:conf_matrix}
 \begin{tabular}{|c|c|c|}
 \hline
-\textbf{Rzeczywiste / Predykcja} & \textbf{Brak szczytu } & \textbf{Szczyt } \\
+\textbf{Actual / Prediction} & \textbf{No peak } & \textbf{Peak } \\
 \hline
-Brak szczytu  & 231170 & 53 \\
-Szczyt  & 83 & 2678 \\
+No peak  & 231170 & 53 \\
+Peak  & 83 & 2678 \\
 \hline
 \end{tabular}
 \end{table}
 
-Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 2678 z jego rzeczywistą obecnością. Liczba fałszywie pozytywnych predykcji wyniosła 53, natomiast fałszywie negatywnych -- 83. Wartość miary F1 równa 0,9753 świadczy o wysokiej równowadze pomiędzy precyzją a czułością modelu, co jest kluczowe w automatycznej analizie sygnałów elektrokardiograficznych. Podstawowe metryki oceny jakości modelu przedstawiono w Tabeli~\ref{tab:metrics}.
+231170 samples not containing the R peak and 2678 with its actual pressence have been correctly classified by the model. The number of false positive prediction totaled 53 while the  nnumber of false negatives -- 83. The value of the F1 benchmark being equal to 0.9753 attests to a balanse between precision and sensitivity of the model, a key feature of automated electrocardiographical signal analysis. Basic quality assessment metrics have been presented in Chart~\ref{tab:metrics}.
+%Model poprawnie zaklasyfikował 231170 próbek niezawierających piku R oraz 2678 z jego rzeczywistą obecnością. Liczba fałszywie pozytywnych predykcji wyniosła 53, natomiast fałszywie negatywnych -- 83. Wartość miary F1 równa 0,9753 świadczy o wysokiej równowadze pomiędzy precyzją a czułością modelu, co jest kluczowe w automatycznej analizie sygnałów elektrokardiograficznych. Podstawowe metryki oceny jakości modelu przedstawiono w Tabeli~\ref{tab:metrics}.
 
 \begin{table}[ht]
 \centering
-\caption{Parametry detekcji szczytów R}
+\caption{R peak detection parameters}
 \label{tab:metrics}
 \begin{tabular}{|c|c|p{4.6cm}|}
 \hline
-\textbf{Metryka} & \textbf{Wartość} & \textbf{Opis} \\
+\textbf{Metric} & \textbf{Value} & \textbf{Description} \\
 \hline
-Skuteczność & 96,99\% & Odsetek poprawnych klasyfikacji obecności lub braku piku R. \\
-Błędne detekcje & 0,00\% & Odsetek próbek fałszywie zaklasyfikowanych jako zawierające pik R. \\
-Pominięte załamki & 3,01\% & Odsetek próbek z niewykrytym rzeczywistym pikiem R. \\
+Efficiency & 96,99\% & A percentage of correct classifications of R peaks or lack thereof. \\
+Incorrect detections & 0,00\% & A percentage of samples falsely classified as containing R peaks. \\
+Skipped peaks & 3,01\% & A percentage of samples with undetected actual R peaks. \\
 \hline
 \end{tabular}
 \end{table}
 
-\subsubsection{Model do wykrywania szczytów fali}
-Analogicznie do podejścia zastosowanego w analizie sygnału EKG, opracowano model konwolucyjny identyfikujący lokalne szczyty w przebiegu fotopletyzmograficznym. Stanowi on podstawę do wyznaczania interwałów międzyuderzeniowych IBI, wykorzystywanych przy estymacji wskaźników rytmu serca. Sieć przetwarza dane w postaci wektora zawierającego 50 próbek w pojedynczym kanale, reprezentujących zmiany objętości krwi w naczyniach obwodowych.
+%Model do wykrywania szczytów fali
+\subsubsection{Wave peak detection model}
+Analogously to the approach applied in the ECG signal analisys a convolutional model identifing local peaks in photoplethysmographic measurement has been developed. The model constitutes a base to determining Inter Beat Intervals used to estimate heart rate indicators. The network processes the data in the form o f a vector containing 50 samples in a single channel. Those samples represent changes of the blood volume in the vessels.
+%Analogicznie do podejścia zastosowanego w analizie sygnału EKG, opracowano model konwolucyjny identyfikujący lokalne szczyty w przebiegu fotopletyzmograficznym. Stanowi on podstawę do wyznaczania interwałów międzyuderzeniowych IBI, wykorzystywanych przy estymacji wskaźników rytmu serca. Sieć przetwarza dane w postaci wektora zawierającego 50 próbek w pojedynczym kanale, reprezentujących zmiany objętości krwi w naczyniach obwodowych.
 
-Pierwszy element architektury stanowi jednowymiarowa warstwa splotowa z 32 filtrami o szerokości 7 próbek, uzupełniona normalizacją BatchNorm1d oraz funkcją aktywacji GELU, odpowiedzialną za łagodną nieliniowość i poprawę stabilność procesu uczenia. Cztery kolejne bloki resztkowe przetwarzają lokalne wzorce sygnału. Pierwszy moduł zwiększa kanały z 32 do 64, wykorzystując jądro o rozmiarze 9.  Rozszerzenie liczby wymiarów z 64 do 128 realizuje segment przy zastosowaniu okna o długości 5 próbek, natomiast dwa pozostałe utrzymują tę samą głębokość, operując filtrami o wielkości 3 i 7. Transformacje zdefiniowane w początkowym etapie zostały rozszerzone o warstwę Dropout, umożliwiającą redukcję nadmiernego dopasowania. 
+A one-dimensional convolutional layer with 32 filters each the width of 7 samples complemented with BatchNorm1d normalisation and activation function GELU constitutes the first element of the architecture. The activation function's purpose is increasing the stability of the learning process and gentle non-linearity. The next four residiual blocks process the local signal patterns. The first module increases the number of channels from 32 to 64 utilizing a core with a size of 9. Extending the number of dimensions from 64 to 128 is realized by the next segment using a 5 sample wide window. The remaining two modules maintain the same depth while operating with filters with sizes of 3 and 7 repsectively. Transformations defined in the beggining stage have been extended with a Dropout layer ensuring a reduction in overfitting.
 \newpage
+%Pierwszy element architektury stanowi jednowymiarowa warstwa splotowa z 32 filtrami o szerokości 7 próbek, uzupełniona normalizacją BatchNorm1d oraz funkcją aktywacji GELU, odpowiedzialną za łagodną nieliniowość i poprawę stabilność procesu uczenia. Cztery kolejne bloki resztkowe przetwarzają lokalne wzorce sygnału. Pierwszy moduł zwiększa kanały z 32 do 64, wykorzystując jądro o rozmiarze 9.  Rozszerzenie liczby wymiarów z 64 do 128 realizuje segment przy zastosowaniu okna o długości 5 próbek, natomiast dwa pozostałe utrzymują tę samą głębokość, operując filtrami o wielkości 3 i 7. Transformacje zdefiniowane w początkowym etapie zostały rozszerzone o warstwę Dropout, umożliwiającą redukcję nadmiernego dopasowania. 
+%\newpage
 Moduł SE podnosi selektywność modelu, poprawiając precyzję wykrywania lokalnych maksimów przebiegu. Kompresję kanałów z 128 do 64 zapewnia blok konwolucyjny z jądrem o rozmiarze 1, a dwie w pełni połączone operacje liniowe zmniejszają wymiary do 64 i 32, z funkcją aktywacji GELU. Jednowymiarowy wektor wyjściowy podlega transformacji Sigmoid, umożliwiając interpretację wartości jako prawdopodobieństwo lokalnych szczytów w zapisie PPG. Szczegółowe parametry bloków uwzględniono w Tabeli~\ref{tab:ppg_layers}.
 
 \begin{table}[ht]
