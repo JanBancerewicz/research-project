@@ -28,7 +28,7 @@
 \author{
     J. Bancerewicz, J. Kotłowski, O. Lozovyy, J. Morawska, M. Rzęsa\\
     \textit{Gdańsk University of Technology}\\
-    \textit{Faculty of Electronics, Telecoummunications and Informatics}
+    \textit{Faculty of Electronics, Telecoummunications, and Informatics}
 }
 
 
@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-This paper presents methods of heart rate variability analysis based on electrocardiographic and photoplethysmographic signals obtained using mobile devices. An approach to processing the recorded data involving noise suppression, peak detection, and determining the intervals between impulses in the bodily processes was developed. Detection of R peaks in ECG and maxima of a PPG wave was performed using convolutional and recursive neural networks. The efficiency of the models was measured in comparison to the classic algorithms and reference data. The results show a high accuracy of peak identification and allow employing mobile devices to monitor cardiac parameters in both home environments and during physical activities.
+This paper presents methods of heart rate variability analysis based on electrocardiographic and photoplethysmographic signals obtained using mobile devices. An approach to perocessing the recorded data involving noise suppression, peak detection, and determining the intervals between impulses in the bodily processes was developed. Detection of R peaks in ECG and maxima of a PPG wave was performed using convolutional and recursive neural networks. The efficiency of the models was measured in comparison to the classic algorithms and reference data. The results show a high accuracy of peak identification and allow employing mobile devices to monitor cardiac parameters in both home environments and during physical activities.
 
 % W niniejszej pracy przedstawiono metody analizy zmienności rytmu serca na podstawie sygnałów elektrokardiograficznych i fotopletyzmograficznych pozyskiwanych za pomocą urządzeń przenośnych. Opracowano proces przetwarzania zapisów obejmujący tłumienie zakłóceń, wykrywanie pików oraz wyznaczanie interwałów między impulsami w przebiegu fizjologicznym. Detekcję szczytów R w EKG oraz maksimów fali w PPG zrealizowano z wykorzystaniem splotowych i rekurencyjnych sieci neuronowych. Skuteczność modeli oceniono w odniesieniu do klasycznych algorytmów jak i danych referencyjnych. Wyniki wykazały wysoką dokładność identyfikacji pików oraz umożliwiają zastosowanie mobilnych systemów do monitorowania parametrów kardiologicznych w warunkach domowych i podczas aktywności fizycznej.
 
@@ -47,13 +47,11 @@ This paper presents methods of heart rate variability analysis based on electroc
 % zmienność rytmu serca; sygnały biomedyczne; elektrokardiografia; fotopletyzmografia; filtracja sygnałów; splotowe sieci neuronowe; detekcja szczytów; interwał propagacji tętna; algorytm Pan-Tompkins; analiza czasowa.
 
 \section{Introduction}
-% NOTE:(mati): czas rejestracji -> recording time? 
 Heart rate variability is an important parameter in assessing cardiovascular health, as it reflects the balance between the sympathetic and parasympathetic nervous systems. Traditional HRV measurements conducted in clinical settings are characterized by high costs and limited recording durations. In recent years, advances in mobile technology have enabled the monitoring of cardiac activity in daily life.
 % Zmienność rytmu serca stanowi istotny parametr oceny funkcjonowania układu sercowo-naczyniowego, odzwierciedlający równowagę pomiędzy aktywnością układu współczulnego i przywspółczulnego. Tradycyjne pomiary HRV prowadzone w warunkach klinicznych charakteryzują się wysokim kosztem oraz ograniczonym czasem rejestracji. W ostatnich latach postęp technologiczny w obszarze urządzeń przenośnych oraz sensorów optycznych umożliwił monitorowanie aktywności kardiologicznej w trakcie życia codziennego.
 
-% NOTE:(mati): cel pracy -> purpose of the project?
 \subsection{Aim of the study}
-Beat detection techniques are applied to electrocardiographic (ECG) and photoplethysmographic (PPG) recordings and evaluated in terms of their usefulness for heart rate variability (HRV) analysis. Classical algorithms are compared with deep neural network–based approaches in terms of accuracy, robustness to noise, and applicability in real-world conditions. An Android mobile application records the PPG signal, while ECG data were acquired using a Polar H10 heart rate monitor. Both employ filtering, detection of characteristic points, and computation of HRV metrics. The quality of the signals obtained from mobile devices is validated against reference patterns. Heart rate parameters are compared with those derived from the electrocardiograph, and the precision of peak detection is assessed.
+Beat detection techniques are applied to electrocardiographic (ECG) and photoplethysmographic (PPG) recordings and evaluated in terms of their usefulness for heart rate variability (HRV) analysis. Classical algorithms are compared with deep neural network–based approaches in terms of accuracy, noise resitance, and applicability in real-world conditions. An Android mobile application records the PPG waveform, while ECG data were acquired using a Polar H10 heart rate monitor. Both employ filtering, detection of characteristic points, and computation of HRV metrics. The quality of the signals obtained from mobile devices is validated against reference patterns. Heart rate parameters are compared with those derived from the electrocardiograph, and the precision of peak detection is assessed.
 % Techniki detekcji uderzeń w zapisach elektrokardiograficznych i fotopletyzmograficznych są implementowane i oceniane względem użyteczności w analizie zmienności rytmu serca. Klasyczne algorytmy zestawia się z rozwiązaniami opartymi na głębokich sieciach neuronowych, uwzględniając skuteczność, odporność na zakłócenia oraz zastosowanie w warunkach rzeczywistych. Aplikacja mobilna rejestruje przebiegi PPG na platformie Android, dane EKG odczytuje się z pulsometru Polar H10, wykorzystując filtrację, identyfikację punktów charakterystycznych oraz wyznaczanie wskaźników HRV. Jakość sygnałów pozyskiwanych urządzeniami mobilnymi jest weryfikowana na podstawie wzorców referencyjnych, porównując parametry rytmu serca z elektrokardiogramu i określając precyzję wykrywania szczytów.
 
 \newpage
@@ -64,14 +62,12 @@ Electrocardiography and photoplethysmography are among the most fundamental sour
 
 % Filtracja danych
 \subsection{Data filtration}
-Initial processing of physiological signals is based on interference elimination, improving the signal-to-noise ratio (SNR). Measurement errors caused by motion artifacts, power line interference at 50/60 Hz, and baseline wander are major sources of distortion in electrocardiography (ECG) and photoplethysmography (PPG) \cite{2}. Filtering enhances signal quality and improves the accuracy of feature detection as well as classification performance.
+Initial processing of physiological signals is based on interference elimination, improving the signal-to-noise ratio. Measurement errors caused by motion artifacts, power line interference at 50/60 Hz, and baseline wander are major sources of distortion in electrocardiography and photoplethysmography \cite{2}. Filtering enhances signal quality and improves the accuracy of feature detection as well as classification performance.
 % Wstępne przetwarzanie przebiegów fizjologicznych opiera się na eliminacji zakłóceń, umożliwiając poprawę stosunku sygnału do szumu. W elektrokardiografii oraz fotopletyzmografii istotną rolę odgrywają niedokładności pomiarowe związane z ruchem, składowe sieciowe o częstotliwości 50/60 Hz oraz dryft linii izoelektrycznej \cite{2}. Filtracja podnosi jakość zapisu, poprawiając dokładność detekcji cech oraz efektywność klasyfikacji.
 
-A band-pass filter restricting the frequency band to values characteristic of the given waveform is a fundamental method in signal analysis. The processing range is 0.5–40 Hz for ECG signals and 0.3–8 Hz for PPG signals, corresponding to the heart rate \cite{3}. Butterworth, Chebyshev, and elliptic filters, implemented in both IIR and FIR forms, are used in digital applications. FIR filters modeled using the window method provide stability and a linear phase response \cite{4}.
+A band-pass filter restricting the frequency band to values characteristic of the given waveform is a fundamental method in signal analysis. The processing range for ECG records is 0.5–40 Hz and 0.3–8 Hz for PPG signals, corresponding to the heart rate \cite{3}. Butterworth, Chebyshev, and elliptic filters, implemented in IIR form, and FIR filters modeled using the window method, which provide stability and a linear phase response \cite{4}, are all used in digital applications.
 % Do podstawowych metod analizy sygnału należą filtry pasmowoprzepustowe, ograniczające pasmo częstotliwości do wartości charakterystycznych dla badanego przebiegu. Zakres przetwarzania zapisu EKG wynosi 0,5–40 Hz, natomiast PPG ogranicza się do 0,3–8 Hz, odpowiadającego rytmowi serca \cite{3}. W implementacjach cyfrowych wykorzystuje się filtry Butterwortha, Chebysheva, eliptyczne w postaci IIR oraz FIR projektowane metodą okienkową, zapewniające stabilność i liniową charakterystykę fazową \cite{4}. 
 
-% NOTE:(mati): second sentence is a monster, i think i translated it well but it's a very complicated sentence
-% NOTE:(mati): i translated eliminacja as cancellation based on the citation
 Adaptive filters are applied to signals containing disturbances with varying parameters. LMS and RLS algorithms enable dynamic adaptation of system coefficients to signal characteristics, increasing the effectiveness of suppressing motion artifacts and power line interference. Notch filters are used to suppress the 50/60 Hz component \cite{5}.
 % Dla sygnałów z zakłóceniami o zmiennych parametrach stosuje się filtry adaptacyjne. Algorytmy LMS i RLS umożliwiają dynamiczną adaptację współczynników układu do charakterystyki zapisu, zwiększając skuteczność tłumienia niestabilności ruchowych oraz interferencji sieciowych. W zastosowaniach medycznych mechanizmy notch zapewniają eliminację składowej 50/60 Hz \cite{5}.
 
@@ -92,7 +88,7 @@ Supervised approaches, including Support Vector Machines (SVM), k-Nearest Neighb
 %Nadzorowane podejścia, obejmujące Support Vector Machines, k-Nearest Neighbors oraz Random Forest, są wykorzystywane do oceny rytmu serca oraz detekcji arytmii. Regresja logistyczna i liniowe modele dyskryminacyjne zapewniają prostą i efektywną identyfikację wzorców sygnałów.
 %Niska złożoność obliczeniowa tych rozwiązań sprzyja implementacji w przenośnych systemach diagnostycznych i urządzeniach monitorujących, wspierając przetwarzanie danych w czasie rzeczywistym \cite{11}.
 
-The second area focuses on sequential models, which capture temporal dependencies in electrocardiographic (ECG) and photoplethysmographic (PPG) signals. Recurrent neural networks (RNNs) and their extended forms, including Long Short-Term Memory (LSTM) networks and Gated Recurrent Units (GRUs), capture both short-term and long-term variations in the signal \cite{12}. Probabilistic models, such as Hidden Markov Models (HMMs), are alternatively used to identify anomalies and improve the effectiveness of dynamic heart rate analysis as well as the detection of cardiological abnormalities \cite{13}.
+The second area focuses on sequential models, which capture temporal dependencies in electrocardiographic and photoplethysmographic signals. Recurrent neural networks (RNNs) and their extended forms, including Long Short-Term Memory (LSTM) networks and Gated Recurrent Units (GRUs), capture both short-term and long-term variations in the signal \cite{12}. Probabilistic models, such as Hidden Markov Models (HMMs), are alternatively used to identify anomalies and improve the effectiveness of dynamic heart rate analysis as well as the detection of cardiological abnormalities \cite{13}.
 % Drugi obszar koncentruje się na modelach sekwencyjnych, umożliwiających odwzorowanie zależności czasowych w zapisach elektrokardiograficznych oraz fotopletyzmograficznych.
 % Rekurencyjne sieci neuronowe i ich rozszerzone formy, w tym długa krótkoterminowa pamięć LSTM oraz jednostki z bramkowaniem pamięci GRU, rejestrują zarówno krótkotrwałe, jak i długookresowe zmiany sygnału \cite{12}. Alternatywnie są stosowane techniki probabilistyczne, w szczególności ukryte modele Markowa HMM, wspierające identyfikację anomalii oraz poprawiające skuteczność analizy dynamiki rytmu serca i detekcji nieprawidłowości kardiologicznych \cite{13}.
 
@@ -113,10 +109,10 @@ Photoplethysmographic signals are commonly used to estimate heart rate, while el
 
 % TODO:(mati): odwzorować is not recreate but no better idea
 % TODO:(mati): last sentence is complicated, double check
-End-to-end approach to evaluating heart rate variability parameters from 10-second fragments of optical measurements was developed in the Wang i Najafizadeh paper \cite{17}. To recreate the necessary features a recursive LSTM neural network was employed. Cardiographic reference signal was registered using a standard clinical system. Acquired coefficients of correlation to reference values exceeded 0.9 with average relative error below 10\% which signifies a high accuracy of the model for any minimal-length sample.
+End-to-end approach to evaluating heart rate variability parameters from 10-second fragments of optical measurements was developed in the Wang i Najafizadeh study \cite{17}. To recreate the necessary features a recursive LSTM neural network was employed. Cardiographic reference signal was registered using a standard clinical system. Acquired coefficients of correlation to reference values exceeded 0.9 with average relative error below 10\% which signifies a high accuracy of the model for any minimal-length sample.
 %Podejście end-to-end do szacowania parametrów zmienności rytmu serca z 10-sekundowych fragmentów przebiegu optycznego opracowano w pracy Wang i Najafizadeh \cite{17}. Do odwzorowania niezbędnych cech zastosowano rekurencyjną sieć neuronową LSTM. Sygnał odniesienia kardiograficzny rejestrowano przy użyciu standardowego systemu klinicznego, a uzyskane współczynniki korelacji z wartościami wzorcowymi przekraczały 0,9, z średnim błędzie względnym poniżej 10\%, wskazując dokładność modelu dla minimalnej długości próbki.
 
-The UTSA-PPG dataset \cite{18} was published in 2025. It contains hours-long recordings of photoplethysmographic (PPG) signals with parallel electrocardiographic (ECG) measurements, supplemented with accelerometer data. Heart rate analysis showed an average deviation of less than 2 beats per minute, and the correlation with ECG for basic HRV indicators ranged from 0.85 to 0.95, depending on the metric used. Machine learning techniques, including decision trees and multilayer perceptrons, were employed for signal processing, enabling precise profile reconstruction. Integrating these models into a hybrid approach improved accuracy and reduced error. The variety of samples supports the development of architectures capable of high generalization.
+The UTSA-PPG dataset \cite{18} was published in 2025. It contains hours-long recordings of photoplethysmographic signals with parallel electrocardiographic measurements, supplemented with accelerometer data. Heart rate analysis showed an average deviation of less than 2 beats per minute, and the correlation with ECG for basic HRV indicators ranged from 0.85 to 0.95, depending on the metric used. Machine learning techniques, including decision trees and multilayer perceptrons, were employed for signal processing, enabling precise profile reconstruction. Integrating these models into a hybrid approach improved accuracy and reduced error. The variety of samples supports the development of architectures capable of high generalization.
 % Zbiór UTSA-PPG \cite{18} został opublikowany w 2025 roku, obejmujący wielogodzinne rejestracje zapisów fotopletyzmograficznych oraz równoczesny przebieg elektrokardiograficzny, uzupełniony o dane z akcelerometru. Analiza HR odnotowała średnią wartość odchylenia poniżej 2 uderzeń na minutę, a dla podstawowych wskaźników HRV stopień powiązania z EKG wynosił 0,85-0,95 w zależności od przyjętej metryki. Do przetwarzania sygnałów wprowadzono techniki uczenia maszynowego, jak drzewa decyzyjne i wielowarstwowe perceptrony, umożliwiające dokładne odwzorowanie charakterystyk. Integracja tych modeli w metodzie hybrydowej przyczyniła się obniżenia błędu oraz poprawy precyzji uzyskanych wyników. Zróżnicowanie próbek sprzyja opracowaniu architektury o wysokiej zdolności do generalizacji.
 
 % TODO:(mati): obrazowanie w trybie kontaktowym?
@@ -193,7 +189,7 @@ Data transmission between the smartphone and the server was carried out using th
 %Filtracja sygnału – filtr Butterwortha
 % TODO:(mati): first sentence - double check
 % TODO:(mati): monotoniczne tłumienie, zbocze przejściowe
-\subsection{Signal filtration – Butterworth filter}
+\subsection{Signal filtration - Butterworth filter}
 The Butterworth filter was originally developed as an analog solution with a maximally flat amplitude response in the passband, minimizing oscillations and signal distortions. It is characterized by monotonic attenuation in the stopband and a gentler transition slope compared to higher-selectivity structures such as Chebyshev and elliptic filters \cite{22}. In digital implementations, it is realized as an Infinite Impulse Response (IIR) system, where each output sample depends on both current input values and previous output values. This approach allows the deployment of higher-order filters with a limited number of coefficients, making it suitable for real-time applications \cite{23}.
 %Filtr Butterwortha opracowano jako rozwiązanie analogowe o maksymalnie płaskiej charakterystyce amplitudowej w paśmie przepustowym, minimalizującej oscylacje i zniekształcenia sygnału. Charakteryzuje się monotonicznym tłumieniem w paśmie zaporowym oraz łagodniejszym zboczem przejściowym niż w strukturach o wyższej selektywności, w tym Czebyszewa i eliptycznych \cite{22}. W implementacji cyfrowej przyjmuje postać układu o nieskończonej odpowiedzi impulsowej IIR, gdzie bieżąca próbka wyjściowa zależy od wartości wejściowych, jak i poprzednich stanów wyjściowych. Podejście to umożliwia realizację filtrów wyższych rzędów przy ograniczonej liczbie współczynników, wykorzystywanych w aplikacjach czasu rzeczywistego \cite{23}.
 
@@ -247,7 +243,7 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 \end{table}
 
 Model was trained in a supervised mode based on the signals acquired from Polar H10 detector. Actual R peaks in a filtered ECG record have been computed using the Pan-Tompkins algorithm based on multi-step processing. The first phase is band-pass suppression of low and high frequency distortionary components. Waveform differentiation enhances steep curves of QRS complex. Afterwords a square of an average value of all samples in a moving integrating window is being computed. The final peak detection is realized using analysis of the integrated curve and local maximums \cite{27}.
-Each point is assigned a binary label identifying the presence or absence of an extrema. Labels when then used for pattern classification corresponding to actual R peaks.
+Each point is assigned a binary label identifying the presence or absence of an extremum. Labels were then used for pattern classification corresponding to actual R peaks.
 \newpage
 Learning process was performed in mini-batches of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used for optimization with a constant learning rate of 0.0001. The efficiency of the developed neural network has been assessed based on the results obtained from an independent dataset using the model's trained parameters. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix}.
 %Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Rzeczywiste załamki R w przefiltrowanym zapisie EKG wyznaczono algorytmem Pan–Tompkinsa opartym na wieloetapowym przetwarzaniu. Początkową fazą jest pasmowo-przepustowe tłumienie składowych zakłócających o niskiej oraz wysokiej częstotliwości. Różniczkowanie przebiegu uwydatnia strome zbocza zespołu QRS, następnie obliczana jest średnia wartość próbek podniesionych do kwadratu w ruchomym oknie całkującym. Ostateczna detekcja szczytów jest realizowana poprzez progowanie zintegrowanej krzywej oraz analizę lokalnych maksimów \cite{27}.
@@ -281,9 +277,9 @@ A total of 231170 samples not containing an R peak and 2678 samples with actual 
 \hline
 \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
 \hline
-Efficiency & 96,99\% & A percentage of correct classifications of R peaks or lack thereof. \\
-Incorrect detections & 0,00\% & A percentage of samples falsely classified as containing R peaks. \\
-Skipped peaks & 3,01\% & A percentage of samples with undetected actual R peaks. \\
+Efficiency & 96.99\% & A percentage of correct classifications of R peaks or lack thereof. \\
+Incorrect detections & 0.00\% & A percentage of samples falsely classified as containing R peaks. \\
+Skipped peaks & 3.01\% & A percentage of samples with undetected actual R peaks. \\
 \hline
 \end{tabular}
 \end{table}
@@ -295,7 +291,7 @@ Analogous to the approach applied in ECG signal analysis, a convolutional model 
 
 A one-dimensional convolutional layer with 32 filters, each 7 samples wide, complemented by BatchNorm1d normalization and the GELU activation function, constitutes the first element of the architecture. The purpose of the activation function is to increase the stability of the learning process while providing gentle non-linearity. The next four residual blocks process local signal patterns. The first block increases the number of channels from 32 to 64 using a kernel of size 9. The following block expands the number of channels from 64 to 128 with a kernel width of 5 samples. The remaining two blocks maintain the same depth while using filters of sizes 3 and 7, respectively. The initial transformations are followed by a Dropout layer to reduce overfitting.
 \newpage
-The SE module increases the model’s selectivity, improving the accuracy of local waveform peak detection. A convolutional block with a kernel size of 1 compresses the number of channels from 128 to 64, while two fully connected linear layers reduce the dimensionality to 64 and 32, each followed by a GELU activation function. The resulting one-dimensional output vector is passed through a Sigmoid function, allowing the values to be interpreted as probabilities of local peaks in the PPG signal. Detailed block parameters are provided in Chart~\ref{tab:ppg_layers}.
+The SE module increases the model’s selectivity, improving the accuracy of local waveform peak detection. A convolutional block with a kernel size of 1 compresses the number of channels from 128 to 64, while two fully connected linear layers reduce the dimensionality to 64 and 32, each followed by a GELU activation function. The resulting one-dimensional output vector is passed through a sigmoid function, allowing the values to be interpreted as probabilities of local peaks in the PPG signal. Detailed block parameters are provided in Chart~\ref{tab:ppg_layers}.
 %Pierwszy element architektury stanowi jednowymiarowa warstwa splotowa z 32 filtrami o szerokości 7 próbek, uzupełniona normalizacją BatchNorm1d oraz funkcją aktywacji GELU, odpowiedzialną za łagodną nieliniowość i poprawę stabilność procesu uczenia. Cztery kolejne bloki resztkowe przetwarzają lokalne wzorce sygnału. Pierwszy moduł zwiększa kanały z 32 do 64, wykorzystując jądro o rozmiarze 9.  Rozszerzenie liczby wymiarów z 64 do 128 realizuje segment przy zastosowaniu okna o długości 5 próbek, natomiast dwa pozostałe utrzymują tę samą głębokość, operując filtrami o wielkości 3 i 7. Transformacje zdefiniowane w początkowym etapie zostały rozszerzone o warstwę Dropout, umożliwiającą redukcję nadmiernego dopasowania. 
 %\newpage
 %Moduł SE podnosi selektywność modelu, poprawiając precyzję wykrywania lokalnych maksimów przebiegu. Kompresję kanałów z 128 do 64 zapewnia blok konwolucyjny z jądrem o rozmiarze 1, a dwie w pełni połączone operacje liniowe zmniejszają wymiary do 64 i 32, z funkcją aktywacji GELU. Jednowymiarowy wektor wyjściowy podlega transformacji Sigmoid, umożliwiając interpretację wartości jako prawdopodobieństwo lokalnych szczytów w zapisie PPG. Szczegółowe parametry bloków uwzględniono w Tabeli~\ref{tab:ppg_layers}.
@@ -329,7 +325,7 @@ The supervised learning process for PPG data was performed on signal segments ac
 %Macierz konfuzji dla detekcji pików fali
 \begin{table}[ht]
 \centering
-\caption{Confusion matrx for wave peaks detection}
+\caption{Confusion matrix for wave peaks detection}
 \label{tab:conf_matrix_ppg}
 \begin{tabular}{|c|c|c|}
 \hline
@@ -356,9 +352,9 @@ For photoplethysmographic signals, the network correctly identified 375 samples 
 \hline
 \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
 \hline
-Efficiency & 98,17\% & Percentage of correctly classified samples. \\
-Incorrect detections & 0,52\% & Percentage of samples falsely classified as containing the wave peak. \\
-Skipped peaks & 1,83\% & Percentage of sample with undetected actual wave peak. \\
+Efficiency & 98.17\% & Percentage of correctly classified samples. \\
+Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
+Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
 \hline
 \end{tabular}
 \end{table}
@@ -426,7 +422,7 @@ The machine learning algorithm detected 76 peaks, while the reference set contai
 \end{figure}
 
 \newpage
-The results indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
+The results indicate a high consistency between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
 %Wyniki wskazują na wysoką zgodność architektury z referencyjnymi maksimami przebiegu fotopletyzmograficznego, przy niewielkiej liczbie fałszywego wykrywania spowodowanego zakłóceniami i ograniczeniami analizy krótkich segmentów. Uzyskane rezultaty sugerują praktyczną użyteczność sieci w cyfrowym przetwarzaniu sygnałów biomedycznych.
 
 
@@ -537,13 +533,12 @@ For comparison, HRV indicator waveforms computed from ECG signals are also shown
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{RMSSD_EKG.png}
-        % NOTE:(mati): dumbest sentence ever
         \caption{Square root of an average of squares of differences of NN intervals}
     \end{subfigure}  
     \caption{Exemplary waveform of HRV indicators calculated for ECG}
 \end{figure}
 
-Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
+Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method's susceptibility to interferences, such as variations in finger pressure against the camera.
 %Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
 
 Despite the greater variability in PPG waveforms, the average HRV indicator values (SDNN and RMSSD) are similar to those obtained from ECG. This finding confirms that, under proper recording conditions, PPG can serve as a reliable alternative to ECG for heart rate variability analysis, although it requires additional filtering and artifact compensation.
@@ -551,7 +546,7 @@ Despite the greater variability in PPG waveforms, the average HRV indicator valu
 
 
 \section{Summary}
-Evaluation has shown that convolutional and recurrent architectures provide a high level of agreement with classical methods and reference data while minimizing false detections. The proposed models achieved high precision in detecting key points in the signals, with the F1 score reaching 0.9753 for R peaks in ECG signals and 0.9774 for wave peaks in PPG waveforms. The high accuracy of peak detection in photoplethysmographic signals demonstrates the strong potential of this method for reliably estimating IBIs, which are the counterparts of RR intervals in ECG signals.
+Evaluation has shown that convolutional and recurrent architectures provide a high level of consistency with classical methods and reference data while minimizing false detections. The proposed models achieved high precision in detecting key points in the signals, with the F1 score reaching 0.9753 for R peaks in ECG signals and 0.9774 for wave peaks in PPG waveforms. The high accuracy of peak detection in photoplethysmographic signals demonstrates the strong potential of this method for reliably estimating IBIs, which are the counterparts of RR intervals in ECG signals.
 % Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. %Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
 % fix number2:
 %Zaproponowane metody osiągnęły wysoką skuteczność detekcji charakterystycznych punktów sygnału, uzyskując miarę F1 w detekcji załamków R równą 0,9753 dla elektrokardiografii, natomiast dla sygnału fotopletyzmograficznego przy wykrywaniu lokalnych szczytów uzyskano F1 równą 0,9774. %added2
