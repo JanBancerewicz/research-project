@@ -165,7 +165,7 @@ The application displays PPG waveforms in real time as a dynamically updating he
 %Aplikacja prezentuje przebieg PPG w czasie rzeczywistym w postaci dynamicznego wykresu zmian rytmu serca. Zarejestrowane znaczniki czasowe odpowiadające momentom wdechu i wydechu umożliwiają korelację z sygnałem w celu analizy zależności między cyklem oddechowym a jego parametrami.
 
 
-The recorded signal is processed using a low-pass filter. Peak detection is performed by analyzing three consecutive samples of the signal, where the central point is classified as a peak if its value exceeds that of its neighboring points. To prevent false identifications caused by motion artifacts, a newly detected peak is only acknowledged if it occurs at least 600 ms after the previous one. Each identified extremum is stored together with its timestamp and subsequently used to dynamically calculate the Beats Per Minute (BPM) according to equation (1):
+The recorded signal is processed using a low-pass filter. Peak detection is performed by analyzing three consecutive samples of the signal, where the central point is classified as a peak if its value exceeds that of its neighboring points. To prevent false identifications caused by motion artifacts, a newly detected peak is only acknowledged if it occurs at least 600 ms after the previous one. Each identified extremum is stored together with its timestamp and subsequently used to dynamically calculate the Beats Per Minute (BPM) according to Equation (1):
 %Zarejestrowany zapis ulega filtracji dolnoprzepustowej. Detekcja lokalnych maksimów realizowana jest poprzez analizę trzech kolejnych próbek sygnału, środkowy punkt klasyfikowany jest jako szczyt, jeśli jego wartość przewyższa oba sąsiednie. Akceptacja następnego piku wymagana upływu co najmniej 600 ms od poprzedniego wykrycia, ograniczając błędne rozpoznania wynikające z zakłóceń ruchowych. Zidentyfikowane ekstremum jest rejestrowane wraz ze znacznikiem czasu i wykorzystywane do dynamicznego wyznaczania częstości uderzeń serca BPM, zgodnie z równaniem (1) :
 
 \begin{equation}
@@ -406,15 +406,15 @@ Pan-Tompkins vs NeuroKit & 55 & 1 & 1 & 0.982 & 0.982 & 0.982 \\
 
 
 \newpage
-The network's efficiency in detecting R peaks is comparable to a classic Pan-Tompkins algorithm and is characterized by a high consistency with the reference values. The discrepancies resulting from skipped or shifted extrema can be reduced through signal preprocessing optimization of further training of the model. Current machine learning systems display an ability to reach high efficiency class in automated detection of electrocardiographic record's local peaks.
+The network’s performance in detecting R peaks is comparable to the classic Pan-Tompkins algorithm and shows high agreement with the reference values. Discrepancies resulting from missed or shifted peaks can be reduced through optimized signal preprocessing or further model training. Current machine learning systems are capable of achieving high performance in the automated detection of local peaks in electrocardiographic signals.
 %Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznym wykrywaniu lokalnych szczytów zapisu elektrokardiograficznego.
 
 %Weryfikacja skuteczności detekcji pików fali
 \subsection{Wave peak detection efficiency verification}
-Peak identification of the photoplethysmographic waveforms was conducted based on the results from the convolutional network and reference signal obtained using the band-pass filtration and local maximum searching method. The data was divided into segments each containing 100 samples and normalized to [-1, 1] range. In the windowed mode model prediction was transformed into point indexes corresponding to potential wave peaks.
+Peak identification in photoplethysmographic waveforms was performed using the convolutional network and a reference signal obtained through band-pass filtering and local maximum detection. The data were divided into segments of 100 samples each and normalized to the range [-1, 1]. In windowed mode, the model predictions were converted into point indices corresponding to potential wave peaks.
 %Identyfikacje szczytów przebiegu fotopletyzmograficznego przeprowadzono na podstawie wyników sieci konwolucyjnej oraz sygnału referencyjnego uzyskanego metodą filtracji pasmowo-przepustowej i lokalnego wyszukiwania maksimów. Dane podzielono na segmenty o długości 100 próbek i znormalizowano do zakresu [−1,1]. W trybie okienkowym predykcje modelu przekształcono w indeksy punktów odpowiadających potencjalnym pikom fali.
 
-Machine learning algorithm as detected 76 peaks while the reference set contained 72. The detection efficiency has performed in the tolerance range of 264 ms which correspond to 8 time units assuming a sampling rate of 30 Hz while applying True Positive, False Positive and False Negative parameters. The model has produced 61 TP, 15 FP and 11 FN resulting in a precision of 0.803, sensitivity of 0.847 and F1 benchmark of 0.824.
+The machine learning algorithm detected 76 peaks, while the reference set contained 72. Detection performance was evaluated within a tolerance window of 264 ms, corresponding to 8 time units at a sampling rate of 30 Hz, using True Positive, False Positive, and False Negative metrics. The model produced 61 TP, 15 FP, and 11 FN, resulting in a precision of 0.803, a sensitivity of 0.847, and an F1 score of 0.824.
 % Algorytm uczenia maszynowego wykrył 76 szczytów, natomiast zestaw wzorcowy obejmował 72. Skuteczność detekcji przebiegła w przedziale tolerancji 264 ms, odpowiadającym 8 jednostkom czasowym przy częstotliwości próbkowania 30 Hz, z zastosowaniem parametrów prawdziwych trafień TP, fałszywych alarmów FP oraz pominiętych pików FN. Model uzyskał 61 TP, 15 FP oraz 11 FN, przekładając się na precyzję 0,803, czułość 0,847 oraz miarę F1 równą 0,824.
 
 %Porównanie detekcji pików fali przez sieć splotową z szczytami referencyjnymi
@@ -426,24 +426,24 @@ Machine learning algorithm as detected 76 peaks while the reference set containe
 \end{figure}
 
 \newpage
-The results indicate a high consistency of the architecture with the reference photoplethysomographic waveform maxima. The low false detection count is caused by interferences and limitations of a short segments analysis. The acquired results suggest a practical usefulness of the network in digital biomedical signal processing.
+The results indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
 %Wyniki wskazują na wysoką zgodność architektury z referencyjnymi maksimami przebiegu fotopletyzmograficznego, przy niewielkiej liczbie fałszywego wykrywania spowodowanego zakłóceniami i ograniczeniami analizy krótkich segmentów. Uzyskane rezultaty sugerują praktyczną użyteczność sieci w cyfrowym przetwarzaniu sygnałów biomedycznych.
 
 
 %Estymacja PTT ze zsynchronizowanych sygnałów
 \subsection{PTT estimation from the synchronized signals}
-Different schemes of timestamp notations are used during ECG and PPG recording. In electrocardiograph R peak ocurence points are defined relative to the moment of the beginning of the acquisition and saved in seconds as relative time. During the processing of the data these values are converted to the absolute UNIX format allowing a comparison with the PPG waveform. In photoplethysomography wave peak detection is recorded directly in the system time.
+Different timestamp schemes are used during ECG and PPG recordings. In electrocardiography, R peak occurrences are defined relative to the start of acquisition and saved in seconds as relative time. During data processing, these values are converted to absolute UNIX time, allowing comparison with the PPG waveform. In photoplethysmography, wave peak detection is recorded directly using the system time.
 %Podczas rejestracji sygnałów EKG i PPG wykorzystywane są różne schematy zapisu znaczników czasowych. W elektrokardiogramie punkty wystąpienia załamków R początkowo określane są względem chwili rozpoczęcia akwizycji i zapisywane w sekundach jako czas względny. Podczas przetwarzania danych wartości te są przekształcane do formatu absolutnego UNIX, umożliwiając porównanie z przebiegiem PPG. W fotopletyzmografii detekcja szczytów fali rejestrowana jest bezpośrednio w czasie systemowym.
 
 %Dla ujednolicenia układu czasowego przekształca się dane EKG z czasu względnego na znaczniki UNIX, zgodnie z równaniem (2):
-To unify the time systems ECG date are converted from relative time to UNIX timestamps in accord with the equation (2):
+To unify the time systems, ECG data are converted from relative time to UNIX timestamps according to Equation (2).
 \begin{equation}
 t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
 \end{equation}
 where $t_{\mathrm{UNIX}}$ - time in UNIX format, $t_{\mathrm{rel}}$ – relative time, a $t_{0}$ – beginning of the acquisition.
 
 %Przebiegi zostały przedstawione w jednej osi czasu, umożliwiając ich automatyczną synchronizację. Dopasowanie par szczytów realizowano poprzez przypisanie do każdego załamka R w zapisie elektrokardiograficznym najbliższego w kolejności wystąpień ekstremum w sygnale fotopletyzmograficznym. Nie każdy zarejestrowany pik w EKG posiada odpowiadający punkt w PPG, wynikający z zakłóceń ruchowych lub utraty próbek. Różnice czasowe między dopasowanymi maksimami definiowane są jako interwał propagacji tętna PTT, wyznaczany zgodnie z równaniem (3):
-Waveforms have been presented on a single time axis allowing for their automatic synchronization. Peak pairs matching was accomplished by assigning each R peak in electrocardiographic record to the closest extremum in order of ocurence from photoplethysomographic signal. Not every recorded ECG peak has a corresponding point in PPG which can be explained with movement interferences or sample loss. Time differences between matched maxima are defined as PPT heart rate propagation interval, computed in accord with the equation (3):
+Waveforms are presented on a single time axis, enabling their automatic synchronization. Peak pairing is performed by assigning each R peak in the electrocardiographic record to the closest extremum in order of occurrence from the photoplethysmographic signal. Not every recorded ECG peak has a corresponding PPG peak, which can be attributed to movement interferences or sample loss. Time differences between matched maxima are defined as the PTT (Pulse Transit Time) and are computed according to Equation (3).
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
 \end{equation}
@@ -458,29 +458,29 @@ where $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - PPG and ECG peak detection moment
 \end{figure}
 
 %Z wektora wartości wyznacza się statystyki opisowe, obejmujące średnią, określającą przeciętny czas przejścia fali tętna, oraz odchylenie standardowe, wyrażające jego zmienność.
-Descriptive statistics are constructed from the value vector which include the mean defining the average time of the heart rate's phase shift and the standard deviation which expresses its variability.
+Descriptive statistics were computed from the value vector, including the mean, which defines the average time of the heart rate phase shift, and the standard deviation, which represents its variability.
 
 %Wskaźniki HRV
 \subsection{HRV indicators}
-Gaps between subsequent heart beats have been analyzed independently in both signals. Relative time was used in electrocardiography which resulted from a window processing of the samples while in the photoplethysomography system timestamps have been used ensuring consistency with the recorded waveform and allowing for synchronization with different data sources. RR intervals have been determined for ECG record which correspond to distances between R peaks. For PPG IBI distances have been computed. Based on these values standard HRV parameters have been presented in RR form. Analogous calculations have been carried out for IBI.
+Gaps between consecutive heartbeats were analyzed independently in both signals. Relative time was used in electrocardiography, resulting from windowed processing of the samples, whereas in the photoplethysmography system, timestamps were employed to ensure consistency with the recorded waveform and to allow synchronization with different data sources. RR intervals were determined from the ECG recordings, corresponding to the distances between R peaks. For PPG, IBI (Inter-Beat Interval) distances were computed. Based on these values, standard HRV parameters were calculated in RR form, and analogous calculations were performed for IBI.
 %Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
 
 \noindent\textit{1) Average interval length:} 
-Arithmetic mean of RR intervals expressed with the formula (4):
+Arithmetic mean of RR intervals expressed with the Formula (4):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
 \end{equation}
 where $RR_i$ -- $i$-th RR interval, and $N$ – analyzed interval count.
 
 \noindent\textit{2) NN intervals standard deviation:} 
-Total heart rate variability value, calculated based on all RR intervals expressed with the formula (5):%Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
+Total heart rate variability value, calculated based on all RR intervals expressed with the Formula (5):%Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
 where $Mean$ – average interval length, $RR_i$ – $i$-th RR interval, a $N$ – analyzed interval count. 
 \newpage
 \noindent\textit{3) Square root of averaged squares of differences between subsequent NN intervals:} 
-Benchmark used in short-term heart rate fluctuations assessment expressed with the formula (6):
+Benchmark used in short-term heart rate fluctuations assessment expressed with the Formula (6):
 \begin{equation}
     RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
 \end{equation}
@@ -511,11 +511,11 @@ where $RR_i$ -- $i$-th RR interval, a $N$ – analyzed interval count.
 \end{figure}
 
 \newpage
-A 60 second long dynamic window was utilized in real-time processing. R peak marks and their corresponding intervals are updated in online mode while samples from beyond the window are removed. SDNN, RMSSD and average intervals between heart beats have all been presented as figures.
+A 60-second dynamic window was used for real-time processing. R peak markers and their corresponding intervals were updated online, while samples outside the window were discarded. SDNN, RMSSD, and average intervals between heartbeats were all presented as figures.
 %Do obliczeń w czasie rzeczywistym wykorzystano dynamiczne okno o długości 60 s. Oznaczenia pików oraz odpowiadające im odstępy są aktualizowane w trybie online, natomiast próbki spoza okna są usuwane. Parametry SDNN, RMSSD oraz średnie interwały między uderzeniami serca przedstawiono w postaci wykresów.
 %Added na dole:::
 
-For the sake of the comparison waveforms of the HRV indicators computed from ECG signals are also presented:
+For comparison, HRV indicator waveforms computed from ECG signals are also shown:
 %Dla porównania przedstawiono również przebiegi wskaźników HRV wyznaczonych z sygnału EKG:
 
 \begin{figure}[h]
@@ -543,15 +543,15 @@ For the sake of the comparison waveforms of the HRV indicators computed from ECG
     \caption{Exemplary waveform of HRV indicators calculated for ECG}
 \end{figure}
 
-HRV indicators comparison for PPG and ECG methods has shown that RMSSD and SDNN values calculated from ECG are characterized by greater stability and lower vulnerability to value jumps. In the case of PPG greater fluctuations and presence of individual misfit values was observed. A possible explanation is the method's susceptibility to interferences such as movements of variable pressure of the finger against the camera.
+Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
 %Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
 
-Regardless of the greater variability in PPG waveforms average indicator values (SDNN and RMSSD) are approximate to the ones obtained from ECG. This fact confirms that in the right recording conditions PPG can be a credible alternative to ECG in heart rate variability analysis although it requires additional filtration methods and artifacts compensation.
+Despite the greater variability in PPG waveforms, the average HRV indicator values (SDNN and RMSSD) are similar to those obtained from ECG. This finding confirms that, under proper recording conditions, PPG can serve as a reliable alternative to ECG for heart rate variability analysis, although it requires additional filtering and artifact compensation.
 %Pomimo większej zmienności w przebiegach PPG, średnie wartości wskaźników (SDNN i RMSSD) były zbliżone do uzyskanych dla EKG. Potwierdza to, że przy odpowiednich warunkach rejestracji PPG może stanowić wiarygodną alternatywę dla EKG w analizie zmienności rytmu serca, choć jego zastosowanie wymaga dodatkowych metod filtracji i kompensacji artefaktów.
 
 
 \section{Summary}
-Evaluation has shown that convulutional and recursive architectures provide a high level of compliance with the classical methods and reference data while limiting the number of false detections. Proposed models have achieved a high precision in detection of key points in the signal, with the F1 benchmark reaching 0.9753 for R peaks in ECG signal and 0.9774 for wave peaks in PPG waveform. The high accuracy of peak detection in photoplethysomographic signal attests to a huge potential of this method for credible gauging the IBI which are ECG signal's RR intervals counterpart.
+Evaluation has shown that convolutional and recurrent architectures provide a high level of agreement with classical methods and reference data while minimizing false detections. The proposed models achieved high precision in detecting key points in the signals, with the F1 score reaching 0.9753 for R peaks in ECG signals and 0.9774 for wave peaks in PPG waveforms. The high accuracy of peak detection in photoplethysmographic signals demonstrates the strong potential of this method for reliably estimating IBIs, which are the counterparts of RR intervals in ECG signals.
 % Ewaluacja wykazała, że zastosowane architektury splotowe i rekurencyjne zapewniają wysoką zgodność z klasycznymi metodami oraz danymi wzorcowymi, przy jednoczesnym ograniczeniu liczby fałszywych detekcji. %Uzyskane wartości miary F1 potwierdzają skuteczność analizy parametrów sercowo-naczyniowych  w warunkach mobilnych, niezależnie od poziomu aktywności fizycznej.
 % fix number2:
 %Zaproponowane metody osiągnęły wysoką skuteczność detekcji charakterystycznych punktów sygnału, uzyskując miarę F1 w detekcji załamków R równą 0,9753 dla elektrokardiografii, natomiast dla sygnału fotopletyzmograficznego przy wykrywaniu lokalnych szczytów uzyskano F1 równą 0,9774. %added2
@@ -560,7 +560,7 @@ Evaluation has shown that convulutional and recursive architectures provide a hi
 %Zaproponowane modele osiągnęły wysoką precyzję w detekcji kluczowych punktów sygnału, uzyskując miarę F1 na poziomie 0,9753 dla załamków R w sygnale EKG oraz 0,9774 dla szczytów fali w przebiegu PPG.
 %Wysoka dokładność detekcji pików w sygnale fotopletyzmograficznym świadczy o dużym potencjale tej metody do wiarygodnego szacowania interwałów międzyuderzeniowych IBI, które są odpowiednikiem interwałów RR z EKG.
 
-Biomedical signals recording system powered by machine learning methods show high potential in monitoring health state in real time. In the future emphasis should be placed on increasing the resistance of the algorithms to environmental interferences including movement artifact, noise and variable physiological conditions. It is also imperative to develop mechanisms that would allow for interfacing with advanced telemedical systems allowing for uploading and analysis of data continuously. Applying these solutions can make early heart disorders identification easier and support clinical decision-making process.
+Biomedical signal recording systems powered by machine learning methods show high potential for real-time health monitoring. Future efforts should focus on increasing the robustness of algorithms against environmental interferences, including motion artifacts, noise, and varying physiological conditions. It is also essential to develop mechanisms that enable integration with advanced telemedicine systems for continuous data uploading and analysis. Implementing these solutions could facilitate early identification of cardiac disorders and support clinical decision-making.
 %Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
 
 It is worth noting, however, that although the models have been trained on data that included interferences like sudden bodily movements or small finger shifting their validation happened in a controlled environment. From that an important limitation arises - there exists an uncertainty about system's behavior in real conditions, especially during intensive physical activity where movement becomes a dominating source of interferences. This problem is particularly clear in the PPG signal where instable contact of the detector with the skin may lead to significant measurement errors. There may exist improvements which would reduce the impact of the interferences on the results such as: applying adaptation filters which would dynamically correct their effect to account for the noise characteristic in the signal or usage of more complex deep learning models to process a variety of data.
@@ -568,7 +568,7 @@ It is worth noting, however, that although the models have been trained on data 
 
 \newpage
 
-The developed system including the source code has been made public at GitHub repositories under the following addresses.
+The developed system, including the source code, has been made publicly available on GitHub at the following repositories:
 %Opracowany system wraz z kodem źródłowym został udostępniony publicznie w repozytoriach na GitHub pod adresami:
 
 \noindent
