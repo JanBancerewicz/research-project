@@ -47,11 +47,9 @@ This paper presents methods of heart rate variability analysis based on electroc
 % zmienność rytmu serca; sygnały biomedyczne; elektrokardiografia; fotopletyzmografia; filtracja sygnałów; splotowe sieci neuronowe; detekcja szczytów; interwał propagacji tętna; algorytm Pan-Tompkins; analiza czasowa.
 
 \section{Introduction}
-% NOTE:(mati): czas rejestracji -> recording time? 
 Heart rate variability is an important parameter in assessing cardiovascular health, as it reflects the balance between the sympathetic and parasympathetic nervous systems. Traditional HRV measurements conducted in clinical settings are characterized by high costs and limited recording durations. In recent years, advances in mobile technology have enabled the monitoring of cardiac activity in daily life.
 % Zmienność rytmu serca stanowi istotny parametr oceny funkcjonowania układu sercowo-naczyniowego, odzwierciedlający równowagę pomiędzy aktywnością układu współczulnego i przywspółczulnego. Tradycyjne pomiary HRV prowadzone w warunkach klinicznych charakteryzują się wysokim kosztem oraz ograniczonym czasem rejestracji. W ostatnich latach postęp technologiczny w obszarze urządzeń przenośnych oraz sensorów optycznych umożliwił monitorowanie aktywności kardiologicznej w trakcie życia codziennego.
 
-% NOTE:(mati): cel pracy -> purpose of the project?
 \subsection{Aim of the study}
 Beat detection techniques are applied to electrocardiographic (ECG) and photoplethysmographic (PPG) recordings and evaluated in terms of their usefulness for heart rate variability (HRV) analysis. Classical algorithms are compared with deep neural network–based approaches in terms of accuracy, robustness to noise, and applicability in real-world conditions. An Android mobile application records the PPG signal, while ECG data were acquired using a Polar H10 heart rate monitor. Both employ filtering, detection of characteristic points, and computation of HRV metrics. The quality of the signals obtained from mobile devices is validated against reference patterns. Heart rate parameters are compared with those derived from the electrocardiograph, and the precision of peak detection is assessed.
 % Techniki detekcji uderzeń w zapisach elektrokardiograficznych i fotopletyzmograficznych są implementowane i oceniane względem użyteczności w analizie zmienności rytmu serca. Klasyczne algorytmy zestawia się z rozwiązaniami opartymi na głębokich sieciach neuronowych, uwzględniając skuteczność, odporność na zakłócenia oraz zastosowanie w warunkach rzeczywistych. Aplikacja mobilna rejestruje przebiegi PPG na platformie Android, dane EKG odczytuje się z pulsometru Polar H10, wykorzystując filtrację, identyfikację punktów charakterystycznych oraz wyznaczanie wskaźników HRV. Jakość sygnałów pozyskiwanych urządzeniami mobilnymi jest weryfikowana na podstawie wzorców referencyjnych, porównując parametry rytmu serca z elektrokardiogramu i określając precyzję wykrywania szczytów.
@@ -70,8 +68,6 @@ Initial processing of physiological signals is based on interference elimination
 A band-pass filter restricting the frequency band to values characteristic of the given waveform is a fundamental method in signal analysis. The processing range is 0.5–40 Hz for ECG signals and 0.3–8 Hz for PPG signals, corresponding to the heart rate \cite{3}. Butterworth, Chebyshev, and elliptic filters, implemented in both IIR and FIR forms, are used in digital applications. FIR filters modeled using the window method provide stability and a linear phase response \cite{4}.
 % Do podstawowych metod analizy sygnału należą filtry pasmowoprzepustowe, ograniczające pasmo częstotliwości do wartości charakterystycznych dla badanego przebiegu. Zakres przetwarzania zapisu EKG wynosi 0,5–40 Hz, natomiast PPG ogranicza się do 0,3–8 Hz, odpowiadającego rytmowi serca \cite{3}. W implementacjach cyfrowych wykorzystuje się filtry Butterwortha, Chebysheva, eliptyczne w postaci IIR oraz FIR projektowane metodą okienkową, zapewniające stabilność i liniową charakterystykę fazową \cite{4}. 
 
-% NOTE:(mati): second sentence is a monster, i think i translated it well but it's a very complicated sentence
-% NOTE:(mati): i translated eliminacja as cancellation based on the citation
 Adaptive filters are applied to signals containing disturbances with varying parameters. LMS and RLS algorithms enable dynamic adaptation of system coefficients to signal characteristics, increasing the effectiveness of suppressing motion artifacts and power line interference. Notch filters are used to suppress the 50/60 Hz component \cite{5}.
 % Dla sygnałów z zakłóceniami o zmiennych parametrach stosuje się filtry adaptacyjne. Algorytmy LMS i RLS umożliwiają dynamiczną adaptację współczynników układu do charakterystyki zapisu, zwiększając skuteczność tłumienia niestabilności ruchowych oraz interferencji sieciowych. W zastosowaniach medycznych mechanizmy notch zapewniają eliminację składowej 50/60 Hz \cite{5}.
 
@@ -535,13 +531,12 @@ For comparison, HRV indicator waveforms computed from ECG signals are also shown
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{RMSSD_EKG.png}
-        % NOTE:(mati): dumbest sentence ever
         \caption{Square root of an average of squares of differences of NN intervals}
     \end{subfigure}  
     \caption{Exemplary waveform of HRV indicators calculated for ECG}
 \end{figure}
 
-Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
+Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method's susceptibility to interferences, such as variations in finger pressure against the camera.
 %Porównanie wzkaźników HRV dla metody PPG i EKG wykazało, że wartości RMSSD i SDNN wyznaczone z EKG charakteryzują się większą stabilnością i mniejszą podatnością na skoki wartości. W przypadku PPG zauważalne były większe wahania oraz obecność pojedynczych wartości odstających, co wynika z podatności tej metody na zakłócenia, takie jak ruch czy zmienny nacisk palca na kamerę smartfona.
 
 Despite the greater variability in PPG waveforms, the average HRV indicator values (SDNN and RMSSD) are similar to those obtained from ECG. This finding confirms that, under proper recording conditions, PPG can serve as a reliable alternative to ECG for heart rate variability analysis, although it requires additional filtering and artifact compensation.
