@@ -28,7 +28,7 @@
 \author{
     J. Bancerewicz, J. Kotłowski, O. Lozovyy, J. Morawska, M. Rzęsa\\
     \textit{Gdańsk University of Technology}\\
-    \textit{Faculty of Electronics, Telecoummunications, and Informatics}
+    \textit{Faculty of Electronics, Telecommunications and Informatics}
 }
 
 
@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-This paper presents methods of heart rate variability analysis based on electrocardiographic and photoplethysmographic signals obtained using mobile devices. An approach to processing the recorded data involving noise suppression, peak detection, and determining the intervals between impulses in the bodily processes was developed. Detection of R peaks in ECG and maxima of a PPG wave was performed using convolutional and recursive neural networks. The efficiency of the models was measured in comparison to the classic algorithms and reference data. The results show a high accuracy of peak identification and allow employing mobile devices to monitor cardiac parameters in both home environments and during physical activities.
+This paper presents methods of heart rate variability analysis based on electrocardiographic and photoplethysmographic signals obtained using mobile devices. An approach to processing the recorded data involving noise suppression, peak detection, and determining inter-pulse intervals in the physiological signal was developed. Detection of R peaks in ECG and maxima of a PPG wave was performed using convolutional and recurrent neural networks. The accuracy of the models was measured in comparison to the classic algorithms and reference data. The results show a high accuracy of peak identification and allow employing mobile devices to monitor cardiac parameters in both home environments and during physical activities.
 
 % W niniejszej pracy przedstawiono metody analizy zmienności rytmu serca na podstawie sygnałów elektrokardiograficznych i fotopletyzmograficznych pozyskiwanych za pomocą urządzeń przenośnych. Opracowano proces przetwarzania zapisów obejmujący tłumienie zakłóceń, wykrywanie pików oraz wyznaczanie interwałów między impulsami w przebiegu fizjologicznym. Detekcję szczytów R w EKG oraz maksimów fali w PPG zrealizowano z wykorzystaniem splotowych i rekurencyjnych sieci neuronowych. Skuteczność modeli oceniono w odniesieniu do klasycznych algorytmów jak i danych referencyjnych. Wyniki wykazały wysoką dokładność identyfikacji pików oraz umożliwiają zastosowanie mobilnych systemów do monitorowania parametrów kardiologicznych w warunkach domowych i podczas aktywności fizycznej.
 
@@ -109,7 +109,7 @@ Photoplethysmographic signals are commonly used to estimate heart rate, while el
 
 % TODO:(mati): odwzorować is not recreate but no better idea
 % TODO:(mati): last sentence is complicated, double check
-End-to-end approach to evaluating heart rate variability parameters from 10-second fragments of optical measurements was developed in the Wang i Najafizadeh study \cite{17}. To recreate the necessary features a recursive LSTM neural network was employed. Cardiographic reference signal was registered using a standard clinical system. Acquired coefficients of correlation to reference values exceeded 0.9 with average relative error below 10\% which signifies a high accuracy of the model for any minimal-length sample.
+End-to-end approach to evaluating heart rate variability parameters from 10-second fragments of optical measurements was developed in the Wang and Najafizadeh study \cite{17}. To recreate the necessary features a recurrent LSTM neural network was employed. Cardiographic reference signal was registered using a standard clinical system. Acquired coefficients of correlation to reference values exceeded 0.9 with average relative error below 10\% which signifies a high accuracy of the model for any minimal-length sample.
 %Podejście end-to-end do szacowania parametrów zmienności rytmu serca z 10-sekundowych fragmentów przebiegu optycznego opracowano w pracy Wang i Najafizadeh \cite{17}. Do odwzorowania niezbędnych cech zastosowano rekurencyjną sieć neuronową LSTM. Sygnał odniesienia kardiograficzny rejestrowano przy użyciu standardowego systemu klinicznego, a uzyskane współczynniki korelacji z wartościami wzorcowymi przekraczały 0,9, z średnim błędzie względnym poniżej 10\%, wskazując dokładność modelu dla minimalnej długości próbki.
 
 The UTSA-PPG dataset \cite{18} was published in 2025. It contains hours-long recordings of photoplethysmographic signals with parallel electrocardiographic measurements, supplemented with accelerometer data. Heart rate analysis showed an average deviation of less than 2 beats per minute, and the correlation with ECG for basic HRV indicators ranged from 0.85 to 0.95, depending on the metric used. Machine learning techniques, including decision trees and multilayer perceptrons, were employed for signal processing, enabling precise profile reconstruction. Integrating these models into a hybrid approach improved accuracy and reduced error. The variety of samples supports the development of architectures capable of high generalization.
@@ -220,7 +220,7 @@ To improve PPG signal quality, a fourth-order digital filter with a frequency ra
 A neural network combining convolutional and recurrent layers was developed for R-peak detection in ECG recordings. This network constitutes the first step in computing RR intervals and deriving heart rate variability (HRV) parameters. The model processes one-dimensional voltage signals divided into segments, with each segment containing 256 samples and serving as a basic unit for waveform analysis.
 % Opracowano sieć neuronową łączącą warstwy splotowe i rekurencyjne, przeznaczoną do detekcji szczytów R w zapisie EKG. Stanowi ona pierwszy etap w wyznaczaniu interwałów RR i obliczaniu parametrów zmienności rytmu serca. Model przetwarza jednowymiarowe sygnały napięcia elektrycznego podzielone na fragmenty po 256 próbek, stanowiących podstawową jednostkę analizowanego przebiegu.
 
-The convolutional portion of the network consists of four 1D convolutional layers, with their parameters summarized in Chart~\ref{tab:ecg_layers}. These layers are responsible for extracting features from the input signal and expanding its representation by increasing the number of channels from 16 to 256 using filters of sizes 3 and 5. Each convolution is followed by BatchNorm1d normalization and the nonlinear activation function LeakyReLU. Dimensionality reduction is performed using a MaxPooling1D operation with a kernel size of 2, which shortens the sequence from 256 to 16 samples along the time axis, increasing the model’s robustness to noise and interference. The resulting [128 × 16] matrix serves as input to a unidirectional LSTM. The LSTM output is then flattened and passed to a dense layer with 128 neurons, followed by a final block of 256 elements, each corresponding to a sample in the input signal. The output from the LSTM layer is processed by linear modules, propagating the extracted features into logit space. Each element of the output vector represents the probability of an R peak at the corresponding sample, enabling binary classification at every point in the waveform.
+The convolutional portion of the network consists of four 1D convolutional layers, with their parameters summarized in Chart~\ref{tab:ecg_layers}. These layers are responsible for extracting features from the input signal and expanding its representation by increasing the number of channels from 16 to 128 using filters of sizes 3 and 5. Each convolution is followed by BatchNorm1d normalization and the nonlinear activation function LeakyReLU. Dimensionality reduction is performed using a MaxPooling1D operation with a kernel size of 2, which shortens the sequence from 256 to 16 samples along the time axis, increasing the model’s robustness to noise and interference. The resulting [128 × 16] matrix serves as input to a unidirectional LSTM. The LSTM output is then flattened and passed to a dense layer with 128 neurons, followed by a final block of 256 elements, each corresponding to a sample in the input signal. The output from the LSTM layer is processed by linear modules, propagating the extracted features into logit space. Each element of the output vector represents the probability of an R peak at the corresponding sample, enabling binary classification at every point in the waveform.
 % Część splotowa sieci obejmuje cztery warstwy konwolucyjne 1D, których parametry zestawiono w Tabeli~\ref{tab:ecg_layers}. Warstwy te odpowiadają za ekstrakcję cech z sygnału wejściowego, rozszerzając jego reprezentację poprzez zwiększenie liczby kanałów od 16 do 128 za pomocą filtrów o rozmiarach 5 i 3. Dla każdego przekształcenia zastosowano normalizację BatchNorm1d oraz nieliniową funkcję aktywacji LeakyReLU. Redukcja wymiarowości jest realizowana za pomocą operacji MaxPooling1D z jądrem o rozmiarze 2, skracającej długość sekwencji z 256 do 16 próbek wzdłuż osi czasowej oraz zwiększającej odporność modelu na szum i zakłócenia. Wynikowa macierz o wymiarach [128 × 16] stanowi wejście dla jednokierunkowej LSTM. Otrzymany wektor jest spłaszczany i przekazywany do warstwy z 128 neuronami, a następnie do bloku końcowego zawierającego 256 elementów, reprezentujące kolejne próbki sygnału wejściowego. Dane wyjściowe z warstwy LSTM są  przetwarzane przez moduły liniowe, odwzorowujące wyekstrahowane cechy w przestrzeń logitów. Każdy element wektora odpowiada prawdopodobieństwu obecności szczytu R w danej próbce, umożliwiając binarną klasyfikację w każdym punkcie czasowym przebiegu. 
 
 %Parametry bloków konwolucyjnych sieci
@@ -240,10 +240,10 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 \end{tabular}
 \end{table}
 
-Model was trained in a supervised mode based on the signals acquired from Polar H10 detector. Actual R peaks in a filtered ECG record have been computed using the Pan-Tompkins algorithm based on multi-step processing. The first phase is band-pass suppression of low and high frequency distortionary components. Waveform differentiation enhances steep curves of QRS complex. Afterwords a square of an average value of all samples in a moving integrating window is being computed. The final peak detection is realized using analysis of the integrated curve and local maximums \cite{27}.
+Model was trained in a supervised mode based on the signals acquired from Polar H10 detector. Actual R peaks in a filtered ECG record have been computed using the Pan-Tompkins algorithm based on multi-step processing. The first phase is band-pass suppression of low and high frequency distortionary components. Waveform differentiation enhances the steep slopes of the QRS complex. Subsequently, the mean of the squared samples is computed in a moving integration window. The final peak detection is realized using analysis of the integrated curve and local maximums \cite{27}.
 Each point is assigned a binary label identifying the presence or absence of an extremum. Labels were then used for pattern classification corresponding to actual R peaks.
 \newpage
-Learning process was performed in mini-batches of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used for optimization with a constant learning rate of 0.0001. The efficiency of the developed neural network has been assessed based on the results obtained from an independent dataset using the model's trained parameters. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix}.
+Learning process was performed in mini-batches of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used for optimization with a constant learning rate of 0.0001. The accuracy of the developed neural network has been assessed based on the results obtained from an independent dataset using the model's trained parameters. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix}.
 %Model wytrenowano w trybie nadzorowanym na podstawie sygnałów pozyskanych z czujnika Polar H10. Rzeczywiste załamki R w przefiltrowanym zapisie EKG wyznaczono algorytmem Pan–Tompkinsa opartym na wieloetapowym przetwarzaniu. Początkową fazą jest pasmowo-przepustowe tłumienie składowych zakłócających o niskiej oraz wysokiej częstotliwości. Różniczkowanie przebiegu uwydatnia strome zbocza zespołu QRS, następnie obliczana jest średnia wartość próbek podniesionych do kwadratu w ruchomym oknie całkującym. Ostateczna detekcja szczytów jest realizowana poprzez progowanie zintegrowanej krzywej oraz analizę lokalnych maksimów \cite{27}.
 %Każdemu punktowi przypisano etykietę binarną wskazującą obecność lub brak ekstremum, umożliwiając sieci klasyfikację wzorców odpowiadających rzeczywistym pikom R. 
 %\newpage
@@ -275,7 +275,7 @@ A total of 231170 samples not containing an R peak and 2678 samples with actual 
 \hline
 \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
 \hline
-Efficiency & 96.99\% & A percentage of correct classifications of R peaks or lack thereof. \\
+Accuracy & 96.99\% & A percentage of correct classifications of R peaks or lack thereof. \\
 Incorrect detections & 0.00\% & A percentage of samples falsely classified as containing R peaks. \\
 Skipped peaks & 3.01\% & A percentage of samples with undetected actual R peaks. \\
 \hline
@@ -350,7 +350,7 @@ For photoplethysmographic signals, the network correctly identified 375 samples 
 \hline
 \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
 \hline
-Efficiency & 98.17\% & Percentage of correctly classified samples. \\
+Accuracy & 98.17\% & Percentage of correctly classified samples. \\
 Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
 Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
 \hline
@@ -361,7 +361,7 @@ Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. 
 %Weryfikacja skuteczności detekcji pików R
 \newpage
 \section{Maxima evaluation and time analysis of biomedical signals}
-\subsection{R peak detection efficiency verification}
+\subsection{R peak detection accuracy verification}
 The performance of the convolutional network architecture for R peak detection in electrocardiographic signals was evaluated against the classic Pan-Tompkins algorithm and reference R peaks obtained using the NeuroKit library, which serves as a gold standard. The signal was sampled at 130 Hz and processed in nonoverlapping segments containing 256 samples.
 %Skuteczność architektury opartej na sieci splotowej w wykrywaniu pików R w zapisie elektrokardiograficznym oceniono względem klasycznego algorytmu Pan–Tompkinsa oraz szczytów referencyjnych uzyskanych w ramach biblioteki NeuroKit, pełniącej rolę złotego standardu. Sygnał próbkowano z częstotliwością 130 Hz i przetwarzano w niepokrywających się segmentach obejmujących 256 próbek. 
 
@@ -387,7 +387,7 @@ Pan-Tompkins vs NeuroKit & 55 & 1 & 1 & 0.982 & 0.982 & 0.982 \\
 \begin{figure}[htbp]
     \centering
     \includegraphics[scale=0.2]{ai_pan-tompkins.png}
-    \caption{Comparison of R peak detection between the network and Pan-Tompikns algorithm}
+    \caption{Comparison of R peak detection between the network and Pan-Tompkins algorithm}
     \label{fig:ai_pan-tompkins}
 \end{figure}
 
@@ -404,7 +404,7 @@ The network’s performance in detecting R peaks is comparable to the classic Pa
 %Skuteczność sieci w wykrywaniu pików R jest porównywalna z klasycznym algorytmem Pan-Tompkinsa i charakteryzuje się wysoką zgodnością z wartościami referencyjnymi. Rozbieżności wynikające z pominiętych lub przesuniętych ekstremów można zredukować poprzez optymalizację wstępnej obróbki sygnału lub dalsze trenowanie modelu. Obecne systemy uczenia maszynowego wykazują zdolność do osiągania niemal najwyższej klasy skuteczności w automatycznym wykrywaniu lokalnych szczytów zapisu elektrokardiograficznego.
 
 %Weryfikacja skuteczności detekcji pików fali
-\subsection{Wave peak detection efficiency verification}
+\subsection{Wave peak detection accuracy verification}
 Peak identification in photoplethysmographic waveforms was performed using the convolutional network and a reference signal obtained through band-pass filtering and local maximum detection. The data were divided into segments of 100 samples each and normalized to the range [-1, 1]. In windowed mode, the model predictions were converted into point indices corresponding to potential wave peaks.
 %Identyfikacje szczytów przebiegu fotopletyzmograficznego przeprowadzono na podstawie wyników sieci konwolucyjnej oraz sygnału referencyjnego uzyskanego metodą filtracji pasmowo-przepustowej i lokalnego wyszukiwania maksimów. Dane podzielono na segmenty o długości 100 próbek i znormalizowano do zakresu [−1,1]. W trybie okienkowym predykcje modelu przekształcono w indeksy punktów odpowiadających potencjalnym pikom fali.
 
@@ -459,7 +459,7 @@ Descriptive statistics were computed from the value vector, including the mean, 
 Gaps between consecutive heartbeats were analyzed independently in both signals. Relative time was used in electrocardiography, resulting from windowed processing of the samples, whereas in the photoplethysmography system, timestamps were employed to ensure consistency with the recorded waveform and to allow synchronization with different data sources. RR intervals were determined from the ECG recordings, corresponding to the distances between R peaks. For PPG, IBI (Inter-Beat Interval) distances were computed. Based on these values, standard HRV parameters were calculated in RR form, and analogous calculations were performed for IBI.
 %Odstępy między kolejnymi uderzeniami serca analizowano niezależnie w obu sygnałach. W elektrokardiografii wykorzystano czas względny, wynikający z okienkowego trybu przetwarzania próbek, natomiast w fotopletyzmografii zastosowano znaczniki systemowe, zapewniając spójność z rejestrowanym przebiegiem oraz umożliwiając synchronizację z innymi źródłami danych. Dla zapisu EKG określono interwały RR, odpowiadające odległościom między załamkami R, a w PPG odstępy międzyuderzeniowe IBI. Na podstawie tych wartości wyznaczono standardowe parametry HRV, przedstawione w formie RR. Analogiczne obliczenia przeprowadzono dla IBI.
 
-\noindent\textit{1) Average interval length:} 
+\noindent\textit{1) Average RR interval length:} 
 Arithmetic mean of RR intervals expressed with the Formula (4):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
@@ -471,7 +471,7 @@ Total heart rate variability value, calculated based on all RR intervals express
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
-where $Mean$ – average interval length, $RR_i$ – $i$-th RR interval, a $N$ – analyzed interval count. 
+where $Mean$ – average RR interval length, $RR_i$ – $i$-th RR interval, a $N$ – analyzed interval count. 
 \newpage
 \noindent\textit{3) Square root of averaged squares of differences between subsequent NN intervals:} 
 Benchmark used in short-term heart rate fluctuations assessment expressed with the Formula (6):
@@ -485,7 +485,7 @@ where $RR_i$ -- $i$-th RR interval, a $N$ – analyzed interval count.
     \begin{subfigure}{0.47\textwidth}
         \centering
         \includegraphics[width=\linewidth]{Mean.png}
-        \caption{Average interval length}
+        \caption{Average RR interval length}
     \end{subfigure}
     
    \vspace{0.2cm} 
@@ -556,7 +556,7 @@ Evaluation has shown that convolutional and recurrent architectures provide a hi
 Biomedical signal recording systems powered by machine learning methods show high potential for real-time health monitoring. Future efforts should focus on increasing the robustness of algorithms against environmental interferences, including motion artifacts, noise, and varying physiological conditions. It is also essential to develop mechanisms that enable integration with advanced telemedicine systems for continuous data uploading and analysis. Implementing these solutions could facilitate early identification of cardiac disorders and support clinical decision-making.
 %Systemy rejestracji sygnałów biomedycznych, wspierane metodami uczenia maszynowego, wykazują potencjał w monitorowaniu stanu zdrowia w czasie rzeczywistym. Kolejne etapy prac powinny koncentrować się na zwiększenie odporności algorytmów detekcji na zakłócenia środowiskowe, w tym artefakty ruchowe, szumy oraz zmienne warunki fizjologiczne. Równocześnie kluczowe jest opracowanie mechanizmów integracji z zaawansowanymi systemami telemedycznymi, umożliwiającymi przesyłanie oraz analizę danych w sposób ciągły. Zastosowanie tych rozwiązań może wspierać wczesną identyfikację zaburzeń rytmu serca oraz wspomagać proces podejmowania decyzji klinicznych.
 
-It is worth noting, however, that although the models have been trained on data that included interferences like sudden bodily movements or small finger shifting their validation happened in a controlled environment. From that an important limitation arises - there exists an uncertainty about system's behavior in real conditions, especially during intensive physical activity where movement becomes a dominating source of interferences. This problem is particularly clear in the PPG signal where instable contact of the detector with the skin may lead to significant measurement errors. There may exist improvements which would reduce the impact of the interferences on the results such as: applying adaptation filters which would dynamically correct their effect to account for the noise characteristic in the signal or usage of more complex deep learning models to process a variety of data.
+It is worth noting, however, that although the models have been trained on data that included interferences like sudden bodily movements or small finger shifting their validation happened in a controlled environment. This highlights an important limitation — uncertainty remains regarding the system’s performance in real-world conditions, especially during intensive physical activity where movement becomes a dominating source of interferences. This problem is particularly clear in the PPG signal where unstable contact of the detector with the skin may lead to significant measurement errors. There may exist improvements which would reduce the impact of the interferences on the results such as: applying adaptation filters which would dynamically correct their effect to account for the noise characteristic in the signal or usage of more complex deep learning models to process a variety of data.
 %Warto jednak podkreślić, że choć modele trenowano na danych uwzględniających zakłócenia, takie jak nagłe ruchy ciała czy drobne poruszenia palca, ich walidacja odbyła się w warunkach kontrolowanych. Kluczowym ograniczeniem jest zatem niepewność co do zachowania systemu w warunkach rzeczywistych, zwłaszcza podczas intensywnej aktywności fizycznej, gdzie ruch staje się dominującym źródłem zniekształceń. Problem ten jest szczególnie widoczny w sygnale PPG, gdzie niestabilny kontakt czujnika ze skórą może prowadzić do znacznych błędów pomiarowych. Możliwe usprawnienia, które pozwolą zniwelować wpływ zakłóceń na rezultaty badań to: zastosowanie filtrów adaptacyjnych, które dynamicznie dostosowują swoje działanie do charakterystyki szumu w sygnale, lub wykorzystanie bardziej złożonych modeli uczenia głębokiego do przetwarzania zróżnicowanych danych.
 
 \newpage
@@ -567,6 +567,7 @@ The developed system, including the source code, has been made publicly availabl
 \noindent
 \href{https://github.com/JanBancerewicz/PPGbetter}{https://github.com/JanBancerewicz/PPGbetter}
 \href{https://github.com/JanBancerewicz/research-project}{https://github.com/JanBancerewicz/research-project}.
+
 
  
 
