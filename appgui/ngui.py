@@ -30,6 +30,9 @@ class LiveCounterApp:
         btn_save_ppg.pack(side=tk.LEFT, padx=5)
         btn_save_both = tk.Button(topbar, text="Save Both (Aligned)", command=self.save_both)
         btn_save_both.pack(side=tk.LEFT, padx=5)
+        # Add button to save all HRV plots as PNG
+        btn_save_hrv_png = tk.Button(topbar, text="Save HRV Plots (PNG, 300dpi)", command=self.save_hrv_plots_png)
+        btn_save_hrv_png.pack(side=tk.LEFT, padx=5)
 
         self.ppg_start_time = -1
         self.ppg_out_data = []
@@ -305,6 +308,19 @@ class LiveCounterApp:
         })
         df_ppg.to_csv('ppg_data_aligned.csv', index=False)
         print("PPG data saved to ppg_data_aligned.csv")
+
+    def save_hrv_plots_png(self):
+        """
+        Save all HRV tab plots (EKG and PPG) as PNG files with 300 DPI.
+        """
+        for key, plot_obj in self.hrv_plots.items():
+            # The plot.LivePlot class should have a save_png method
+            filename = f"{key}.png"
+            try:
+                plot_obj.save_png(filename, dpi=300)
+                print(f"Saved {filename} at 300 DPI")
+            except Exception as e:
+                print(f"Failed to save {filename}: {e}")
 
     def on_closing(self):
         self.stop_event_PPG.set()

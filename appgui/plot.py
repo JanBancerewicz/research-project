@@ -106,3 +106,7 @@ class LivePlot:
         self.y_data = [0] * self.window_size
         if self.y_data2 is not None:
             self.y_data2 = [0] * self.window_size
+
+    def save_png(self, filename, dpi=300):
+        """Save the current plot as a PNG file with the given DPI."""
+        self.figure.savefig(filename, dpi=dpi)
