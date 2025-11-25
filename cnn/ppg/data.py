@@ -89,24 +89,29 @@ class PPGDirectoryDataset(Dataset):
 
 # --- Model Training/Evaluation ---
 
-def train_model(model, dataloader, epochs=5, lr=0.001):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def train_model(model, dataloader, epochs=5, lr=0.001, device=None):
+    # device może być podany zewnętrznie
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
     for epoch in range(epochs):
         model.train()
-        epoch_loss = 0
+        epoch_loss = 0.0
+        count = 0
         for X_batch, y_batch in dataloader:
-            X_batch = X_batch.to(device)
-            y_batch = y_batch.to(device)
+            X_batch = X_batch.to(device, non_blocking=True)
+            y_batch = y_batch.to(device, non_blocking=True)
             optimizer.zero_grad()
             output = model(X_batch)
             loss = criterion(output, y_batch)
             loss.backward()
             optimizer.step()
-            epoch_loss += loss.item()
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {epoch_loss/len(dataloader):.4f}")
+            epoch_loss += loss.item() * X_batch.size(0)
+            count += X_batch.size(0)
+        avg = (epoch_loss / count) if count > 0 else 0.0
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg:.4f}")
 
 def test_model(model, dataset, num_windows=100):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -161,7 +166,8 @@ def get_or_train_model(
     epochs=10,
     batch_size=32,
     lr=0.0001,
-    max_files=None
+    max_files=None,
+    num_workers=0
 ):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if os.path.exists(model_path):
@@ -172,11 +178,12 @@ def get_or_train_model(
         return model
     print("🚀 Training new model...")
     dataset = PPGDirectoryDataset(data_dir, segment_length=segment_length, max_segments=max_segments, max_files=max_files)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=(device.type=="cuda"))
 
     model = PPGPeakDetector()
     start = time.time()
-    train_model(model, dataloader, epochs=200, lr=0.001)
+    # Użyj przekazanych parametrów epochs i lr
+    train_model(model, dataloader, epochs=epochs, lr=lr, device=device)
     test_model(model, dataset)
     torch.save(model.state_dict(), model_path)
     end = time.time()
