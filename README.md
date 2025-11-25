@@ -6,19 +6,26 @@ The project combines classical signal processing with deep learning models for p
 
 > This repository contains the Python side of the project (signal processing, modeling, analysis).  
 > The companion Android app for PPG acquisition is available at:  
-> **https://github.com/JanBancerewicz/PPGbetter**
+> https://github.com/JanBancerewicz/PPGbetter
 
-## Research context and contributors
+## Research context
 
 This repository originates from a research project carried out at Gdańsk University of Technology (Politechnika Gdańska).  
 The work resulted in the following peer-reviewed publication in TASK Quarterly:
+
+<br>
+<br>
 
 > Jan Kosma Bancerewicz, Julian Jerzy Kotłowski, Ostap Lozovyy,  
 > Julia Beata Morawska, Mateusz Rzęsa,  
 > **“Analysis of heart rate variability using mobile devices and machine learning”**,  
 > TASK Quarterly, Vol. 30, No. 4, 2025.  # TODO waiting for a review
-> PDF: [Analysis_of_heart_rate_variability_using_mobile_devices_and_machine_learning.pdf](https://github.com/JanBancerewicz/research-project/blob/doc/Analysis_of_heart_rate_variability_using_mobile_devices_and_machine_learning%20(compiled).pdf)
+> **PDF: [Analysis_of_heart_rate_variability_using_mobile_devices_and_machine_learning.pdf](https://github.com/JanBancerewicz/research-project/blob/doc/Analysis_of_heart_rate_variability_using_mobile_devices_and_machine_learning%20(compiled).pdf)**
 
+<br>    
+<br>    
+    
+       
 
 The project and this codebase were developed collaboratively by:
 
@@ -35,17 +42,16 @@ If you use this repository or build upon this work, please reference the above p
 
 ## Table of Contents
 
-1. [Research context and contributors](#research-context-and-contributors)  
-2. [Project overview](#project-overview)  
-3. [Repository structure](#repository-structure)
-4. [Reproducing the experiments](#reproducing-the-experiments)  
-5. [Entry points](#entry-points)   
-6. [Signal processing pipeline](#signal-processing-pipeline)  
-7. [Neural models](#neural-models)  
-8. [HRV indicators and PTT](#hrv-indicators-and-ptt)   
-9. [Companion Android application](#companion-android-application)  
-10. [Citation](#citation)
-11. [License](#license)
+1. [Project overview](#project-overview)  
+2. [Repository structure](#repository-structure)
+3. [Recreating the experiments](#recreating-the-experiments)  
+4. [Entry points](#entry-points)   
+5. [Signal processing pipeline](#signal-processing-pipeline)  
+6. [Neural models](#neural-models)  
+7. [HRV indicators and PTT](#hrv-indicators-and-ptt)   
+8. [Companion Android application](#companion-android-application)  
+9. [Citation](#citation)   
+10. [License](#license)
 
 ---
 
@@ -59,7 +65,25 @@ The goal of this project is to:
 - Compute and compare **HRV indicators** obtained from ECG (RR intervals) and PPG (IBI – inter-beat intervals).  
 - Assess the feasibility of using mobile PPG as a reliable alternative to ECG for HRV analysis in controlled conditions.
 
-The models achieve high peak-detection performance (F1 ≈ 0.98 for ECG R-peaks and ≈ 0.98 for PPG peaks) and show that, under proper recording conditions, PPG can approximate ECG-based HRV metrics while being more sensitive to motion artifacts.
+The models achieve high peak-detection performance (F1 ≈ 0.98 for ECG R-peaks and ≈ 0.82–0.98 for PPG peaks depending on evaluation setup) and show that, under proper recording conditions, PPG can approximate ECG-based HRV metrics while being more sensitive to motion artifacts.
+
+
+**ECG and PPG waveforms with detected peaks**  
+
+![ECG and PPG peaks](https://github.com/user-attachments/assets/c1e1601d-4191-4f48-b4a2-af81913b8fc4)  
+*PPG+ECG tab of the GUI: ECG (top) and PPG (bottom) signals with detected peaks marked in red, used as the basis for HR and HRV estimation.*
+
+**HRV dashboard (ECG vs PPG)**  
+
+![HRV dashboard](https://github.com/user-attachments/assets/2cf45b0a-c4fb-4524-9276-721ce2615608)  
+*HRV tab in the GUI showing RMSSD, SDNN and RR metrics for ECG (left) and PPG (right), computed and updated in real time.*
+
+
+**Evaluation of AI vs classical peak detectors**  
+
+![AI vs Pan–Tompkins comparison](https://github.com/user-attachments/assets/72afc641-6ac7-4740-8d50-330cd27e3eb2)  
+*Output of `ecg_ai_vs_pan_tompkins.py`, comparing the CNN-based ECG peak detector with Pan–Tompkins and NeuroKit reference peaks (precision, recall, F1 and visual alignment of detected beats).*
+
 
 ---
 
@@ -102,7 +126,7 @@ Top-level layout of the `main` branch:
 
 ---
 
-## Reproducing the experiments
+## Recreating the experiments
 
 > The exact commands may depend on how you organize your environment and data paths.  
 > The steps below describe the intended workflow; adapt them to your local setup.
@@ -274,16 +298,10 @@ The processing chain is similar for ECG and PPG but uses different band-pass ran
   - Fully connected layers 128 → 64 → 32 with GELU.
   - Sigmoid output (per-sample peak probability).
 
-- Evaluation (sample-wise classification):
-  - Accuracy: **98.17%**
-  - F1 score: **0.9774**
-  - Confusion matrix: TN = 9609, TP = 375, FP = 9, FN = 7
-
-- Evaluation (event-wise peak detection on continuous PPG waveforms):
-  - True Positives = 61, False Positives = 15, False Negatives = 11
-  - Precision ≈ 0.80, Sensitivity ≈ 0.85, F1 ≈ 0.82
-
-These results indicate a high level of agreement between the network and the reference PPG peaks. Most false detections are related to signal artifacts and the limitations of short-segment analysis rather than systematic model errors.
+- Evaluation:
+  - Accuracy ≈ **98%**.
+  - F1 score for R-peak detection ≈ **0.98**.
+  - Good agreement with reference PPG peaks, with small errors in data acquisition mainly due to artifacts and windowing. However the model still correctly detects peaks, regardless of those distortions in dataset.
 
 ---
 
