@@ -9,7 +9,7 @@ from appgui import plot
 from appgui.CompareProcessor import CompareProcessor
 from appgui.EcgDataFile import EcgDataFile
 from appgui.EcgData import EcgDataBluetooth
-from appgui.PPGProgessor import PPGProcessor
+from appgui.PPGProcessor import PPGProcessor
 from appgui.PpgData import PpgData
 from appgui.control import ControlPanel
 from appgui.ECGProcessor import ECGProcessor
