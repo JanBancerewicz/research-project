@@ -1,10 +1,13 @@
 from collections import deque
 from dataclasses import dataclass
 import numpy as np
+import os  # <--- Import os
 from scipy.signal import savgol_filter, find_peaks, filtfilt, butter
 from cnn.ppg.data import get_or_train_model, predict_ppg_segment
 
 import neurokit2 as nk
+
+
 @dataclass
 class PPGResult:
     time_array: np.ndarray
@@ -19,8 +22,6 @@ class PPGProcessor:
     def __init__(self, window_size=100, polyorder=3, peak_distance=3, peak_prominence=0.3):
         """
         window_size: number of samples per window (must be odd for savgol)
-        peak_distance: minimal distance between peaks (in samples)
-        peak_prominence: minimum prominence to be considered a peak
         """
         self.polyorder = polyorder
         self.window_size = window_size
@@ -28,23 +29,35 @@ class PPGProcessor:
         self.peak_prominence = peak_prominence
         self.time_unix = []
 
-
-
         self.sample_buffer = deque(maxlen=window_size)
         self.time_buffer = deque(maxlen=window_size)
 
-        DATA_DIR = "cnn/ppg/train_data"
-        MODEL_PATH = "ppg_peak_model.pth" # TODO fix to absolute
+        # --- PATH FIX: Ustalanie ścieżek absolutnych ---
+        # 1. Gdzie jest ten plik (appgui/PPGProcessor.py)?
+        current_script_dir = os.path.dirname(os.path.abspath(__file__))
+        # 2. Folder główny projektu (research-project)
+        project_root = os.path.dirname(current_script_dir)
+
+        # 3. Absolutna ścieżka do modelu (w głównym folderze)
+        model_abs_path = os.path.join(project_root, "ppg_peak_model.pth")
+
+        # 4. Absolutna ścieżka do danych treningowych (cnn/ppg/train_data)
+        # To jest potrzebne tylko jeśli model nie istnieje i trzeba trenować
+        data_dir_abs = os.path.join(project_root, "cnn", "ppg", "train_data")
+
+        print(f"DEBUG: PPGProcessor szuka modelu w: {model_abs_path}")
+
+        # Parametry
         SEGMENT_LENGTH = window_size
-        MAX_SEGMENTS = 10000
-        EPOCHS = 200
+        MAX_SEGMENTS = 5000  # Zmniejszyłem z 10000 dla szybszego startu (jeśli będzie musiał trenować)
+        EPOCHS = 20  # Zmniejszyłem z 200 na 10! (To był powód "mielenia")
         BATCH_SIZE = 32
         LR = 0.001
         MAX_FILES = None
 
         self.model = get_or_train_model(
-            model_path=MODEL_PATH,
-            data_dir=DATA_DIR,
+            model_path=model_abs_path,
+            data_dir=data_dir_abs,
             segment_length=SEGMENT_LENGTH,
             max_segments=MAX_SEGMENTS,
             epochs=EPOCHS,
@@ -53,16 +66,10 @@ class PPGProcessor:
             max_files=MAX_FILES
         )
 
-        self.r = [] # Store detected peak times
+        self.r = []
         self.r_for_rr = []
 
-
     def add_sample(self, sample, time, time_unix):
-        """
-        Add new PPG sample and time.
-        When buffer is full, return a PPGResult.
-        Otherwise, return None.
-        """
         self.sample_buffer.append(sample)
         self.time_buffer.append(time)
         self.time_unix.append(time_unix)
@@ -72,11 +79,9 @@ class PPGProcessor:
             time_data = np.array(self.time_buffer)
             unix_data = np.array(self.time_unix)
 
-            # Process the signal (filtering and normalization)
             filtered = self.process_func(window_data)
             peak_times, peak_values = self.detect_peaks(filtered, time_data)
 
-            # Match peak_times to unix times
             peak_unix_times = []
             for pt in peak_times:
                 idx = np.where(time_data == pt)[0]
@@ -85,14 +90,12 @@ class PPGProcessor:
                 else:
                     peak_unix_times.append(None)
 
-            # Save R-peak times and calculate HRV
             for peak_time in peak_times:
                 self.r.append(peak_time)
                 self.r_for_rr.append(peak_time)
 
-            # Calculate HRV
             hrv = self.compute_hrv()
-            print(f"HRV Metrics: {hrv}")
+            # print(f"HRV Metrics: {hrv}") # Zakomentowane, żeby nie śmiecić w konsoli
 
             self.sample_buffer.clear()
             self.time_buffer.clear()
@@ -117,28 +120,21 @@ class PPGProcessor:
         return filtfilt(b, a, signal_data)
 
     def process_func(self, window_data):
-        """
-        Apply Savitzky-Golay filter.
-        """
         return self._normalize_window(self.bandpass_filter(window_data))
 
     def detect_peaks(self, signal, time_array):
-        """
-        Detect peaks using neurokit2's PPG peak detection.
-        Returns peak times and values.
-        """
         try:
             out = predict_ppg_segment(self.model, signal)
             peak_times = []
             peak_values = []
             for i in range(len(out)):
                 if out[i]:
-                    print("------------", time_array[i], signal[i])
+                    # print("------------", time_array[i], signal[i]) # Opcjonalnie zakomentuj
                     peak_times.append(time_array[i])
                     peak_values.append(signal[i])
 
             if len(peak_times) == 0:
-                print("[PPGProcessor] No peaks detected.")
+                # print("[PPGProcessor] No peaks detected.")
                 return [], []
 
             return peak_times, peak_values
@@ -147,11 +143,10 @@ class PPGProcessor:
             return [], []
 
     def compute_hrv(self):
-        # Use r_for_rr for RR intervals, like in ECG
         if len(self.r_for_rr) < 3:
             return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
-        rr_intervals = np.diff(np.array(self.r_for_rr))  # in seconds
+        rr_intervals = np.diff(np.array(self.r_for_rr))
         if len(rr_intervals) < 2:
             return {"rmssd": 0.0, "sdnn": 0.0, "rr_intervals": []}
 
@@ -159,7 +154,6 @@ class PPGProcessor:
         rmssd = np.sqrt(np.mean(diff_rr ** 2))
         sdnn = np.std(rr_intervals)
 
-        # Keep only the last peak for next RR calculation
         self.r_for_rr = [self.r_for_rr[-1]]
 
         return {"rmssd": rmssd, "sdnn": sdnn, "rr_intervals": rr_intervals}
@@ -174,4 +168,4 @@ class PPGProcessor:
     def reset(self):
         self.sample_buffer.clear()
         self.time_buffer.clear()
-        self.r.clear() # dodane eksperymentalnie, aby wyczyścić r-peak times
+        self.r.clear()
