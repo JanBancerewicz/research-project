@@ -457,7 +457,7 @@ The network’s performance in detecting R peaks is comparable to the classic Pa
 \subsection{Wave peak detection accuracy verification}
 Peak identification in photoplethysmographic waveforms was performed using the convolutional network and a reference signal obtained through band-pass filtering and local maximum detection. The data were divided into segments of 100 samples each and normalized to the range [-1, 1]. In windowed mode, the model predictions were converted into point indices corresponding to potential wave peaks.
 
-The machine learning algorithm detected 76 peaks, while the reference set contained 72. Detection performance was evaluated within a tolerance window of 264 ms, corresponding to 8 time units at a sampling rate of 30 Hz, using True Positive, False Positive, and False Negative metrics. The model produced 61 TP, 15 FP, and 11 FN, resulting in a precision of 0.803, a sensitivity of 0.847, and an F1 score of 0.824.
+The machine learning algorithm detected 76 peaks, while the reference set contained 72. Detection performance was evaluated within a tolerance window of 264 ms, corresponding to 8 samples at a sampling rate of 30 Hz, using True Positive, False Positive, and False Negative metrics. The model produced 61 TP, 15 FP, and 11 FN, resulting in a precision of 0.803, a sensitivity of 0.847, and an F1 score of 0.824.
 
 %Porównanie detekcji pików fali przez sieć splotową z szczytami referencyjnymi
 \begin{figure}[htbp]
