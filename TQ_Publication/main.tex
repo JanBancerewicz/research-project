@@ -99,37 +99,8 @@ The Pan-Tompkins algorithm is a classic method for R-peak detection in ECG signa
 %Akwizycja danych
 %Akwizycja danych EKG
 \section{System and data characterization}
-This section outlines the comprehensive system architecture designed for heart rate variability (HRV) analysis. The solution integrates signal acquisition, preprocessing, and advanced machine learning techniques to ensure robust performance. The workflow begins with data acquisition from dual sources: video input for photoplethysmography (PPG) and chest-strap sensors for electrocardiography (ECG). The raw data undergoes signal extraction and digital filtration to remove noise and motion artifacts. Subsequently, the processed signals are segmented and fed into a hybrid deep learning model combining Convolutional Neural Networks (CNN) and Long Short-Term Memory (LSTM) layers. The model output allows for precise peak detection, which serves as the basis for the final Heart Rate Variability (HRV) calculation. The complete data processing pipeline is illustrated in Figure~\ref{fig:system_flowchart}.
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[scale=0.17]{images/diagram1.png}
-    \caption{Block diagram of the signal processing and analysis system}
-    \label{fig:system_flowchart}
-\end{figure}
+This section outlines the comprehensive system architecture designed for heart rate variability (HRV) analysis. The solution integrates signal acquisition, preprocessing, and advanced machine learning techniques to ensure robust performance. The workflow begins with data acquisition from dual sources: video input for photoplethysmography (PPG) and chest-strap sensors for electrocardiography (ECG). The raw data undergoes signal extraction and digital filtration to remove noise and motion artifacts. Subsequently, the processed signals are segmented and fed into a hybrid deep learning model combining Convolutional Neural Networks (CNN) and Long Short-Term Memory (LSTM) layers. The model output allows for precise peak detection, which serves as the basis for the final Heart Rate Variability (HRV) calculation. The complete data processing pipeline is illustrated in Figure~\ref{fig:system_diagram}.
 
-\subsection{Data acquisition}
-\subsubsection{ECG data acquisition}
-Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis.
-% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
-
-The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
-%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
-
-% 7# korekta odnośnie data acquisition
-To collect the training dataset, eight measurement sessions were conducted with five participants. Each recording contained approximately 230,000 samples, corresponding to about 30 minutes of continuous signal per session. Data was transmitted in real time in 13-point packets, consistent with the established sampling rate, and subsequently stored in CSV format. These recordings captured varied heart rate dynamics and were used exclusively for model training to prevent data leakage.
-%W celu zebrania zbioru treningowego przeprowadzono osiem sesji pomiarowych. Każde nagranie zawierało około 230 000 próbek, co odpowiada około 30 minutom ciągłego sygnału. Całkowity czas trwania zbioru przekroczył 230 minut (ok. 4 godziny). Nagrania te, obejmujące zróżnicowaną dynamikę tętna, zostały wykorzystane wyłącznie do trenowania modelu, aby zapobiec wyciekowi danych.
-
-% Akwizycja danych PPG
-% Aplikacja mobilna
-\subsubsection{PPG data acquisition}
-\paragraph{Mobile application}
-An Android-based application utilizing the photoplethysmographic method for heart rate measurement was developed. Signal acquisition was performed by placing the participant’s fingertip directly on the camera lens, illuminated by the integrated LED light source. This setup enabled the detection of optical changes caused by cyclical variations in blood volume within the skin’s microvascular vessels.
-%Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. 
-%\newpage
-Heart rate monitors are widely applied in clinical environments to acquire photoplethysmographic measurements, where they are characterized by high precision and stability. In mobile applications, the signal quality is generally sufficient for use in home environments, while maintaining the advantages of universality, low cost, and broad hardware accessibility.
-% Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
-
-The proposed system is designed to perform robust heart rate variability analysis using consumer-grade mobile devices. The data processing pipeline, illustrated in Figure~\ref{fig:system_diagram}, consists of two parallel paths for ECG and PPG signal analysis.
 %\ref{fig:system_diagram}
 %TODO dopisac o diagramie, wkleic diagram, dodac opis
 
@@ -209,6 +180,28 @@ The proposed system is designed to perform robust heart rate variability analysi
     \label{fig:system_diagram}
 \end{figure}
 
+
+\subsection{Data acquisition}
+\subsubsection{ECG data acquisition}
+Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis.
+% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
+
+The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
+%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
+
+% 7# korekta odnośnie data acquisition
+To collect the training dataset, eight measurement sessions were conducted with five participants. Each recording contained approximately 230,000 samples, corresponding to about 30 minutes of continuous signal per session. Data was transmitted in real time in 13-point packets, consistent with the established sampling rate, and subsequently stored in CSV format. These recordings captured varied heart rate dynamics and were used exclusively for model training to prevent data leakage.
+%W celu zebrania zbioru treningowego przeprowadzono osiem sesji pomiarowych. Każde nagranie zawierało około 230 000 próbek, co odpowiada około 30 minutom ciągłego sygnału. Całkowity czas trwania zbioru przekroczył 230 minut (ok. 4 godziny). Nagrania te, obejmujące zróżnicowaną dynamikę tętna, zostały wykorzystane wyłącznie do trenowania modelu, aby zapobiec wyciekowi danych.
+
+% Akwizycja danych PPG
+% Aplikacja mobilna
+\subsubsection{PPG data acquisition}
+\paragraph{Mobile application}
+An Android-based application utilizing the photoplethysmographic method for heart rate measurement was developed. Signal acquisition was performed by placing the participant’s fingertip directly on the camera lens, illuminated by the integrated LED light source. This setup enabled the detection of optical changes caused by cyclical variations in blood volume within the skin’s microvascular vessels.
+%Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. 
+%\newpage
+Heart rate monitors are widely applied in clinical environments to acquire photoplethysmographic measurements, where they are characterized by high precision and stability. In mobile applications, the signal quality is generally sufficient for use in home environments, while maintaining the advantages of universality, low cost, and broad hardware accessibility.
+% Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
 The architecture operates in a modular fashion. For photoplethysmography, the video stream from the smartphone camera is converted into a 1D signal, filtered to remove motion artifacts, and segmented for the convolutional neural network (CNN). Simultaneously, the electrocardiographic signal acquired via Bluetooth is preprocessed and fed into a hybrid CNN-LSTM network. Both models output probability maps of peak locations, which are then converted into precise timestamps. Finally, these temporal markers are used to compute time-domain HRV indices, such as SDNN and RMSSD.
 
 %Filtracja sygnału - filtr Butterwortha
