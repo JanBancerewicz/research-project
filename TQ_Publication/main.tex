@@ -319,24 +319,6 @@ The squeeze-excitation (SE) module increases the model’s selectivity, improvin
     \hline
     \end{tabular}
 }
-\resizebox{\columnwidth}{!}{
-    \begin{tabular}{|l|c|c|c|c|c|}
-    \hline
-    \textbf{Block} & \textbf{In.} & \textbf{Out.} & \textbf{Filter} & \textbf{Padding} & \textbf{Act./Norm.} \\
-    \hline
-    Conv1D & 1 & 32 & 7 & 3 & GELU+BN \\
-    ResidualBlock 1 & 32 & 64 & 9 & 4 & GELU+BN+DO \\
-    ResidualBlock 2 & 64 & 128 & 5 & 2 & GELU+BN+DO \\
-    ResidualBlock 3 & 128 & 128 & 3 & 1 & GELU+BN+DO\\
-    ResidualBlock 4 & 128 & 128 & 7 & 3 & GELU+BN+DO \\
-    SEBlock & 128 & 128 & – & – & SE scaling \\
-    Conv1D  & 128 & 64 & 1 & 0 & GELU+BN \\
-    FC & 128 & 64 & – & – & GELU \\
-    FC & 64 & 32 & – & – & GELU \\
-    Output & 32 & 1 & – & – & Sigmoid \\
-    \hline
-    \end{tabular}
-}
 \end{table}
 
 % 7# korekta tego jak algosem wyliczamy dane potrzebne do trenowania PPG
@@ -470,7 +452,6 @@ Data transmission between the smartphone and the server was carried out using th
 The performance of the convolutional network architecture for R peak detection in electrocardiographic signals was evaluated against the classic Pan-Tompkins algorithm and reference R peaks obtained using the NeuroKit library, which serves as a gold standard. The signal was sampled at 130 Hz and processed in nonoverlapping segments containing 256 samples.
 
 The total number of detected maxima was 54 for the model, 56 using the Pan-Tompkins method, and 56 for the reference data. The results are presented in Table~\ref{tab:peak_comparison}, showing the number of True Positives, False Positives, and False Negatives, as well as the computed precision, sensitivity, and F1 scores, with a tolerance corresponding to 1–2 waveform samples. Visual comparisons of the detection performance are shown in Figure~\ref{fig:ai_pan-tompkins} and Figure~\ref{fig:ai_real_peaks}.
-The total number of detected maxima was 54 for the model, 56 using the Pan-Tompkins method, and 56 for the reference data. The results are presented in Table~\ref{tab:peak_comparison}, showing the number of True Positives, False Positives, and False Negatives, as well as the computed precision, sensitivity, and F1 scores, with a tolerance corresponding to 1–2 waveform samples. Visual comparisons of the detection performance are shown in Figure~\ref{fig:ai_pan-tompkins} and Figure~\ref{fig:ai_real_peaks}.
 
 \begin{table}[ht]
 \caption{Extrema detecting techniques assessment}
@@ -519,7 +500,6 @@ The machine learning algorithm detected 76 peaks, while the reference set contai
 
 %\newpage
 The results, as illustrated in Figure~\ref{fig:ppg_ai_real_peaks}, indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
-The results, as illustrated in Figure~\ref{fig:ppg_ai_real_peaks}, indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
 
 \subsection{HRV Analysis Results}
 
@@ -532,18 +512,7 @@ HRV parameters were calculated dynamically using a 60-second moving window. The 
 \end{itemize}
 
 \begin{figure}[htbp]
-
-HRV parameters were calculated dynamically using a 60-second moving window. The results are presented in Figure~\ref{fig:hrv_ppg} for the PPG signal and Figure~\ref{fig:hrv_ecg} for the reference ECG signal. Each figure is divided into three panels illustrating the time course of key metrics:
-
-\begin{itemize}
-    \item \textbf{Panel (a)} shows the \textbf{Average RR interval length}. This metric reflects the instantaneous heart rate; rhythmic fluctuations visible in this plot typically correspond to respiratory sinus arrhythmia.
-    \item \textbf{Panel (b)} presents the \textbf{SDNN} (Standard Deviation of NN intervals). This parameter measures total heart rate variability and indicates the overall autonomic nervous system activity over the analyzed window.
-    \item \textbf{Panel (c)} displays the \textbf{RMSSD} (Root Mean Square of Successive Differences). This metric reflects short-term variations in heart rate and is primarily associated with parasympathetic activity.
-\end{itemize}
-
-\begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.48\textwidth}
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/Mean.png}
@@ -552,44 +521,31 @@ HRV parameters were calculated dynamically using a 60-second moving window. The 
     
     \vspace{0.2cm} 
     \begin{subfigure}{0.48\textwidth}
-    \vspace{0.2cm} 
-    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/SDNN.png}
-        \caption{Standard deviation of NN intervals (SDNN)}
         \caption{Standard deviation of NN intervals (SDNN)}
     \end{subfigure}
     
     \vspace{0.2cm}  
     \begin{subfigure}{0.48\textwidth}
-    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/RMSSD.png}
         \caption{Square root of average of squares of differences (RMSSD)}
-        \caption{Square root of average of squares of differences (RMSSD)}
     \end{subfigure}  
-    \caption{Waveforms of HRV indicators computed for the \textbf{PPG signal}. }
-    \label{fig:hrv_ppg}
     \caption{Waveforms of HRV indicators computed for the \textbf{PPG signal}. }
     \label{fig:hrv_ppg}
 \end{figure}
 
 For comparison, the same set of HRV indicators computed from the reference ECG signals is presented below.
-For comparison, the same set of HRV indicators computed from the reference ECG signals is presented below.
 
 \begin{figure}[htbp]
-\begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.48\textwidth}
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/MEAN_EKG.png}
         \caption{Average RR interval length (ECG)}
-        \caption{Average RR interval length (ECG)}
     \end{subfigure}
     
-    \vspace{0.2cm} 
-    \begin{subfigure}{0.48\textwidth}
     \vspace{0.2cm} 
     \begin{subfigure}{0.48\textwidth}
         \centering
@@ -599,7 +555,6 @@ For comparison, the same set of HRV indicators computed from the reference ECG s
     
     \vspace{0.2cm}  
     \begin{subfigure}{0.48\textwidth}
-    \begin{subfigure}{0.48\textwidth}
         \centering
         % POPRAWKA: Dodano folder images/ przed nazwą pliku
         \includegraphics[width=\linewidth]{images/RMSSD_EKG.png}
@@ -607,11 +562,8 @@ For comparison, the same set of HRV indicators computed from the reference ECG s
     \end{subfigure}  
     \caption{Waveforms of HRV indicators calculated for the \textbf{reference ECG}.}
     \label{fig:hrv_ecg}
-    \caption{Waveforms of HRV indicators calculated for the \textbf{reference ECG}.}
-    \label{fig:hrv_ecg}
 \end{figure}
 
-Comparison of HRV indicators between PPG and ECG methods (see Figure~\ref{fig:hrv_ppg} and Figure~\ref{fig:hrv_ecg}) showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
 Comparison of HRV indicators between PPG and ECG methods (see Figure~\ref{fig:hrv_ppg} and Figure~\ref{fig:hrv_ecg}) showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
 Despite the greater variability in PPG waveforms, the average HRV indicator values (SDNN and RMSSD) are similar to those obtained from ECG. This finding confirms that, under proper recording conditions, PPG can serve as a reliable alternative to ECG for heart rate variability analysis, although it requires additional filtering and artifact compensation.
 
@@ -627,7 +579,7 @@ A specific design choice in the developed mobile application was the imposition 
 It is worth noting, however, that although the models have been trained on data that included interferences like sudden bodily movements or small finger shifting, their validation happened in a controlled environment. This highlights an important limitation — uncertainty remains regarding the system’s performance in real-world conditions, especially during intensive physical activity where movement becomes a dominating source of interferences. This problem is particularly clear in the PPG signal where unstable contact of the detector with the skin and ambient light interference may lead to significant measurement errors. There may exist improvements which would reduce the impact of the interferences on the results such as: applying adaptation filters which would dynamically correct their effect to account for the noise characteristic in the signal or usage of more complex deep learning models to process a variety of data.
 % #2 miniaturowe dodanie "ambient light interference"
 
-\newpage
+%\newpage
 
 The developed system, including the source code, has been made publicly available on GitHub at the following repositories:
 
@@ -635,7 +587,7 @@ The developed system, including the source code, has been made publicly availabl
 \href{https://github.com/JanBancerewicz/PPGbetter}{https://github.com/JanBancerewicz/PPGbetter} \\
 \href{https://github.com/JanBancerewicz/research-project}{https://github.com/JanBancerewicz/research-project}.
 
-\newpage
+%\newpage
 
 \begin{thebibliography}{1}
 
