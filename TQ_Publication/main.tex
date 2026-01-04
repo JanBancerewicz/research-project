@@ -104,6 +104,19 @@ This section outlines the comprehensive system architecture designed for heart r
 %\ref{fig:system_diagram}
 %TODO dopisac o diagramie, wkleic diagram, dodac opis
 
+
+\subsection{Data acquisition}
+\subsubsection{ECG data acquisition}
+Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis.
+% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
+
+The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
+%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
+
+% 7# korekta odnośnie data acquisition
+To collect the training dataset, eight measurement sessions were conducted with five participants. Each recording contained approximately 230,000 samples, corresponding to about 30 minutes of continuous signal per session. Data was transmitted in real time in 13-point packets, consistent with the established sampling rate, and subsequently stored in CSV format. These recordings captured varied heart rate dynamics and were used exclusively for model training to prevent data leakage.
+%W celu zebrania zbioru treningowego przeprowadzono osiem sesji pomiarowych. Każde nagranie zawierało około 230 000 próbek, co odpowiada około 30 minutom ciągłego sygnału. Całkowity czas trwania zbioru przekroczył 230 minut (ok. 4 godziny). Nagrania te, obejmujące zróżnicowaną dynamikę tętna, zostały wykorzystane wyłącznie do trenowania modelu, aby zapobiec wyciekowi danych.
+
 \begin{figure}[htbp]
     \centering
     \resizebox{!}{0.45\textheight}{
@@ -180,19 +193,6 @@ This section outlines the comprehensive system architecture designed for heart r
     \caption{Block diagram of the proposed HRV analysis pipeline. The system processes ECG and PPG signals in parallel streams, applying specific filtering and deep learning models to extract peak timings for final HRV metric calculation.}
     \label{fig:system_diagram}
 \end{figure}
-
-
-\subsection{Data acquisition}
-\subsubsection{ECG data acquisition}
-Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis.
-% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
-
-The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
-%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
-
-% 7# korekta odnośnie data acquisition
-To collect the training dataset, eight measurement sessions were conducted with five participants. Each recording contained approximately 230,000 samples, corresponding to about 30 minutes of continuous signal per session. Data was transmitted in real time in 13-point packets, consistent with the established sampling rate, and subsequently stored in CSV format. These recordings captured varied heart rate dynamics and were used exclusively for model training to prevent data leakage.
-%W celu zebrania zbioru treningowego przeprowadzono osiem sesji pomiarowych. Każde nagranie zawierało około 230 000 próbek, co odpowiada około 30 minutom ciągłego sygnału. Całkowity czas trwania zbioru przekroczył 230 minut (ok. 4 godziny). Nagrania te, obejmujące zróżnicowaną dynamikę tętna, zostały wykorzystane wyłącznie do trenowania modelu, aby zapobiec wyciekowi danych.
 
 % Akwizycja danych PPG
 % Aplikacja mobilna
@@ -347,15 +347,17 @@ For photoplethysmographic signals, the network correctly identified 375 samples 
 \centering
 \caption{Wave peak detection parameters}
 \label{tab:metrics_ppg}
-\begin{tabular}{|c|c|p{4.6cm}|}
-\hline
-\textbf{Metric} & \textbf{Value} & \textbf{Description} \\
-\hline
-Accuracy & 98.17\% & Percentage of correctly classified samples. \\
-Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
-Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
-\hline
-\end{tabular}
+\resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c|c|p{4.6cm}|}
+    \hline
+    \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
+    \hline
+    Accuracy & 98.17\% & Percentage of correctly classified samples. \\
+    Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
+    Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
+    \hline
+    \end{tabular}
+}
 \end{table}
 
 \subsection{PTT estimation}
@@ -398,7 +400,7 @@ Total heart rate variability value, calculated based on all RR intervals express
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
 \end{equation}
 where $Mean$ – average RR interval length, $RR_i$ – $i$-th RR interval, a $N$ – analyzed interval count. 
-\newpage
+
 \noindent\textit{3) Square root of averaged squares of differences between subsequent NN intervals:} 
 Benchmark used in short-term heart rate fluctuations assessment expressed with the Formula (6):
 \begin{equation}
@@ -535,8 +537,6 @@ HRV parameters were calculated dynamically using a 60-second moving window. The 
     \caption{Waveforms of HRV indicators computed for the \textbf{PPG signal}. }
     \label{fig:hrv_ppg}
 \end{figure}
-
-For comparison, the same set of HRV indicators computed from the reference ECG signals is presented below.
 
 \begin{figure}[htbp]
     \centering
