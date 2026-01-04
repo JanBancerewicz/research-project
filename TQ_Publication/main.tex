@@ -95,33 +95,19 @@ De Ridder et al. \cite{19} conducted a systematic review of mobile applications 
 \subsection{Reference Algorithms: Pan-Tompkins}
 The Pan-Tompkins algorithm is a classic method for R-peak detection in ECG signals, widely used as a baseline for comparison. It is based on multi-step processing: the first phase involves band-pass suppression of low and high-frequency distortionary components. Waveform differentiation enhances the steep slopes of the QRS complex. Subsequently, the mean of the squared samples is computed in a moving integration window. The final peak detection is realized using analysis of the integrated curve and local maximums \cite{27}.
 
-%Opis systemu i danych
-%Akwizycja danych
-%Akwizycja danych EKG
-\section{System and data characterization}
-This section outlines the comprehensive system architecture designed for heart rate variability (HRV) analysis. The solution integrates signal acquisition, preprocessing, and advanced machine learning techniques to ensure robust performance. The workflow begins with data acquisition from dual sources: video input for photoplethysmography (PPG) and chest-strap sensors for electrocardiography (ECG). The raw data undergoes signal extraction and digital filtration to remove noise and motion artifacts. Subsequently, the processed signals are segmented and fed into a hybrid deep learning model combining Convolutional Neural Networks (CNN) and Long Short-Term Memory (LSTM) layers. The model output allows for precise peak detection, which serves as the basis for the final Heart Rate Variability (HRV) calculation. The complete data processing pipeline is illustrated in Figure~\ref{fig:system_diagram}.
-
+%Opis systemu
+\section{System Architecture}
 %\ref{fig:system_diagram}
 %TODO dopisac o diagramie, wkleic diagram, dodac opis
 
-
-\subsection{Data acquisition}
-\subsubsection{ECG data acquisition}
-Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis.
-% Dane wykorzystane do trenowania i walidacji modelu detekcji załamków R zostały pozyskane za pomocą pulsometru Polar H10, zdolnego do rejestrowania sygnału elektrokardiograficznego z częstotliwością próbkowania wynoszącą 130 Hz. Przyjęta wartość umożliwia charakterystykę przebiegu istotną dla analizy HRV.
-
-The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
-%Sensor Polar H10 jest czujnikiem tętna stosowanym w sporcie oraz diagnostyce. Działanie urządzenia opiera się na elektrodach piersiowych rejestrujących potencjały elektryczne związane z aktywnością serca, zapewniając wyższą precyzję pomiaru w porównaniu z metodami optycznymi. Transmisja przebiegu realizowana jest poprzez standard Bluetooth Low Energy, a pamięć wewnętrzna umożliwia zapis danych w trybie offline. Dokładność detekcji Polar H10 jest zbliżona do systemów EKG jednokanałowych stosowanych w diagnostyce klinicznej, umożliwiając zastosowanie w mobilnym rejestrowaniu sygnału \cite{21}.
-
-% 7# korekta odnośnie data acquisition
-To collect the training dataset, eight measurement sessions were conducted with five participants. Each recording contained approximately 230,000 samples, corresponding to about 30 minutes of continuous signal per session. Data was transmitted in real time in 13-point packets, consistent with the established sampling rate, and subsequently stored in CSV format. These recordings captured varied heart rate dynamics and were used exclusively for model training to prevent data leakage.
-%W celu zebrania zbioru treningowego przeprowadzono osiem sesji pomiarowych. Każde nagranie zawierało około 230 000 próbek, co odpowiada około 30 minutom ciągłego sygnału. Całkowity czas trwania zbioru przekroczył 230 minut (ok. 4 godziny). Nagrania te, obejmujące zróżnicowaną dynamikę tętna, zostały wykorzystane wyłącznie do trenowania modelu, aby zapobiec wyciekowi danych.
-
 \begin{figure}[htbp]
     \centering
-    \resizebox{!}{0.45\textheight}{
+    % Zmieniono resizebox na \columnwidth, aby zachować szerokość kolumny,
+    % a wysokość dostosuje się sama (będzie niższa dzięki zmianom w tikzpicture)
+    \resizebox{\columnwidth}{!}{
     \begin{tikzpicture}[
-        node distance=0.8cm and 0.5cm, 
+        % Zmniejszono odstęp pionowy z 0.8cm na 0.5cm (to kluczowe dla wysokości)
+        node distance=0.5cm and 0.5cm, 
         auto,
         block/.style={
             rectangle, 
@@ -130,7 +116,8 @@ To collect the training dataset, eight measurement sessions were conducted with 
             text width=3cm, 
             text centered, 
             rounded corners, 
-            minimum height=1cm,
+            % Zmniejszono minimalną wysokość bloku z 1cm na 0.85cm
+            minimum height=0.85cm,
             font=\footnotesize
         },
         cloud/.style={
@@ -148,20 +135,23 @@ To collect the training dataset, eight measurement sessions were conducted with 
         \node [cloud] (input) {Input Sources};
         
         % Lewa kolumna (PPG)
-        \node [block, below left=0.8cm and 0.2cm of input] (camera) {Smartphone Camera (PPG)};
+        % Zmniejszono odstęp początkowy z 0.8cm na 0.5cm
+        \node [block, below left=0.5cm and 0.2cm of input] (camera) {Smartphone Camera (PPG)};
         \node [block, below=of camera] (ppg_filt) {Band-pass Filter (0.5-5 Hz)};
         \node [block, below=of ppg_filt] (norm) {Normalization \& Segmentation};
         \node [block, below=of norm] (cnn) {CNN Model (Peak Detection)};
         
         % Prawa kolumna (ECG)
-        \node [block, below right=0.8cm and 0.2cm of input] (polar) {Polar H10 Sensor (ECG)};
+        % Zmniejszono odstęp początkowy z 0.8cm na 0.5cm
+        \node [block, below right=0.5cm and 0.2cm of input] (polar) {Polar H10 Sensor (ECG)};
         \node [block, below=of polar] (ecg_filt) {Band-pass Filter (0.5-45 Hz)};
         \node [block, below=of ecg_filt] (seg) {Segmentation (256 samples)};
         \node [block, below=of seg] (cnn_lstm) {CNN+LSTM Model (R-peak)};
         
         % Połączenie (Merge) - wyliczamy środek pod kolumnami
         \path (cnn.south) -- (cnn_lstm.south) coordinate[midway] (center_point);
-        \node [block, below=0.8cm of center_point] (peaks) {Peak Timestamp Extraction};
+        % Zmniejszono odstęp przed połączeniem z 0.8cm na 0.5cm
+        \node [block, below=0.5cm of center_point] (peaks) {Peak Timestamp Extraction};
         
         % Wynik
         \node [block, below=of peaks] (hrv) {HRV Calculation (SDNN, RMSSD)};
@@ -194,16 +184,12 @@ To collect the training dataset, eight measurement sessions were conducted with 
     \label{fig:system_diagram}
 \end{figure}
 
-% Akwizycja danych PPG
-% Aplikacja mobilna
-\subsubsection{PPG data acquisition}
-\paragraph{Mobile application}
-An Android-based application utilizing the photoplethysmographic method for heart rate measurement was developed. Signal acquisition was performed by placing the participant’s fingertip directly on the camera lens, illuminated by the integrated LED light source. This setup enabled the detection of optical changes caused by cyclical variations in blood volume within the skin’s microvascular vessels.
-%Zaprojektowano oprogramowanie w systemie Android realizujące pomiar tętna metodą fotopletyzmografii. Rejestrację sygnału przeprowadzono poprzez umieszczenie opuszka palca bezpośrednio na obiektywie kamery oraz zintegrowanym źródle LED, umożliwiając detekcję zmian optycznych wywołanych cyklicznymi wahaniami objętości krwi w tkankach skórnych. 
-%\newpage
-Heart rate monitors are widely applied in clinical environments to acquire photoplethysmographic measurements, where they are characterized by high precision and stability. In mobile applications, the signal quality is generally sufficient for use in home environments, while maintaining the advantages of universality, low cost, and broad hardware accessibility.
-% Dla zastosowań klinicznych wykorzystuje się pulsometry do pozyskiwania przebiegu PPG, cechujące się wysoką precyzją i stabilnością akwizycji. W środowisku mobilnym jakość odczytanego zapisu jest wystarczająca, zapewniając działanie w warunkach domowych przy zachowaniu uniwersalności pomiarów, niskiego kosztu i łatwej dostępności sprzętu.
-The architecture operates in a modular fashion. For photoplethysmography, the video stream from the smartphone camera is converted into a 1D signal, filtered to remove motion artifacts, and segmented for the convolutional neural network (CNN). Simultaneously, the electrocardiographic signal acquired via Bluetooth is preprocessed and fed into a hybrid CNN-LSTM network. Both models output probability maps of peak locations, which are then converted into precise timestamps. Finally, these temporal markers are used to compute time-domain HRV indices, such as SDNN and RMSSD.
+This section outlines the comprehensive system architecture designed for heart rate variability (HRV) analysis. The solution integrates signal acquisition (which is discussed in further section), preprocessing, and advanced machine learning techniques to ensure robust performance. The workflow begins with data acquisition from dual sources: video input for photoplethysmography (PPG) and chest-strap sensors for electrocardiography (ECG). The raw data undergoes signal extraction and digital filtration to remove noise and motion artifacts. Subsequently, the processed signals are segmented and fed into a hybrid deep learning model combining Convolutional Neural Networks (CNN) and Long Short-Term Memory (LSTM) layers. The model output allows for precise peak detection, which serves as the basis for the final Heart Rate Variability (HRV) calculation. The complete data processing pipeline is illustrated in Figure~\ref{fig:system_diagram}.
+
+%TODO: Heart rate monitors are widely applied in clinical environments to acquire photoplethysmographic measurements, where they are characterized by high precision and stability. In mobile applications, the signal quality is generally sufficient for use in home environments, while maintaining the advantages of universality, low cost, and broad hardware accessibility.
+
+
+% TODO: The architecture operates in a modular fashion. For photoplethysmography, the video stream from the smartphone camera is converted into a 1D signal, filtered to remove motion artifacts, and segmented for the convolutional neural network (CNN). Simultaneously, the electrocardiographic signal acquired via Bluetooth is preprocessed and fed into a hybrid CNN-LSTM network. Both models output probability maps of peak locations, which are then converted into precise timestamps. Finally, these temporal markers are used to compute time-domain HRV indices, such as SDNN and RMSSD.
 
 %Filtracja sygnału - filtr Butterwortha
 \subsection{Signal filtration - Butterworth filter}
@@ -253,38 +239,7 @@ Conv1D-4 & 64  & 128 & 3 & 1 & LReLU+BN \\
 Model was trained in a supervised mode based on the signals acquired from Polar H10 detector. Each point is assigned a binary label identifying the presence or absence of an extremum. Labels were then used for pattern classification corresponding to actual R peaks.
 %Model was trained in a supervised mode based on the signals acquired from Polar H10 detector. Actual R peaks in a filtered ECG record have been computed using the Pan-Tompkins algorithm based on multi-step processing. The first phase is band-pass suppression of low and high frequency distortionary components. Waveform differentiation enhances the steep slopes of the QRS complex. Subsequently, the mean of the squared samples is computed in a moving integration window. The final peak detection is realized using analysis of the integrated curve and local maximums \cite{27}.
 %Each point is assigned a binary label identifying the presence or absence of an extremum. Labels were then used for pattern classification corresponding to actual R peaks.
-Learning process was performed in mini-batches of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used for optimization with a constant learning rate of 0.0001. The accuracy of the developed neural network has been assessed based on the results obtained from an independent dataset using the model's trained parameters. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix}.
-
-\begin{table}[ht]
-\centering
-\caption{Confusion matrix for R peak detection}
-\label{tab:conf_matrix}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Actual / Prediction} & \textbf{No peak } & \textbf{Peak } \\
-\hline
-No peak  & 231170 & 53 \\
-Peak  & 83 & 2678 \\
-\hline
-\end{tabular}
-\end{table}
-
-A total of 231170 samples not containing an R peak and 2678 samples with actual R peaks were correctly classified by the model. The number of false positive predictions totaled 53, while the number of false negatives was 83. The F1 score of 0.9753 indicates a good balance between precision and sensitivity, which is a key feature in automated electrocardiographic signal analysis. Basic quality assessment metrics are presented in Chart~\ref{tab:metrics}.
-
-\begin{table}[ht]
-\centering
-\caption{R peak detection parameters}
-\label{tab:metrics}
-\begin{tabular}{|c|c|p{4.6cm}|}
-\hline
-\textbf{Metric} & \textbf{Value} & \textbf{Description} \\
-\hline
-Accuracy & 96.99\% & A percentage of correct classifications of R peaks or lack thereof. \\
-Incorrect detections & 0.00\% & A percentage of samples falsely classified as containing R peaks. \\
-Skipped peaks & 3.01\% & A percentage of samples with undetected actual R peaks. \\
-\hline
-\end{tabular}
-\end{table}
+Learning process was performed in mini-batches of 32 elements using the BCEWithLogitsLoss loss function. Adam algorithm was used for optimization with a constant learning rate of 0.0001. 
 
 %Model do wykrywania szczytów fali
 \subsubsection{Wave peak detection model}
@@ -322,45 +277,9 @@ The squeeze-excitation (SE) module increases the model’s selectivity, improvin
 \end{table}
 
 % 7# korekta tego jak algosem wyliczamy dane potrzebne do trenowania PPG
-The supervised learning process for PPG data was performed on signal segments acquired from a mobile device, which were preprocessed using filtration and normalized to the range [-1, 1]. To enable model training without manual annotation, a weak supervision strategy was employed. Ground truth labels were generated algorithmically using a heuristic peak detection method based on signal prominence and minimum time distance between beats. A binary target vector was assigned to each segment, where indices corresponding to identified maxima were marked as 1, allowing the network to learn the morphological features of the systolic peak. The network was trained on 50-sample waveform fragments in mini-batches of 32, using the BCELoss function and the Adam optimizer with a constant learning rate of 0.001. The performance of the developed model was evaluated on an independent dataset using the parameters obtained during training. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix_ppg}.
+The supervised learning process for PPG data was performed on signal segments acquired from a mobile device, which were preprocessed using filtration and normalized to the range [-1, 1]. To enable model training without manual annotation, a weak supervision strategy was employed. Ground truth labels were generated algorithmically using a heuristic peak detection method based on signal prominence and minimum time distance between beats. A binary target vector was assigned to each segment, where indices corresponding to identified maxima were marked as 1, allowing the network to learn the morphological features of the systolic peak. The network was trained on 50-sample waveform fragments in mini-batches of 32, using the BCELoss function and the Adam optimizer with a constant learning rate of 0.001. 
 
-%Macierz konfuzji dla detekcji pików fali
-\begin{table}[ht]
-\centering
-\caption{Confusion matrix for wave peaks detection}
-\label{tab:conf_matrix_ppg}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Actual / Prediction} & \textbf{No peak } & \textbf{Peak} \\
-\hline
-No peak  & 9609 & 9 \\
-
-Peak  & 7 & 375 \\
-\hline
-\end{tabular}
-\end{table}
-
-For photoplethysmographic signals, the network correctly identified 375 samples containing a wave peak and 9609 samples without one. Incorrect predictions included 9 false positives and 7 false negatives. The obtained F1 score of 0.9774 is comparable to that of the ECG model, confirming the validity of the applied approach for analyzing both signal types. Basic quality assessment metrics for the architecture are presented in Chart~\ref{tab:metrics_ppg}.
-
-%Parametry detekcji szczytów fali
-\begin{table}[ht]
-\centering
-\caption{Wave peak detection parameters}
-\label{tab:metrics_ppg}
-\resizebox{\columnwidth}{!}{
-    \begin{tabular}{|c|c|p{4.6cm}|}
-    \hline
-    \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
-    \hline
-    Accuracy & 98.17\% & Percentage of correctly classified samples. \\
-    Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
-    Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
-    \hline
-    \end{tabular}
-}
-\end{table}
-
-\subsection{PTT estimation}
+\subsection{Pulse Transit Time estimation}
 Different timestamp schemes are used during ECG and PPG recordings. In electrocardiography, R peak occurrences are defined relative to the start of acquisition and saved in seconds as relative time. During data processing, these values are converted to absolute UNIX time, allowing comparison with the PPG waveform. In photoplethysmography, wave peak detection is recorded directly using the system time.
 
 To unify the time systems, ECG data are converted from relative time to UNIX timestamps according to Equation (2).
@@ -409,7 +328,7 @@ Benchmark used in short-term heart rate fluctuations assessment expressed with t
 where $RR_i$ -- $i$-th RR interval, a $N$ – analyzed interval count.
 
 % --- SECTION 4: Experimental Setup ---
-\section{Experimental Setup and Data}
+\section{Experimental Setup and Data characterization}
 
 \subsection{ECG Data Acquisition}
 Data used for R-peak detection model training and validation was acquired using the Polar H10 heart monitor, which is capable of recording electrocardiographic signals at a sampling frequency of 130 Hz. This resolution enables the creation of a profile essential for HRV analysis. The Polar H10 sensor is a heart rate detector commonly used in sports and diagnostics. The device employs chest electrodes to register electric potentials associated with cardiac activity, providing higher measurement precision compared to optical methods. Data transmission is carried out via the Bluetooth Low Energy (BLE) standard, while internal memory allows offline storage of recordings. The accuracy of the Polar H10 is comparable to that of single-channel ECG systems used in clinical diagnostics, making mobile signal acquisition feasible \cite{21}.
@@ -453,6 +372,40 @@ Data transmission between the smartphone and the server was carried out using th
 \subsection{R peak detection accuracy verification}
 The performance of the convolutional network architecture for R peak detection in electrocardiographic signals was evaluated against the classic Pan-Tompkins algorithm and reference R peaks obtained using the NeuroKit library, which serves as a gold standard. The signal was sampled at 130 Hz and processed in nonoverlapping segments containing 256 samples.
 
+% DODANO: 
+The accuracy of the developed neural network has been assessed based on the results obtained from an independent dataset using the model's trained parameters. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix}.
+
+\begin{table}[ht]
+\centering
+\caption{Confusion matrix for R peak detection}
+\label{tab:conf_matrix}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Actual / Prediction} & \textbf{No peak } & \textbf{Peak } \\
+\hline
+No peak  & 231170 & 53 \\
+Peak  & 83 & 2678 \\
+\hline
+\end{tabular}
+\end{table}
+
+A total of 231170 samples not containing an R peak and 2678 samples with actual R peaks were correctly classified by the model. The number of false positive predictions totaled 53, while the number of false negatives was 83. The F1 score of 0.9753 indicates a good balance between precision and sensitivity, which is a key feature in automated electrocardiographic signal analysis. Basic quality assessment metrics are presented in Chart~\ref{tab:metrics}.
+
+\begin{table}[ht]
+\centering
+\caption{R peak detection parameters}
+\label{tab:metrics}
+\begin{tabular}{|c|c|p{4.6cm}|}
+\hline
+\textbf{Metric} & \textbf{Value} & \textbf{Description} \\
+\hline
+Accuracy & 96.99\% & A percentage of correct classifications of R peaks or lack thereof. \\
+Incorrect detections & 0.00\% & A percentage of samples falsely classified as containing R peaks. \\
+Skipped peaks & 3.01\% & A percentage of samples with undetected actual R peaks. \\
+\hline
+\end{tabular}
+\end{table}
+
 The total number of detected maxima was 54 for the model, 56 using the Pan-Tompkins method, and 56 for the reference data. The results are presented in Table~\ref{tab:peak_comparison}, showing the number of True Positives, False Positives, and False Negatives, as well as the computed precision, sensitivity, and F1 scores, with a tolerance corresponding to 1–2 waveform samples. Visual comparisons of the detection performance are shown in Figure~\ref{fig:ai_pan-tompkins} and Figure~\ref{fig:ai_real_peaks}.
 
 \begin{table}[ht]
@@ -489,6 +442,44 @@ The network’s performance in detecting R peaks is comparable to the classic Pa
 %Weryfikacja skuteczności detekcji pików fali
 \subsection{Wave peak detection accuracy verification}
 Peak identification in photoplethysmographic waveforms was performed using the convolutional network and a reference signal obtained through band-pass filtering and local maximum detection. The data were divided into segments of 100 samples each and normalized to the range [-1, 1]. In windowed mode, the model predictions were converted into point indices corresponding to potential wave peaks.
+
+The performance of the developed model was evaluated on an independent dataset using the parameters obtained during training. Classification results are presented as a confusion matrix in Chart~\ref{tab:conf_matrix_ppg}.
+
+%Macierz konfuzji dla detekcji pików fali
+\begin{table}[ht]
+\centering
+\caption{Confusion matrix for wave peaks detection}
+\label{tab:conf_matrix_ppg}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Actual / Prediction} & \textbf{No peak } & \textbf{Peak} \\
+\hline
+No peak  & 9609 & 9 \\
+
+Peak  & 7 & 375 \\
+\hline
+\end{tabular}
+\end{table}
+
+For photoplethysmographic signals, the network correctly identified 375 samples containing a wave peak and 9609 samples without one. Incorrect predictions included 9 false positives and 7 false negatives. The obtained F1 score of 0.9774 is comparable to that of the ECG model, confirming the validity of the applied approach for analyzing both signal types. Basic quality assessment metrics for the architecture are presented in Chart~\ref{tab:metrics_ppg}.
+
+%Parametry detekcji szczytów fali
+\begin{table}[ht]
+\centering
+\caption{Wave peak detection parameters}
+\label{tab:metrics_ppg}
+\resizebox{\columnwidth}{!}{
+    \begin{tabular}{|c|c|p{4.6cm}|}
+    \hline
+    \textbf{Metric} & \textbf{Value} & \textbf{Description} \\
+    \hline
+    Accuracy & 98.17\% & Percentage of correctly classified samples. \\
+    Incorrect detections & 0.52\% & Percentage of samples falsely classified as containing the wave peak. \\
+    Skipped peaks & 1.83\% & Percentage of sample with undetected actual wave peak. \\
+    \hline
+    \end{tabular}
+}
+\end{table}
 
 The machine learning algorithm detected 76 peaks, while the reference set contained 72. Detection performance was evaluated within a tolerance window of 264 ms, corresponding to 8 samples at a sampling rate of 30 Hz, using True Positive, False Positive, and False Negative metrics. The model produced 61 TP, 15 FP, and 11 FN, resulting in a precision of 0.803, a sensitivity of 0.847, and an F1 score of 0.824.
 
