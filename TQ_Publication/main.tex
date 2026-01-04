@@ -3,7 +3,7 @@
 % -- PREAMBLE --
 \usepackage{float}
 \usepackage{graphicx}
-% Pakiety do diagramu (Issue #5)
+% Pakiety do diagramu
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning}
 
@@ -106,72 +106,73 @@ This section outlines the comprehensive system architecture designed for heart r
 
 \begin{figure}[htbp]
     \centering
-    % Zmieniono szerokość na 0.6\textwidth (60% szerokości strony)
-    \resizebox{0.45\textwidth}{!}{
+    \resizebox{!}{0.45\textheight}{
     \begin{tikzpicture}[
-        node distance=1.5cm,
+        node distance=0.8cm and 0.5cm, 
         auto,
         block/.style={
             rectangle, 
             draw, 
             fill=blue!10, 
-            text width=2.5cm, 
+            text width=3cm, 
             text centered, 
             rounded corners, 
-            minimum height=1.2cm
+            minimum height=1cm,
+            font=\footnotesize
         },
         cloud/.style={
             draw, 
             ellipse, 
             fill=red!10, 
-            node distance=2.5cm,
-            minimum height=1cm
-        },
-        decision/.style={
-            diamond, 
-            draw, 
-            fill=green!10, 
-            text width=1.5cm, 
-            text centered, 
-            inner sep=0pt
+            minimum height=0.8cm,
+            font=\footnotesize\bfseries
         },
         line/.style={draw, -latex', thick}
     ]
-        % Nodes
+        % -- Węzły (Nodes) --
+        
+        % Wejście
         \node [cloud] (input) {Input Sources};
         
-        % PPG Path
-        \node [block, below left=1cm and 0.5cm of input] (camera) {Smartphone Camera (PPG)};
-        \node [block, below of=camera] (ppg_filt) {Band-pass Filter (0.5-5 Hz)};
-        \node [block, below of=ppg_filt] (norm) {Normalization \& Segmentation};
-        \node [block, below of=norm] (cnn) {CNN Model (Peak Detection)};
+        % Lewa kolumna (PPG)
+        \node [block, below left=0.8cm and 0.2cm of input] (camera) {Smartphone Camera (PPG)};
+        \node [block, below=of camera] (ppg_filt) {Band-pass Filter (0.5-5 Hz)};
+        \node [block, below=of ppg_filt] (norm) {Normalization \& Segmentation};
+        \node [block, below=of norm] (cnn) {CNN Model (Peak Detection)};
         
-        % ECG Path
-        \node [block, below right=1cm and 0.5cm of input] (polar) {Polar H10 Sensor (ECG)};
-        \node [block, below of=polar] (ecg_filt) {Band-pass Filter (0.5-45 Hz)};
-        \node [block, below of=ecg_filt] (seg) {Segmentation (256 samples)};
-        \node [block, below of=seg] (cnn_lstm) {CNN+LSTM Model (R-peak)};
+        % Prawa kolumna (ECG)
+        \node [block, below right=0.8cm and 0.2cm of input] (polar) {Polar H10 Sensor (ECG)};
+        \node [block, below=of polar] (ecg_filt) {Band-pass Filter (0.5-45 Hz)};
+        \node [block, below=of ecg_filt] (seg) {Segmentation (256 samples)};
+        \node [block, below=of seg] (cnn_lstm) {CNN+LSTM Model (R-peak)};
         
-        % Merge
-        \node [block, below right=1cm and -0.5cm of cnn] (peaks) {Peak Timestamp Extraction};
-        \node [block, below of=peaks] (hrv) {HRV Calculation (SDNN, RMSSD)};
+        % Połączenie (Merge) - wyliczamy środek pod kolumnami
+        \path (cnn.south) -- (cnn_lstm.south) coordinate[midway] (center_point);
+        \node [block, below=0.8cm of center_point] (peaks) {Peak Timestamp Extraction};
         
-        % Edges
+        % Wynik
+        \node [block, below=of peaks] (hrv) {HRV Calculation (SDNN, RMSSD)};
+        
+        % -- Ścieżki (Paths) --
+        
+        % Od góry do kolumn
         \path [line] (input) -| (camera);
         \path [line] (input) -| (polar);
         
-        % PPG Flow
+        % Połączenia w kolumnach
         \path [line] (camera) -- (ppg_filt);
         \path [line] (ppg_filt) -- (norm);
         \path [line] (norm) -- (cnn);
-        \path [line] (cnn) |- (peaks);
         
-        % ECG Flow
         \path [line] (polar) -- (ecg_filt);
         \path [line] (ecg_filt) -- (seg);
         \path [line] (seg) -- (cnn_lstm);
-        \path [line] (cnn_lstm) |- (peaks);
         
+        % Połączenia do wspólnego bloku (zakrzywione)
+        \path [line] (cnn.south) |- (peaks.west);
+        \path [line] (cnn_lstm.south) |- (peaks.east);
+        
+        % Koniec
         \path [line] (peaks) -- (hrv);
         
     \end{tikzpicture}
@@ -300,22 +301,24 @@ The squeeze-excitation (SE) module increases the model’s selectivity, improvin
 \centering
 \caption{Convolutional network's block parameters}
 \label{tab:ppg_layers}
-\begin{tabular}{|l|c|c|c|c|c|}
-\hline
-\textbf{Block} & \textbf{In.} & \textbf{Out.} & \textbf{Filter} & \textbf{Padding} & \textbf{Act./Norm.} \\
-\hline
-Conv1D & 1 & 32 & 7 & 3 & GELU+BN \\
-ResidualBlock 1 & 32 & 64 & 9 & 4 & GELU+BN+DO \\
-ResidualBlock 2 & 64 & 128 & 5 & 2 & GELU+BN+DO \\
-ResidualBlock 3 & 128 & 128 & 3 & 1 & GELU+BN+DO\\
-ResidualBlock 4 & 128 & 128 & 7 & 3 & GELU+BN+DO \\
-SEBlock & 128 & 128 & – & – & SE scaling \\
-Conv1D  & 128 & 64 & 1 & 0 & GELU+BN \\
-FC & 128 & 64 & – & – & GELU \\
-FC & 64 & 32 & – & – & GELU \\
-Output & 32 & 1 & – & – & Sigmoid \\
-\hline
-\end{tabular}
+\resizebox{\columnwidth}{!}{
+    \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    \textbf{Block} & \textbf{In.} & \textbf{Out.} & \textbf{Filter} & \textbf{Padding} & \textbf{Act./Norm.} \\
+    \hline
+    Conv1D & 1 & 32 & 7 & 3 & GELU+BN \\
+    ResidualBlock 1 & 32 & 64 & 9 & 4 & GELU+BN+DO \\
+    ResidualBlock 2 & 64 & 128 & 5 & 2 & GELU+BN+DO \\
+    ResidualBlock 3 & 128 & 128 & 3 & 1 & GELU+BN+DO\\
+    ResidualBlock 4 & 128 & 128 & 7 & 3 & GELU+BN+DO \\
+    SEBlock & 128 & 128 & – & – & SE scaling \\
+    Conv1D  & 128 & 64 & 1 & 0 & GELU+BN \\
+    FC & 128 & 64 & – & – & GELU \\
+    FC & 64 & 32 & – & – & GELU \\
+    Output & 32 & 1 & – & – & Sigmoid \\
+    \hline
+    \end{tabular}
+}
 \end{table}
 
 % 7# korekta tego jak algosem wyliczamy dane potrzebne do trenowania PPG
@@ -432,8 +435,8 @@ The recorded signal is processed using a low-pass filter. Peak detection is perf
 \end{equation}
 where $\Delta t$  - average time span between consecutive signal peaks
 
-The source code of the developed mobile application has been hosted at the address:
-\href{https://github.com/JanBancerewicz/PPGbetter}{https://github.com/JanBancerewicz/PPGbetter}
+The source code of the developed mobile application has been hosted at the address: \\
+\url{https://github.com/JanBancerewicz/PPGbetter}
 
 \paragraph{Signal recording method}
 Data used to train and validate the wave peak detection model was acquired using the developed application. Images were captured in real time in the YUV 4:2:0 format at a resolution of 640×480 pixels. From each frame, the luma component was extracted, and the average brightness value was computed. The resulting value represents a single sample of the raw photoplethysmographic signal.
@@ -448,7 +451,7 @@ Data transmission between the smartphone and the server was carried out using th
 \subsection{R peak detection accuracy verification}
 The performance of the convolutional network architecture for R peak detection in electrocardiographic signals was evaluated against the classic Pan-Tompkins algorithm and reference R peaks obtained using the NeuroKit library, which serves as a gold standard. The signal was sampled at 130 Hz and processed in nonoverlapping segments containing 256 samples.
 
-The total number of detected maxima was 54 for the model, 56 using the Pan-Tompkins method, and 56 for the reference data. The results are presented in Chart~\ref{tab:peak_comparison}, showing the number of True Positives, False Positives, and False Negatives, as well as the computed precision, sensitivity, and F1 scores, with a tolerance corresponding to 1–2 waveform samples.
+The total number of detected maxima was 54 for the model, 56 using the Pan-Tompkins method, and 56 for the reference data. The results are presented in Table~\ref{tab:peak_comparison}, showing the number of True Positives, False Positives, and False Negatives, as well as the computed precision, sensitivity, and F1 scores, with a tolerance corresponding to 1–2 waveform samples. Visual comparisons of the detection performance are shown in Figure~\ref{fig:ai_pan-tompkins} and Figure~\ref{fig:ai_real_peaks}.
 
 \begin{table}[ht]
 \caption{Extrema detecting techniques assessment}
@@ -496,65 +499,72 @@ The machine learning algorithm detected 76 peaks, while the reference set contai
 \end{figure}
 
 %\newpage
-The results indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
+The results, as illustrated in Figure~\ref{fig:ppg_ai_real_peaks}, indicate a high agreement between the network and the reference photoplethysmographic waveform maxima. The low number of false detections was primarily due to interferences and limitations of short-segment analysis. These results suggest the practical utility of the network in digital biomedical signal processing.
 
 \subsection{HRV Analysis Results}
-\begin{figure}[h]
+
+HRV parameters were calculated dynamically using a 60-second moving window. The results are presented in Figure~\ref{fig:hrv_ppg} for the PPG signal and Figure~\ref{fig:hrv_ecg} for the reference ECG signal. Each figure is divided into three panels illustrating the time course of key metrics:
+
+\begin{itemize}
+    \item \textbf{Panel (a)} shows the \textbf{Average RR interval length}. This metric reflects the instantaneous heart rate; rhythmic fluctuations visible in this plot typically correspond to respiratory sinus arrhythmia.
+    \item \textbf{Panel (b)} presents the \textbf{SDNN} (Standard Deviation of NN intervals). This parameter measures total heart rate variability and indicates the overall autonomic nervous system activity over the analyzed window.
+    \item \textbf{Panel (c)} displays the \textbf{RMSSD} (Root Mean Square of Successive Differences). This metric reflects short-term variations in heart rate and is primarily associated with parasympathetic activity.
+\end{itemize}
+
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.47\textwidth}
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/Mean.png}
         \caption{Average RR interval length}
     \end{subfigure}
     
-   \vspace{0.2cm} 
-    \begin{subfigure}{0.47\textwidth}
+    \vspace{0.2cm} 
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/SDNN.png}
-        \caption{Standard deviation of NN intervals}
+        \caption{Standard deviation of NN intervals (SDNN)}
     \end{subfigure}
     
     \vspace{0.2cm}  
-    \begin{subfigure}{0.47\textwidth}
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/RMSSD.png}
-        \caption{Square root of average of squares of differences}
+        \caption{Square root of average of squares of differences (RMSSD)}
     \end{subfigure}  
-    \caption{Exemplary waveforms of HRV indicators computed for PPG}
+    \caption{Waveforms of HRV indicators computed for the \textbf{PPG signal}. }
+    \label{fig:hrv_ppg}
 \end{figure}
 
-\newpage
-A 60-second dynamic window was used for real-time processing. R peak markers and their corresponding intervals were updated online, while samples outside the window were discarded. SDNN, RMSSD, and average intervals between heartbeats were all presented as figures.
-%Added na dole:::
+For comparison, the same set of HRV indicators computed from the reference ECG signals is presented below.
 
-For comparison, HRV indicator waveforms computed from ECG signals are also shown:
-
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.47\textwidth}
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/MEAN_EKG.png}
-        \caption{RR intervals for ECG}
+        \caption{Average RR interval length (ECG)}
     \end{subfigure}
     
-   \vspace{0.2cm} 
-    \begin{subfigure}{0.49\textwidth}
+    \vspace{0.2cm} 
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/SDNN_EKG.png}
-        \caption{Standard deviation of NN intervals}
+        \caption{Standard deviation of NN intervals (SDNN) (ECG)}
     \end{subfigure}
     
     \vspace{0.2cm}  
-    \begin{subfigure}{0.47\textwidth}
+    \begin{subfigure}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{RMSSD_EKG.png}
-        \caption{Square root of an average of squares of differences of NN intervals}
+        % POPRAWKA: Dodano folder images/ przed nazwą pliku
+        \includegraphics[width=\linewidth]{images/RMSSD_EKG.png}
+        \caption{Square root of average of squares of differences (RMSSD) (ECG)}
     \end{subfigure}  
-    \caption{Exemplary waveform of HRV indicators calculated for ECG}
+    \caption{Waveforms of HRV indicators calculated for the \textbf{reference ECG}.}
+    \label{fig:hrv_ecg}
 \end{figure}
 
-Comparison of HRV indicators between PPG and ECG methods showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method's susceptibility to interferences, such as variations in finger pressure against the camera.
-
+Comparison of HRV indicators between PPG and ECG methods (see Figure~\ref{fig:hrv_ppg} and Figure~\ref{fig:hrv_ecg}) showed that RMSSD and SDNN values calculated from ECG were more stable and less prone to sudden fluctuations. In the case of PPG, greater variability and occasional outlier values were observed. A possible explanation is the method’s susceptibility to interferences, such as variations in finger pressure against the camera.
 Despite the greater variability in PPG waveforms, the average HRV indicator values (SDNN and RMSSD) are similar to those obtained from ECG. This finding confirms that, under proper recording conditions, PPG can serve as a reliable alternative to ECG for heart rate variability analysis, although it requires additional filtering and artifact compensation.
 
 \section{Summary}
