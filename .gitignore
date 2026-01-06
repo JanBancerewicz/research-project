@@ -6,4 +6,5 @@
 *.out
 # *.pdf
 *.synctex.gz
-main.pdf
+TQ_Publication/main.out
+TQ_Publication/main.pdf

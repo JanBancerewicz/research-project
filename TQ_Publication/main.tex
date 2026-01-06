@@ -279,18 +279,20 @@ The squeeze-excitation (SE) module increases the model’s selectivity, improvin
 % 7# korekta tego jak algosem wyliczamy dane potrzebne do trenowania PPG
 The supervised learning process for PPG data was performed on signal segments acquired from a mobile device, which were preprocessed using filtration and normalized to the range [-1, 1]. To enable model training without manual annotation, a weak supervision strategy was employed. Ground truth labels were generated algorithmically using a heuristic peak detection method based on signal prominence and minimum time distance between beats. A binary target vector was assigned to each segment, where indices corresponding to identified maxima were marked as 1, allowing the network to learn the morphological features of the systolic peak. The network was trained on 50-sample waveform fragments in mini-batches of 32, using the BCELoss function and the Adam optimizer with a constant learning rate of 0.001. 
 
-\subsection{Pulse Transit Time estimation}
+\subsection{Signal Synchronization and Alignment}
 Different timestamp schemes are used during ECG and PPG recordings. In electrocardiography, R peak occurrences are defined relative to the start of acquisition and saved in seconds as relative time. During data processing, these values are converted to absolute UNIX time, allowing comparison with the PPG waveform. In photoplethysmography, wave peak detection is recorded directly using the system time.
 
-To unify the time systems, ECG data are converted from relative time to UNIX timestamps according to Equation (2).
+To unify the time systems, ECG data are converted from relative time to UNIX timestamps according to Equation (\ref{eq:unix_time}).
 \begin{equation}
 t_{\mathrm{UNIX}} = t_{\mathrm{rel}} + t_{0},
+\label{eq:unix_time}
 \end{equation}
 where $t_{\mathrm{UNIX}}$ - time in UNIX format, $t_{\mathrm{rel}}$ – relative time, a $t_{0}$ – beginning of the acquisition.
 
-Waveforms are presented on a single time axis, enabling their automatic synchronization. Peak pairing is performed by assigning each R peak in the electrocardiographic record to the closest extremum in order of occurrence from the photoplethysmographic signal. Not every recorded ECG peak has a corresponding PPG peak, which can be attributed to movement interferences or sample loss. Time differences between matched maxima are defined as the PTT (Pulse Transit Time) and are computed according to Equation (3).
+Waveforms are presented on a single time axis, enabling their automatic synchronization. Peak pairing is performed by assigning each R peak in the electrocardiographic record to the closest extremum in order of occurrence from the photoplethysmographic signal. Not every recorded ECG peak has a corresponding PPG peak, which can be attributed to movement interferences or sample loss. Time differences between matched maxima are defined as the PTT (Pulse Transit Time) and are computed according to Equation (\ref{eq:ptt}).
 \begin{equation}
 PTT = t_{\mathrm{PPG}} - t_{\mathrm{ECG}},
+\label{eq:ptt}
 \end{equation}
 where $t_{\mathrm{PPG}}$, $t_{\mathrm{ECG}}$ - PPG and ECG peak detection moments. 
 
@@ -307,23 +309,26 @@ Descriptive statistics were computed from the value vector, including the mean, 
 Gaps between consecutive heartbeats were analyzed independently in both signals. Relative time was used in electrocardiography, resulting from windowed processing of the samples, whereas in the photoplethysmography system, timestamps were employed to ensure consistency with the recorded waveform and to allow synchronization with different data sources. RR intervals were determined from the ECG recordings, corresponding to the distances between R peaks. For PPG, IBI (Inter-Beat Interval) distances were computed. Based on these values, standard HRV parameters were calculated in RR form, and analogous calculations were performed for IBI.
 
 \noindent\textit{1) Average RR interval length:} 
-Arithmetic mean of RR intervals expressed with the Formula (4):
+Arithmetic mean of RR intervals expressed with the Formula (\ref{eq:mean_rr}):
 \begin{equation}
     Mean = \frac{1}{N} \sum_{i=1}^{N} RR_i
+    \label{eq:mean_rr}
 \end{equation}
 where $RR_i$ -- $i$-th RR interval, and $N$ – analyzed interval count.
 
 \noindent\textit{2) NN intervals standard deviation:} 
-Total heart rate variability value, calculated based on all RR intervals expressed with the Formula (5):%Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
+Total heart rate variability value, calculated based on all RR intervals expressed with the Formula (\ref{eq:sdnn}):%Wielkość całkowitej zmienności rytmu serca, obliczana na podstawie wszystkich interwałów RR, wyrażona wzorem (5):
 \begin{equation}
     SDNN = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (RR_i - Mean)^2}
+    \label{eq:sdnn}
 \end{equation}
 where $Mean$ – average RR interval length, $RR_i$ – $i$-th RR interval, a $N$ – analyzed interval count. 
 
 \noindent\textit{3) Square root of averaged squares of differences between subsequent NN intervals:} 
-Benchmark used in short-term heart rate fluctuations assessment expressed with the Formula (6):
+Benchmark used in short-term heart rate fluctuations assessment expressed with the Formula (\ref{eq:rmssd}):
 \begin{equation}
     RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
+    \label{eq:rmssd}
 \end{equation}
 where $RR_i$ -- $i$-th RR interval, a $N$ – analyzed interval count.
 
@@ -348,7 +353,7 @@ An Android-based application utilizing the photoplethysmographic method for hear
 
 The application provides a user interface enabling real-time PPG waveforms visualization, as illustrated in Fig.~\ref{fig:aplikacja_mobilna}. The upper part of the screen contains a rectangular area displaying the video stream from the smartphone’s rear camera. A uniform red background indicates proper lens occlusion. Below the preview panel, a dynamic signal plot is presented and updated at the sampling frequency, allowing observation of cyclic amplitude variations corresponding to successive heartbeats. The interface includes a “Wdech/Inhale” button, designed as a manual respiratory marker. While this control allows users to tag inhalation onset times, the respiratory analysis was outside the scope of the peak detection performance evaluation presented in this study.
 
-The recorded signal is processed using a low-pass filter. Peak detection is performed by analyzing three consecutive samples of the signal, where the central point is classified as a peak if its value exceeds that of its neighboring points. To prevent false identifications caused by motion artifacts, a newly detected peak is only acknowledged if it occurs at least 600 ms after the previous one. Each identified extremum is stored together with its timestamp and subsequently used to dynamically calculate the Beats Per Minute (BPM) according to Equation (1):
+The recorded signal is processed using a low-pass filter. Peak detection is performed by analyzing three consecutive samples of the signal, where the central point is classified as a peak if its value exceeds that of its neighboring points. To prevent false identifications caused by motion artifacts, a newly detected peak is only acknowledged if it occurs at least 600 ms after the previous one. Each identified extremum is stored together with its timestamp and subsequently used to dynamically calculate the Beats Per Minute (BPM) according to Equation (\ref{eq:bpm}):
 
 \begin{equation}
 \text{BPM} = \frac{60}{\Delta t}
